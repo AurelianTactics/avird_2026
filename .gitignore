@@ -1,2 +1,4 @@
 .claude/settings.local.json
 private/*
+*.pyc
+__pycache__/
