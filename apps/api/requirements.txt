@@ -1,0 +1,5 @@
+# Mirror of [project.dependencies] in pyproject.toml. Required because
+# Railway's builder doesn't reliably resolve pyproject deps for nested
+# Root Directory deploys. Keep in sync when pyproject.toml changes.
+fastapi[standard]>=0.115
+asyncpg>=0.29
