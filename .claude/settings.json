@@ -12,7 +12,7 @@
       "Bash(pytest:*)",
       "Bash(python -m pytest:*)",
       "Bash(python tools/verify_site.py:*)",
-      "Bash(python .claude/hooks/format_on_edit.py:*)"
+      "Bash(python ${CLAUDE_PROJECT_DIR}/.claude/hooks/format_on_edit.py:*)"
     ]
   },
   "hooks": {
@@ -22,7 +22,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python .claude/hooks/format_on_edit.py"
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/format_on_edit.py\""
           }
         ]
       }
