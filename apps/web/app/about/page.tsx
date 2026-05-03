@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function AboutPage() {
   return (
     <main>
@@ -15,7 +17,7 @@ export default function AboutPage() {
       </p>
       <p>Per-phase writeups land under <code>docs/writeups/</code> in the repo.</p>
       <nav>
-        <a href="/">Home</a>
+        <Link href="/">Home</Link>
       </nav>
     </main>
   );

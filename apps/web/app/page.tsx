@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 // Routes that read API_URL must run dynamically — Railway reference variables
 // are populated at request time, not at image build. See docs/conventions/stack.md.
 export const dynamic = 'force-dynamic';
@@ -27,7 +29,7 @@ export default async function HomePage() {
       <p>NHTSA AV crash data — placeholder index for the P0 scaffold.</p>
       <p>API: {status}</p>
       <nav>
-        <a href="/about">About</a>
+        <Link href="/about">About</Link>
       </nav>
     </main>
   );
