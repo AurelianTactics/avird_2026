@@ -1,3 +1,37 @@
+# Claude Code (user-local)
 .claude/settings.local.json
-private/*
 .claude/scheduled_tasks.lock
+
+# Project-private notes
+private/*
+
+# Node / Next.js
+node_modules/
+.next/
+dist/
+out/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+.env
+.env.local
+.env.*.local
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/

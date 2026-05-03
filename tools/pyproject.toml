@@ -1,0 +1,22 @@
+[project]
+name = "avird-tools"
+version = "0.0.0"
+description = "Repo-wide scripts for avird-2026 (verify_site, etc.)"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

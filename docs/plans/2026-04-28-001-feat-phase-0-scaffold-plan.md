@@ -1,7 +1,7 @@
 ---
 title: "feat: Phase 0 scaffold — Next.js + FastAPI + Postgres on Railway with compound-engineering substrate"
 type: feat
-status: active
+status: completed
 date: 2026-04-28
 deepened: 2026-04-29
 origin: docs/brainstorms/nhtsa-crash-portfolio-requirements.md
