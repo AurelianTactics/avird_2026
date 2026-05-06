@@ -1,10 +1,8 @@
 '''
-EDA utils for basic NLP tasks (length stats, n-grams, tf-idf).
+EDA utils for basic NLP tasks (length stats, n-grams, tf-idf, word cloud).
 '''
-import re
-from collections import Counter
-
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 
 
@@ -48,3 +46,28 @@ def top_tfidf(series, n=1, top_k=20, stop_words='english', min_df=1, max_df=1.0)
         .reset_index(drop=True)
     )
     return df
+
+
+def plot_word_cloud(series, max_words=150, stop_words='english',
+                    width=900, height=450, ax=None, title=None):
+    '''Render a word cloud from a text Series.  Requires the `wordcloud` package.'''
+    try:
+        from wordcloud import WordCloud, STOPWORDS
+    except ImportError as e:
+        raise ImportError(
+            "plot_word_cloud requires the `wordcloud` package "
+            "(uv pip install wordcloud)"
+        ) from e
+
+    text = ' '.join(series.dropna().astype(str).tolist())
+    sw = set(STOPWORDS) if stop_words == 'english' else set(stop_words or [])
+    wc = WordCloud(width=width, height=height, max_words=max_words,
+                   stopwords=sw, background_color='white').generate(text)
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(width / 100, height / 100))
+    ax.imshow(wc, interpolation='bilinear')
+    ax.axis('off')
+    if title:
+        ax.set_title(title)
+    plt.tight_layout()
+    return ax
