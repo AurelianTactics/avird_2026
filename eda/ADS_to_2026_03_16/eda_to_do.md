@@ -6,36 +6,17 @@ Potential follow up EDA items to do
 
 ### Should be simple then can react
 
-* distributions over key fields
-* time-of-day/region/company breakdowns
-    * brainstorm more ideas
-* what can be treated, maybe try some simple treatment ideas based on value counts
-    * Make and model can be consolidated: some duplicate options
-    * State or Local Permit: can likely be cleaned up, many dupes for near things, even a simple string treatment
-    * Operating Entity: can be cleaned up, paroticularly if the gourpoing
-    * see if this can be given to AI for one off function or flexible function to run on updates
-    * investigating agency can be cleaned up to consolidate duplicates
-    * state
 * if vehicle stopped or not and analysis
-* graphs by month
-    * can subset by company or location or both
 * ADAS/ADS System Version/ADAS/ADS Hardware Version/ADAS/ADS Software Version: see who the redatcted belongs to
 * WHich source the comnplaint came from by entity could be worht following up on
 * same incident id: see how many duplicates
-* combine the two contact area and speeds to get a sense of incident
-	maybe a simple animation with the narrative
-    * contact area analysis (match AV and other)
-    * subset by type
-    * VALIDATE THIS code seems odd on it. don't think it's matching
-        * yeah this is wrong
-    * contact as % against each other should be more in depth
-    * way to do contact and who was moving and what not, might be able to do more with that
 * data availability field: maybe quick summary
 	maybe a stretch thing of where to get more (ie if a plicy report is available)
 		investigating agency too
 * by entity and the % of the severity versus overall
 * incidents by month by severity
 * injury severity and passenger versus CP person / pedestrian
+
 * DONE Incident Date: by month count could be a simple chart
 * DONE word cloud
 * DONE Incident time: do a chart / diagram of this to see if anyhing interesting
@@ -73,6 +54,23 @@ Potential follow up EDA items to do
 * can add things like ODD and definitions
 * maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
 
+## try with an LLM
+* what can be treated, maybe try some simple treatment ideas based on value counts
+    * Make and model can be consolidated: some duplicate options
+    * State or Local Permit: can likely be cleaned up, many dupes for near things, even a simple string treatment
+    * Operating Entity: can be cleaned up, paroticularly if the gourpoing
+    * see if this can be given to AI for one off function or flexible function to run on updates
+    * investigating agency can be cleaned up to consolidate duplicates
+    * state
+* combine the two contact area and speeds to get a sense of incident
+	maybe a simple animation with the narrative
+    * contact area analysis (match AV and other)
+    * subset by type
+    * VALIDATE THIS code seems odd on it. don't think it's matching
+        * yeah this is wrong
+    * contact as % against each other should be more in depth
+    * way to do contact and who was moving and what not, might be able to do more with that
+
 ## NLP EDA To Do
 * see list of things to try in my brainstorm
 * LDA
@@ -101,4 +99,10 @@ Potential follow up EDA items to do
 		maybe not in data anymore: speed limit, posted speed limit 
 	stretch (not in data but can be gotten): night/day, temperature
 	maybe filter by the data as well
+* distributions over key fields
+* for website: 
+    * time-of-day/region/company breakdowns
+    * brainstorm more ideas
+    * graphs by month
+    * can subset by company or location or both
 
