@@ -4,19 +4,16 @@ Potential follow up EDA items to do
 ## Initial Explore
 * eda\ADS_to_2026_03_16\01_eda_initial_explore_2026.ipynb
 
-### Should be simple then can react
+### Should be simple then can iterate
 
-* if vehicle stopped or not and analysis
-* ADAS/ADS System Version/ADAS/ADS Hardware Version/ADAS/ADS Software Version: see who the redatcted belongs to
-* WHich source the comnplaint came from by entity could be worht following up on
-* same incident id: see how many duplicates
-* data availability field: maybe quick summary
+
+
+* DONE if vehicle stopped or not and analysis
+* DONE ADAS/ADS System Version/ADAS/ADS Hardware Version/ADAS/ADS Software Version: see who the redatcted belongs to
+* DONE same incident id: see how many duplicates
+* DONE data availability field: maybe quick summary
 	maybe a stretch thing of where to get more (ie if a plicy report is available)
 		investigating agency too
-* by entity and the % of the severity versus overall
-* incidents by month by severity
-* injury severity and passenger versus CP person / pedestrian
-
 * DONE Incident Date: by month count could be a simple chart
 * DONE word cloud
 * DONE Incident time: do a chart / diagram of this to see if anyhing interesting
@@ -55,14 +52,14 @@ Potential follow up EDA items to do
 * maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
 
 ## try with an LLM
-* what can be treated, maybe try some simple treatment ideas based on value counts
+* TEST what can be treated, maybe try some simple treatment ideas based on value counts
     * Make and model can be consolidated: some duplicate options
     * State or Local Permit: can likely be cleaned up, many dupes for near things, even a simple string treatment
     * Operating Entity: can be cleaned up, paroticularly if the gourpoing
     * see if this can be given to AI for one off function or flexible function to run on updates
     * investigating agency can be cleaned up to consolidate duplicates
     * state
-* combine the two contact area and speeds to get a sense of incident
+* TEST combine the two contact area and speeds to get a sense of incident
 	maybe a simple animation with the narrative
     * contact area analysis (match AV and other)
     * subset by type
@@ -70,6 +67,15 @@ Potential follow up EDA items to do
         * yeah this is wrong
     * contact as % against each other should be more in depth
     * way to do contact and who was moving and what not, might be able to do more with that
+* by entity and the % of the severity versus overall
+* incidents by month by severity
+* WHich source the comnplaint came from by entity could be worht following up on
+* data availability by entity to see which entities share what
+
+## treatment follow up
+* make an overall entity
+* lot of duplicate entity id
+* see how the fuzzy treatment options dis
 
 ## NLP EDA To Do
 * see list of things to try in my brainstorm
@@ -81,13 +87,29 @@ Potential follow up EDA items to do
 	classification and attributes
 	who classifies it and how much and why
     make embeddings and project into lower space
+* injury severity and passenger versus CP person / pedestrian. I think this needs multiple columns:
+    * Highest Injury Severity Alleged, 'Crash With' (and related to tell if Crash partner was a vehicle or person), 'Narrative', 'SV Were All Passengers Belted?',  'CP Any Air Bags Deployed?',  'SV Any Air Bags Deployed?',
+
+## Improve Agent context
+* Plan out how to give the agent better context
+    * data\nhtsa\SGO-2021-01_Data_Element_Definitions.pdf to a more usable format
+    * column names to a usable directory with progressive disclosure
+    * basic findings to a usable directory with progressive disclosure
+* how to update CLAUDE.MD so the EDA context can be expanded
 
 # when done
 * see what from EDA and the backlog would be interesting for something more formalized on the site
 * make a file for a decent ish report
+    * look through all your notes in notebooks and elsewhere
     
 
 # Backlog
+* how to handle duplicate incident ids. Use latest? see what the data says
+* treat and process which entity should be assigned to
+* follow up: of the low speed / no speed how many were SV properly at low speed / no speed and how many may have caused the accident
+* review EDA code with agent again
+* test cases for teh EDA files
+* bunch of analysis will be more interesting when a target is known so can do the ones of interest
 * location data of lat, long, address not htere. maybe use the Waymo and company data if stilla vailable
 * legacy features that are similar but different between versions that could be combined / treated
 	weather and roadway and air bags deployed, vehicle towed, passenger belted
@@ -105,4 +127,8 @@ Potential follow up EDA items to do
     * brainstorm more ideas
     * graphs by month
     * can subset by company or location or both
+* can use data availability to get more data (ie FOIA for police report) or see what is online
 
+
+# Learnings
+* lot of interesting python packages for fuzzy matching / data clearning

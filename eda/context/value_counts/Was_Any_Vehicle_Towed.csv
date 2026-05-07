@@ -1,0 +1,8 @@
+Was Any Vehicle Towed?,count
+,2295
+"No Subject Vehicle, No Crash Partner",394
+"Yes Subject Vehicle, No Crash Partner",338
+"Yes Subject Vehicle, Yes Crash Partner",50
+"Yes Subject Vehicle, Unknown Crash Partner",17
+"Yes Crash Partner, No Subject Vehicle",14
+"No Subject Vehicle, Unknown Crash Partner",12

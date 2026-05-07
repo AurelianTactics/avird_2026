@@ -1,0 +1,164 @@
+Report ID
+Report Version
+Reporting Entity
+Report Type
+Report Month
+Report Year
+Report Submission Date
+VIN
+VIN Decoded
+Serial Number
+Make
+Make - Unknown
+Model
+Model - Unknown
+Model Year
+Model Year - Unknown
+Same Vehicle ID
+Driver / Operator Type
+Automation Feature Version
+Automation Feature Version CBI
+Automation System Engaged?
+Engagement Status
+Operating Entity
+Operating Entity - Unknown
+Source - Complaint/Claim
+Source - Telematics
+Source - Law Enforcement
+Source - Field Report
+Source - Testing
+Source - Media
+Source - Internal Process Review
+Source - NHTSA VOQ
+Source - Other - See Narrative
+Source - Other Entity
+Source - State or Other Agency
+Incident Date
+Incident Date - Unknown
+Incident Time (24:00)
+Incident Time - Unknown
+Same Incident ID
+Latitude
+Latitude - Unknown
+Longitude
+Longitude - Unknown
+Address
+Address - Unknown
+City
+City - Unknown
+State
+Zip Code
+Zip Code - Unknown
+Roadway Type
+Roadway-Degraded Surface
+Roadway-Missing/Degraded Marking
+Roadway-No Unusual Conditions
+Roadway-Other-See Narrative
+Roadway-Traffic Incident
+Roadway-Unknown
+Roadway-Wet Surface Condition
+Roadway-Work Zone
+Weather - Clear
+Weather - Snow
+Weather - Cloudy
+Weather - Partly Cloudy
+Weather - Fog/Smoke/Haze
+Weather - Rain
+Weather - Severe Wind
+Weather - Dust Storm
+Weather - Severe Hurricane
+Weather - Structure-Indoor
+Weather - Unk - See Narrative
+Crash With
+Highest Injury Severity Alleged
+CP Pre-Crash Movement
+CP Contact Area - Rear Left
+CP Contact Area - Left
+CP Contact Area - Front Left
+CP Contact Area - Rear
+CP Contact Area - Top
+CP Contact Area - Front
+CP Contact Area - Rear Right
+CP Contact Area - Right
+CP Contact Area - Front Right
+CP Contact Area - Bottom
+CP Contact Area - Unknown
+SV Pre-Crash Movement
+Any Air Bags Deployed?
+Was Any Vehicle Towed?
+Were All Passengers Belted?
+SV Precrash Speed (MPH)
+SV Pre-crash Speed - Unknown
+SV Contact Area - Rear Left
+SV Contact Area - Left
+SV Contact Area - Front Left
+SV Contact Area - Rear
+SV Contact Area - Top
+SV Contact Area - Front
+SV Contact Area - Rear Right
+SV Contact Area - Right
+SV Contact Area - Front Right
+SV Contact Area - Bottom
+SV Contact Area - Unknown
+Data Availability - EDR
+Data Availability - Police Rpt
+Data Availability - Telematics
+Data Availability - Complaints
+Data Availability - Video
+Data Availability - Other
+Data Availability - No Data
+Data Availability - Unknown
+Investigating Agency
+Investigating Agency - Unknown
+Within ODD?
+Within ODD? - CBI
+Narrative
+Narrative - CBI?
+VIN - Unknown
+Mileage
+Mileage - Unknown
+ADAS/ADS System Version
+ADAS/ADS System Version - Unk
+ADAS/ADS System Version CBI
+ADAS/ADS Hardware Version
+ADAS/ADS Hardware Version - Unk
+ADAS/ADS Hardware Version CBI
+ADAS/ADS Software Version
+ADAS/ADS Software Version - Unk
+ADAS/ADS Software Version CBI
+Other Reporting Entities?
+Other Reporting Entities? - Unk
+Other Reporting Entities? - NA
+Federal Regulatory Exemption?
+Other Federal Reg. Exemption
+Federal Reg. Exemption - Unk
+Federal Reg. Exemption - No
+State or Local Permit?
+State or Local Permit
+ADS Equipped?
+Source - Other
+Source - Other Text
+Notice Received Date
+Roadway Surface
+Roadway Description
+Posted Speed Limit (MPH)
+Posted Speed Limit - Unknown
+Lighting
+Weather - Fog/Smoke
+Weather - Unknown
+Weather - Other
+Weather - Other Text
+Property Damage?
+CP Any Air Bags Deployed?
+CP Was Vehicle Towed?
+SV Any Air Bags Deployed?
+SV Was Vehicle Towed?
+SV Were All Passengers Belted?
+Law Enforcement Investigating?
+Rep Ent Or Mfr Investigating?
+Investigating Officer Name
+Inv. Officer Name - Unknown
+Investigating Officer Phone
+Inv. Officer Phone - Unknown
+Investigating Officer Email
+Inv. Officer Email - Unknown
