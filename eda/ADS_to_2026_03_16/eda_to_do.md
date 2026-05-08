@@ -6,8 +6,6 @@ Potential follow up EDA items to do
 
 ### Should be simple then can iterate
 
-
-
 * DONE if vehicle stopped or not and analysis
 * DONE ADAS/ADS System Version/ADAS/ADS Hardware Version/ADAS/ADS Software Version: see who the redatcted belongs to
 * DONE same incident id: see how many duplicates
@@ -52,14 +50,14 @@ Potential follow up EDA items to do
 * maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
 
 ## try with an LLM
-* TEST what can be treated, maybe try some simple treatment ideas based on value counts
+* DONE what can be treated, maybe try some simple treatment ideas based on value counts
     * Make and model can be consolidated: some duplicate options
     * State or Local Permit: can likely be cleaned up, many dupes for near things, even a simple string treatment
     * Operating Entity: can be cleaned up, paroticularly if the gourpoing
     * see if this can be given to AI for one off function or flexible function to run on updates
     * investigating agency can be cleaned up to consolidate duplicates
     * state
-* TEST combine the two contact area and speeds to get a sense of incident
+* DONE combine the two contact area and speeds to get a sense of incident
 	maybe a simple animation with the narrative
     * contact area analysis (match AV and other)
     * subset by type
@@ -102,8 +100,16 @@ Potential follow up EDA items to do
 * make a file for a decent ish report
     * look through all your notes in notebooks and elsewhere
     
+# Website
+* heatmap of the contact areas with options
+    * first is side, rear, front
+    * then by contact areas
+* the cleaned version of the data
+    * some ideas here: eda\ADS_to_2026_03_16\01_eda_initial_explore_2026.ipynb
 
 # Backlog
+* parts of analysis with the cleaned and consolidated columns
+* the side analysis can be done again with beter subset and with more general front, rear, side
 * how to handle duplicate incident ids. Use latest? see what the data says
 * treat and process which entity should be assigned to
 * follow up: of the low speed / no speed how many were SV properly at low speed / no speed and how many may have caused the accident
@@ -128,6 +134,9 @@ Potential follow up EDA items to do
     * graphs by month
     * can subset by company or location or both
 * can use data availability to get more data (ie FOIA for police report) or see what is online
+* state or local permit can likely be turned into entities and then tallied. maybe web research. bit rough here
+    * by hand probably simpler but maybe coudl go to agent for something to show off
+    * maybe in general some of teh cleaning can be reviewed by LLM
 
 
 # Learnings

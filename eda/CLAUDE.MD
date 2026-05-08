@@ -6,7 +6,6 @@ Python deps live in a shared `uv` env outside the repo at `~/claude_code_repos/m
 
 ```bash
 source ~/claude_code_repos/my-uv-envs/avird-2026-eda/.venv/Scripts/activate
-
 ```
 
 ## When asked to do EDA

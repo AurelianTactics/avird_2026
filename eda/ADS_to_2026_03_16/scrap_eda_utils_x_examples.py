@@ -14,7 +14,7 @@ EDA_DIR = Path('..').resolve()  # adjust to point at eda/
 sys.path.insert(0, str(EDA_DIR))
 
 from eda_utils_sgo import load_and_concat_csvs  # noqa: E402
-import eda_utils_x as ex                        # noqa: E402
+import eda.eda_utils_co_impact as ex                        # noqa: E402
 
 DATA_DIR = Path('../../data/nhtsa').resolve()
 paths = [
