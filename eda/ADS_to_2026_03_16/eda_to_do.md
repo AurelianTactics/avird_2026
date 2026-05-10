@@ -94,6 +94,7 @@ Potential follow up EDA items to do
     * column names to a usable directory with progressive disclosure
     * basic findings to a usable directory with progressive disclosure
 * how to update CLAUDE.MD so the EDA context can be expanded
+* research some best practies
 
 # when done
 * see what from EDA and the backlog would be interesting for something more formalized on the site
@@ -101,6 +102,9 @@ Potential follow up EDA items to do
     * look through all your notes in notebooks and elsewhere
     
 # Website
+* thinking maybe basic graphs and then for the website a dropdown of key things or scrollable and the user can select which type of incidents to have at the top
+
+
 * heatmap of the contact areas with options
     * first is side, rear, front
     * then by contact areas
@@ -108,6 +112,7 @@ Potential follow up EDA items to do
     * some ideas here: eda\ADS_to_2026_03_16\01_eda_initial_explore_2026.ipynb
 
 # Backlog
+* treatment could be use rules, then fuzzy, then agentic for the enxt part
 * parts of analysis with the cleaned and consolidated columns
 * the side analysis can be done again with beter subset and with more general front, rear, side
 * how to handle duplicate incident ids. Use latest? see what the data says
@@ -137,6 +142,7 @@ Potential follow up EDA items to do
 * state or local permit can likely be turned into entities and then tallied. maybe web research. bit rough here
     * by hand probably simpler but maybe coudl go to agent for something to show off
     * maybe in general some of teh cleaning can be reviewed by LLM
+* make a skill out of it
 
 
 # Learnings

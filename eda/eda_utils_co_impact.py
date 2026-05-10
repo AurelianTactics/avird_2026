@@ -375,3 +375,194 @@ def combine_columns(df, cols, sep=' | ', name=None, normalizer=None):
     if name:
         combined.name = name
     return combined
+
+
+# ===========================================================================
+# 3. Master-entity rollup (Operating + Reporting -> one display name)
+# ===========================================================================
+# Matches dotted acronyms like "L.L.C.", "U.S.A.", "A.G." so we can collapse
+# them to "LLC", "USA", "AG" before the legal-suffix strip runs.
+_DOTTED_ACRONYM_RE = re.compile(r'\b(?:[A-Za-z]\.){2,}[A-Za-z]?')
+
+# Short tokens we keep lowercased inside multi-word names so we don't end up
+# with "Bank Of America" or "Cruise And Co".
+_DISPLAY_KEEP_LOWER = {
+    'and', 'or', 'the', 'of', 'a', 'an', 'in', 'on', 'at', 'by', 'to', 'for',
+    'de', 'la', 'le', 'du', 'da', 'di', 'van', 'von',
+}
+
+# Legal-entity suffixes that the dataset uses on top of those handled by
+# normalize_org_name (typos / less-common forms).
+_EXTRA_LEGAL_SUFFIXES = ('lllc', 'pllc', 'llp', 'lp', 'plc', 'pty', 'kk')
+
+# Trailing org-unit / region descriptors that aren't part of the brand.
+# Sorted longest-first at module load so multi-word phrases win.
+_DESCRIPTIVE_TRAILING = tuple(sorted({
+    'research and development north america',
+    'research and development na',
+    'research and development',
+    'north america',
+    'autonomous driving',
+    'rd na',
+    'rd',
+    'na',
+    'ad',
+}, key=len, reverse=True))
+
+
+def _collapse_dotted_acronyms(s):
+    if not isinstance(s, str):
+        return s
+    return _DOTTED_ACRONYM_RE.sub(lambda m: m.group(0).replace('.', ''), s)
+
+
+def _strip_trailing_tokens(s, tokens):
+    parts = s.split() if s else []
+    while parts and parts[-1] in tokens:
+        parts.pop()
+    return ' '.join(parts)
+
+
+def _strip_trailing_phrases(s, phrases):
+    changed = True
+    while changed and s:
+        changed = False
+        for phrase in phrases:
+            if s == phrase:
+                return ''
+            if s.endswith(' ' + phrase):
+                s = s[:-(len(phrase) + 1)].rstrip()
+                changed = True
+                break
+    return s
+
+
+def _normalize_org_for_master(x):
+    '''normalize_org_name plus dotted-acronym collapse, descriptive-suffix and
+    extra legal-suffix stripping so e.g.
+        "Mercedes Benz Research and Development NA" -> "mercedes benz"
+        "Motional AD"                               -> "motional"
+        "Waymo LLLC"                                -> "waymo".
+    '''
+    if pd.isna(x):
+        return None
+    s = normalize_org_name(_collapse_dotted_acronyms(str(x)))
+    if not s:
+        return None
+    # Iterate: strip descriptive phrases, then any newly exposed legal tokens,
+    # until the tail stops changing.  Cheap because tails are short.
+    while True:
+        before = s
+        s = _strip_trailing_tokens(s, _EXTRA_LEGAL_SUFFIXES)
+        s = _strip_trailing_tokens(s, _LEGAL_SUFFIXES)
+        s = _strip_trailing_phrases(s, _DESCRIPTIVE_TRAILING)
+        if s == before:
+            break
+    return s or None
+
+
+def _pretty_org_label(text):
+    '''Turn a canonical token like "waymo" / "bmw" / "bank of america" into a
+    display label: "Waymo", "BMW", "Bank of America".'''
+    if not text:
+        return None
+    parts = text.split()
+    out = []
+    for i, p in enumerate(parts):
+        if i > 0 and p in _DISPLAY_KEEP_LOWER:
+            out.append(p)
+        elif len(p) <= 3 and p.isalpha() and p not in _DISPLAY_KEEP_LOWER:
+            out.append(p.upper())
+        else:
+            out.append(p.capitalize())
+    return ' '.join(out)
+
+
+def add_master_entity(df, operating_col='Operating Entity',
+                      reporting_col='Reporting Entity',
+                      out_col='master_entity', normalizer=None,
+                      fuzzy=True, score_cutoff=88, inplace=False):
+    '''
+    Build a single canonical display-name column from two raw-entity columns.
+
+    For each row, pick the operating-entity value if present, else the
+    reporting-entity value. Normalize it (lowercase, strip punctuation, drop
+    legal suffixes like LLC/Inc/Corp, collapse dotted acronyms), optionally
+    fuzzy-cluster near-duplicate canonical keys across both columns, then
+    render a clean display label.
+
+    Examples (all collapse to 'Waymo'):
+        'WayMo LLC', 'waymo', 'waymo l.l.c. inc'
+
+    Args:
+        df             source DataFrame.
+        operating_col  primary entity column.
+        reporting_col  fallback entity column when operating value is blank.
+        out_col        name of the new column.
+        normalizer     raw-value -> canonical-key callable; default handles
+                       legal suffixes and dotted acronyms.
+        fuzzy          cluster near-duplicate canonical keys via rapidfuzz.
+        score_cutoff   similarity threshold (0-100) for fuzzy clustering.
+        inplace        modify df in place; otherwise return a copy.
+    '''
+    if normalizer is None:
+        normalizer = _normalize_org_for_master
+
+    target = df if inplace else df.copy()
+    n = len(target)
+
+    if operating_col in target.columns:
+        op_raw = target[operating_col]
+    else:
+        op_raw = pd.Series([np.nan] * n, index=target.index)
+    if reporting_col in target.columns:
+        rp_raw = target[reporting_col]
+    else:
+        rp_raw = pd.Series([np.nan] * n, index=target.index)
+
+    def _first_non_blank(a, b):
+        if pd.notna(a) and str(a).strip():
+            return a
+        if pd.notna(b) and str(b).strip():
+            return b
+        return None
+
+    chosen_raw = pd.Series(
+        [_first_non_blank(a, b) for a, b in zip(op_raw, rp_raw)],
+        index=target.index,
+    )
+    chosen_norm = chosen_raw.map(normalizer)
+
+    if fuzzy:
+        try:
+            from rapidfuzz import fuzz, process
+        except ImportError:
+            process = None
+        if process is not None:
+            pool = pd.concat([op_raw.map(normalizer),
+                              rp_raw.map(normalizer),
+                              chosen_norm])
+            counts = pool.dropna().value_counts()
+            canonicals = []
+            collapse = {}
+            for norm in counts.index:
+                if not canonicals:
+                    canonicals.append(norm)
+                    collapse[norm] = norm
+                    continue
+                m = process.extractOne(
+                    norm, canonicals,
+                    scorer=fuzz.token_set_ratio,
+                    score_cutoff=score_cutoff,
+                )
+                if m is None:
+                    canonicals.append(norm)
+                    collapse[norm] = norm
+                else:
+                    collapse[norm] = m[0]
+            chosen_norm = chosen_norm.map(
+                lambda v: collapse.get(v) if pd.notna(v) else None
+            )
+
+    target[out_col] = chosen_norm.map(_pretty_org_label)
+    return target
