@@ -117,19 +117,23 @@ def verify(base_url: str, *, client: httpx.Client) -> list[Result]:
         except httpx.HTTPError as exc:
             results.append(Result(f"link {link}", False, f"{type(exc).__name__}: {exc}"))
 
-    # 3. Expected text per page; reject degraded states on the index
+    # 3. Expected text per page; reject degraded states on the index.
+    # Match against the rendered text content, not raw HTML. React SSR
+    # inserts empty marker comments (e.g. `API: <!-- -->ok`) between
+    # static and dynamic text — those break naive substring search on
+    # raw HTML even though the browser renders the expected string.
     for path, needles in EXPECTED_TEXT.items():
         resp = pages.get(path)
         if resp is None or resp.status_code != 200:
             results.append(Result(f"text {path}", False, "page did not load"))
             continue
-        body = resp.text
+        text = BeautifulSoup(resp.text, "html.parser").get_text()
         for needle in needles:
-            ok = needle in body
+            ok = needle in text
             results.append(Result(f"text {path} '{needle}'", ok, "" if ok else "missing"))
         if path == "/":
             for degraded in DEGRADED_INDEX_STATES:
-                if degraded in body:
+                if degraded in text:
                     results.append(
                         Result(
                             f"text {path} not-degraded '{degraded}'",

@@ -1,6 +1,6 @@
 # avird-2026
 
-A learning-by-building portfolio over NHTSA's Standing General Order on Crash Reporting (autonomous-vehicle crash data). The site ingests, explores, models, and lets you "talk to" the dataset — and the build workflow itself (slash commands, hooks, evals, agents) is part of what's being learned. Stack: Next.js + FastAPI + Postgres on Railway.
+A learning-by-building project over NHTSA's Standing General Order on Crash Reporting (autonomous-vehicle crash data). The site ingests, explores, models, and lets you "talk to" the dataset — and the build workflow itself (slash commands, hooks, evals, agents) is part of what's being learned. Stack: Next.js + FastAPI + Postgres on Railway.
 
 ## Run locally
 
