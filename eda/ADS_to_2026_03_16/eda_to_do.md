@@ -26,12 +26,32 @@ Potential follow up EDA items to do
 * DONE SEE BRAINSTORM other simple text things
     * research and more ideas
 
+### incident duplication results
+* if " " or null incident Id treat as different unless entity, incident date, time and vin are all the same (all should pass)
+* if the same one, then use the latest report date and report submission date, report id, report version DESC
+    * keep the first (ie the latest). then fill NA from earlier. FOr narrative append and keep all (unless narrative matches exactly an earlier narrative).
+        * have some sort of seperator maybe for these?
+    * will want a function for this
+* working on a function, check the results
+
 ### Target related
+* DONE filtering options
+    * remove duplicate incidents, leave the last
+        * to do: look int o those
+    * DONE made code for one entity
+    * DONE 'Driver / Operator Type': user can filter but I shoudl cinlude them all
+    * DONE 'Engagement Status' very few not engaged, not worth filtering
+    * DONE within ODD: very few non yes and still might be worth including. keep them in
 * make my own target(s)
+    * do the entity, other treatement, and the incident duplicates
+        * can do the below and then think how I want to do my first report
     * of severity / interest
-    * certain drivers
-    * subset by interesting fields versus a target
-* potential target
+    * Highest Injury Severity Alleged
+    * SV moving at a speed
+    * Crash With: Non-Motorist: Pedestrian
+    * Any Air Bags Deployed?
+    * Was Vehicle Towed?
+* DONE potential target
 	highest injury
 	SV Pre-Crash Movement
 	property damage
@@ -39,15 +59,22 @@ Potential follow up EDA items to do
 	was towed
 	pre crash speed
 	law enforcement investigating
-	within ODD
+    ODD
+
+
 
 ### Explore the data a bit more
-* figure which entity to group on
+* DONE BOTH figure which entity to group on
+* do the entity, other treatement, and the incident duplicates
+    * can do the below and then think how I want to do my first report
 * dig more into the driver column and what it means and how it can be used for a target
     * Driver / Operator Type: probalby need to filter by something ueful
     * maybe better to use the Automation System Engaged rather then rely on this? or at least try to match them up to see if it makes sense
 * can add things like ODD and definitions
 * maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
+* heatmap for CP and SV pre crash movements
+    * maybe relate to the contact areas stuff as well
+* who is redacting the narrative by main entity
 
 ## try with an LLM
 * DONE what can be treated, maybe try some simple treatment ideas based on value counts
@@ -69,6 +96,8 @@ Potential follow up EDA items to do
 * incidents by month by severity
 * WHich source the comnplaint came from by entity could be worht following up on
 * data availability by entity to see which entities share what
+* narrative plus xyz fields (within ODD, driver / operator, engagement status) to see what rows shoudl be cleneed
+* see if can create some fun topics
 
 ## treatment follow up
 * make an overall entity
@@ -102,6 +131,7 @@ Potential follow up EDA items to do
     * look through all your notes in notebooks and elsewhere
     
 # Website
+* can look at all incidents but also need to group them
 * thinking maybe basic graphs and then for the website a dropdown of key things or scrollable and the user can select which type of incidents to have at the top
 
 
@@ -111,7 +141,11 @@ Potential follow up EDA items to do
 * the cleaned version of the data
     * some ideas here: eda\ADS_to_2026_03_16\01_eda_initial_explore_2026.ipynb
 
+
+
 # Backlog
+* need to do incident tracking for the conclusions
+* more interesting target / of interest
 * treatment could be use rules, then fuzzy, then agentic for the enxt part
 * parts of analysis with the cleaned and consolidated columns
 * the side analysis can be done again with beter subset and with more general front, rear, side
