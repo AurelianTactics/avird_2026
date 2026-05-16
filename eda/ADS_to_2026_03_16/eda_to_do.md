@@ -27,12 +27,13 @@ Potential follow up EDA items to do
     * research and more ideas
 
 ### incident duplication results
-* if " " or null incident Id treat as different unless entity, incident date, time and vin are all the same (all should pass)
-* if the same one, then use the latest report date and report submission date, report id, report version DESC
-    * keep the first (ie the latest). then fill NA from earlier. FOr narrative append and keep all (unless narrative matches exactly an earlier narrative).
-        * have some sort of seperator maybe for these?
-    * will want a function for this
-* working on a function, check the results
+* DONE incident duplicate ides
+    * if " " or null incident Id treat as different unless entity, incident date, time and vin are all the same (all should pass)
+    * if the same one, then use the latest report date and report submission date, report id, report version DESC
+        * keep the first (ie the latest). then fill NA from earlier. FOr narrative append and keep all (unless narrative matches exactly an earlier narrative).
+            * have some sort of seperator maybe for these?
+        * will want a function for this
+    * working on a function, check the results
 
 ### Target related
 * DONE filtering options
@@ -45,9 +46,10 @@ Potential follow up EDA items to do
 * make my own target(s)
     * do the entity, other treatement, and the incident duplicates
         * can do the below and then think how I want to do my first report
-    * of severity / interest
+    * BACKLOG of severity / interest
     * Highest Injury Severity Alleged
     * SV moving at a speed
+        * try a bucket
     * Crash With: Non-Motorist: Pedestrian
     * Any Air Bags Deployed?
     * Was Vehicle Towed?
@@ -106,14 +108,16 @@ Potential follow up EDA items to do
 
 ## NLP EDA To Do
 * see list of things to try in my brainstorm
-* LDA
+* LDA: count vectorizer, understand the args
+* NMF: tf-idf understand the args
 * other topic ways
 * classification
+* make embeddings and project into lower space
 * narrative data ideas
 	ontology of narrative
 	classification and attributes
 	who classifies it and how much and why
-    make embeddings and project into lower space
+    
 * injury severity and passenger versus CP person / pedestrian. I think this needs multiple columns:
     * Highest Injury Severity Alleged, 'Crash With' (and related to tell if Crash partner was a vehicle or person), 'Narrative', 'SV Were All Passengers Belted?',  'CP Any Air Bags Deployed?',  'SV Any Air Bags Deployed?',
 
@@ -140,10 +144,12 @@ Potential follow up EDA items to do
     * then by contact areas
 * the cleaned version of the data
     * some ideas here: eda\ADS_to_2026_03_16\01_eda_initial_explore_2026.ipynb
+* maybe dynamic stuff like heatmap et all based on the user filters (maybe in a text box)
 
 
 
 # Backlog
+* for dedupe of narrative might be some matching stuff that can be filtered out. Seems like some of the narrative (like a large chunk) can be carried over
 * need to do incident tracking for the conclusions
 * more interesting target / of interest
 * treatment could be use rules, then fuzzy, then agentic for the enxt part
@@ -177,7 +183,7 @@ Potential follow up EDA items to do
     * by hand probably simpler but maybe coudl go to agent for something to show off
     * maybe in general some of teh cleaning can be reviewed by LLM
 * make a skill out of it
-
+* data filters by string rather than drop downs maybe
 
 # Learnings
 * lot of interesting python packages for fuzzy matching / data clearning
