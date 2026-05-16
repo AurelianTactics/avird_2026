@@ -36,6 +36,23 @@ Potential follow up EDA items to do
     * working on a function, check the results
 
 ### Target related
+* make my own target(s)
+    * do the entity, other treatement, and the incident duplicates
+        * can do the below and then think how I want to do my first report
+    * explore the data and then see which of these can be made into a binary 1/0 or multi class
+        * Highest Injury Severity Alleged
+        * SV moving at a speed
+            * try a bucket
+        * Crash With: Non-Motorist: Pedestrian
+        * Any Air Bags Deployed?
+        * Was Vehicle Towed?
+        * BACKLOG of severity / interest
+    * combination of the above maybe: injury severity and passenger versus CP person / pedestrian. I think this needs multiple columns:
+        * Highest Injury Severity Alleged, 'Crash With' (and related to tell if Crash partner was a vehicle or person), 'Narrative', 'SV Were All Passengers Belted?',  'CP Any Air Bags Deployed?',  'SV Any Air Bags Deployed?',
+* then when the target created, try some basic EDA to see which things may be useful
+    * against target (displays, percents), univariate (see list), quick RF / LR / lightbm test, maybe interactions (heatmap)
+    * goal here would be more a useful script and easy readout rather than a notebook maybe
+        * maybe broken up into multiple things, I think I have a good enough feel on these to make this more reproducible
 * DONE filtering options
     * remove duplicate incidents, leave the last
         * to do: look int o those
@@ -43,16 +60,6 @@ Potential follow up EDA items to do
     * DONE 'Driver / Operator Type': user can filter but I shoudl cinlude them all
     * DONE 'Engagement Status' very few not engaged, not worth filtering
     * DONE within ODD: very few non yes and still might be worth including. keep them in
-* make my own target(s)
-    * do the entity, other treatement, and the incident duplicates
-        * can do the below and then think how I want to do my first report
-    * BACKLOG of severity / interest
-    * Highest Injury Severity Alleged
-    * SV moving at a speed
-        * try a bucket
-    * Crash With: Non-Motorist: Pedestrian
-    * Any Air Bags Deployed?
-    * Was Vehicle Towed?
 * DONE potential target
 	highest injury
 	SV Pre-Crash Movement
@@ -62,6 +69,7 @@ Potential follow up EDA items to do
 	pre crash speed
 	law enforcement investigating
     ODD
+
 
 
 
@@ -107,19 +115,20 @@ Potential follow up EDA items to do
 * see how the fuzzy treatment options dis
 
 ## NLP EDA To Do
-* see list of things to try in my brainstorm
-* LDA: count vectorizer, understand the args
-* NMF: tf-idf understand the args
+* DONE LDA: count vectorizer, understand the args
+* DONE NMF: tf-idf understand the args
+* keybert
 * other topic ways
+    * bertopic
 * classification
 * make embeddings and project into lower space
 * narrative data ideas
 	ontology of narrative
 	classification and attributes
 	who classifies it and how much and why
+* see list of things to try in my brainstorm
     
-* injury severity and passenger versus CP person / pedestrian. I think this needs multiple columns:
-    * Highest Injury Severity Alleged, 'Crash With' (and related to tell if Crash partner was a vehicle or person), 'Narrative', 'SV Were All Passengers Belted?',  'CP Any Air Bags Deployed?',  'SV Any Air Bags Deployed?',
+
 
 ## Improve Agent context
 * Plan out how to give the agent better context
@@ -149,6 +158,9 @@ Potential follow up EDA items to do
 
 
 # Backlog
+* Keybert / bertopic / embeddings
+    * have some stretch things in the plan
+    * could try different embedding models
 * for dedupe of narrative might be some matching stuff that can be filtered out. Seems like some of the narrative (like a large chunk) can be carried over
 * need to do incident tracking for the conclusions
 * more interesting target / of interest
@@ -184,6 +196,8 @@ Potential follow up EDA items to do
     * maybe in general some of teh cleaning can be reviewed by LLM
 * make a skill out of it
 * data filters by string rather than drop downs maybe
+* LDA and NMF topic analysis could be expanded upon (K sweeps, coherance and other metric plots, more random seeds, more hyperparam tuning)
+    * way to have the agent do more of this
 
 # Learnings
 * lot of interesting python packages for fuzzy matching / data clearning
