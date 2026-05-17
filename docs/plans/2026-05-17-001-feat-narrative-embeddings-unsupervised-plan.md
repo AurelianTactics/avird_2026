@@ -195,6 +195,7 @@ Every downstream util takes the embedding matrix as an argument; none of them ca
 - Normalize input: drop NaN/whitespace, strip; hash the stripped form. Return embeddings aligned with the surviving pandas Index, mirroring `eda_utils_topics.py` return convention.
 - Cache flow: on call, hash all incoming texts, look up which hashes are already in the cache file, embed only the missing rows, append to the cache, then build the return matrix in caller-input order.
 - HF client: `from huggingface_hub import InferenceClient; client = InferenceClient(model=model_id, token=os.environ['HF_TOKEN'])`. Per-text call inside batches of `batch_size`, with retry-on-transient (HTTP 429/5xx) using a small backoff loop.
+- **Token loading:** call `dotenv.load_dotenv()` once at module import (no-op if `python-dotenv` isn't installed — wrap the import in try/except so pytest doesn't depend on it). This means a `.env` at repo root containing `HF_TOKEN=hf_...` is picked up by the script and notebook automatically; users who prefer to export in their shell still work. Tests monkeypatch `os.environ['HF_TOKEN']` directly and don't touch `.env`.
 - Module-level constants for default model id, default cache dir, default batch size; no global state otherwise.
 
 **Patterns to follow:**
@@ -485,7 +486,7 @@ Every downstream util takes the embedding matrix as an argument; none of them ca
 - Modify: `~/claude_code_repos/my-uv-envs/avird-2026-eda/requirements.txt` (outside repo per `eda/context/README.md` and `eda/ADS_to_2026_03_16/EDA_README.md`)
 
 **Approach:**
-- Add (with reasonable lower bounds, not pinned to exact patches): `huggingface_hub`, `keybert`, `bertopic`, `umap-learn`, `hdbscan`, `pyarrow` (for parquet cache), `pytest` (for U1/U3/U4/U5/U6 tests), `ipywidgets` (for U7 Section 7 hyperparameter tuning).
+- Add (with reasonable lower bounds, not pinned to exact patches): `huggingface_hub`, `keybert`, `bertopic`, `umap-learn`, `hdbscan`, `pyarrow` (for parquet cache), `pytest` (for U1/U3/U4/U5/U6 tests), `ipywidgets` (for U7 Section 7 hyperparameter tuning), `python-dotenv` (so the script and notebook load `HF_TOKEN` from `.env` automatically).
 - After editing the file, run `uv pip install -r requirements.txt` from the env folder per the documented workflow.
 - Note: `sentence-transformers` is a KeyBERT/BERTopic transitive dep; it's fine to let it come in transitively but pinning it cheap-ly avoids future surprise.
 
@@ -493,7 +494,7 @@ Every downstream util takes the embedding matrix as an argument; none of them ca
 - Test expectation: none -- environment manifest change; verified by U1-U6 imports succeeding and `pytest --collect-only eda/tests/` discovering all test files.
 
 **Verification:**
-- `python -c "import huggingface_hub, keybert, bertopic, umap, hdbscan, pyarrow, pytest, ipywidgets"` succeeds inside the active venv.
+- `python -c "import huggingface_hub, keybert, bertopic, umap, hdbscan, pyarrow, pytest, ipywidgets, dotenv"` succeeds inside the active venv.
 - `pytest --collect-only eda/tests/` from the repo root lists every test file created in U1, U3, U4, U5, U6.
 
 ---
@@ -551,11 +552,11 @@ End-to-end workflow once every implementation unit has landed. Paths are repo-re
    cd ..\..\claude_code_repos\avird-2026-eda-v001-emb
    ```
 
-3. **Set the HF token in the current shell**
-   ```powershell
-   $env:HF_TOKEN = "hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-   ```
-   For persistence across shells, add it to your PowerShell `$PROFILE` (or use a `.env` file the notebook loads — out of scope here). Verify with `echo $env:HF_TOKEN`.
+3. **Make the HF token available** — two options:
+   - **Preferred:** create a `.env` file at the repo root containing one line: `HF_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxx`. The build script and notebook load it automatically via `python-dotenv` on import (U1 / U2). Confirm `.env` is git-ignored: `Select-String -Path .gitignore -Pattern '^\.env$'` should print a match.
+   - **Or** export in your current shell: `$env:HF_TOKEN = "hf_..."`. For persistence across shells, add the same line to your PowerShell `$PROFILE`.
+
+   Verify either way with: `python -c "import os, dotenv; dotenv.load_dotenv(); print('TOKEN OK' if os.environ.get('HF_TOKEN','').startswith('hf_') else 'TOKEN MISSING')"`.
 
 4. **Run the test suite to confirm setup**
    ```powershell
@@ -614,7 +615,7 @@ End-to-end workflow once every implementation unit has landed. Paths are repo-re
 
 ### E. Troubleshooting
 
-- **`HF_TOKEN` not set** → step 6 raises a clear `RuntimeError`. Re-run step 3.
+- **`HF_TOKEN` not set** → step 6 raises a clear `RuntimeError`. Confirm `.env` exists at the repo root with the right line, or that you exported in the current shell. The verify command in step 3 isolates whether the token is reachable.
 - **HTTP 429 from HF** → step 6 retries with backoff per U1; if it still fails after max attempts, wait 10 minutes (typical free-tier window) and re-run. Cache hits from the partial first run mean step 6 picks up where it stopped.
 - **Empty `data/embeddings/` after step 6** → check that the script's working directory was the repo root, not `eda/`; cache path is computed from `Path(__file__).resolve().parents[1] / 'data' / 'embeddings'`.
 - **Notebook Section 2 errors with "cache not found"** → step 6 was skipped or pointed at a different `dataset_id`. Re-run step 6 with explicit `--dataset-id` matching the notebook's expected id.
