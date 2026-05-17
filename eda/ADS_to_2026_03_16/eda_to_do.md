@@ -37,9 +37,9 @@ Potential follow up EDA items to do
 
 ### Target related
 * make my own target(s)
-    * do the entity, other treatement, and the incident duplicates
+    * DONE do the entity, other treatement, and the incident duplicates
         * can do the below and then think how I want to do my first report
-    * explore the data and then see which of these can be made into a binary 1/0 or multi class
+    * DONE explore the data and then see which of these can be made into a binary 1/0 or multi class
         * Highest Injury Severity Alleged
         * SV moving at a speed
             * try a bucket
@@ -47,10 +47,14 @@ Potential follow up EDA items to do
         * Any Air Bags Deployed?
         * Was Vehicle Towed?
         * BACKLOG of severity / interest
-    * combination of the above maybe: injury severity and passenger versus CP person / pedestrian. I think this needs multiple columns:
+    * DONE combination of the above maybe: injury severity and passenger versus CP person / pedestrian. I think this needs multiple columns:
         * Highest Injury Severity Alleged, 'Crash With' (and related to tell if Crash partner was a vehicle or person), 'Narrative', 'SV Were All Passengers Belted?',  'CP Any Air Bags Deployed?',  'SV Any Air Bags Deployed?',
+    * DONE see results for the pre crash movements, maybe add some of hte ocmbinations to the target
+    * making some functions, review and see the results
+        * look over the code, maybe make the serious one a bit tighter. seems to flag a bit
+
 * then when the target created, try some basic EDA to see which things may be useful
-    * against target (displays, percents), univariate (see list), quick RF / LR / lightbm test, maybe interactions (heatmap)
+    * against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree)
     * goal here would be more a useful script and easy readout rather than a notebook maybe
         * maybe broken up into multiple things, I think I have a good enough feel on these to make this more reproducible
 * DONE filtering options
@@ -82,8 +86,10 @@ Potential follow up EDA items to do
     * maybe better to use the Automation System Engaged rather then rely on this? or at least try to match them up to see if it makes sense
 * can add things like ODD and definitions
 * maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
-* heatmap for CP and SV pre crash movements
+* DONE CAN ADD TO WEBSITE heatmap for CP and SV pre crash movements
     * maybe relate to the contact areas stuff as well
+    * CP Pre-Crash Movement
+    * SV Pre-Crash Movement
 * who is redacting the narrative by main entity
 
 ## try with an LLM
@@ -154,10 +160,18 @@ Potential follow up EDA items to do
 * the cleaned version of the data
     * some ideas here: eda\ADS_to_2026_03_16\01_eda_initial_explore_2026.ipynb
 * maybe dynamic stuff like heatmap et all based on the user filters (maybe in a text box)
+* heatmap (or maybe more intersting) of the pre crash movements
 
 
 
 # Backlog
+* better constructed target
+    * seriousness uesing actual data + an LLM
+    * use the pre crash movemetns for weird maneuvers
+    * can revisit the other things I did
+* incremental analysis as a skill when new dasta is released
+    * what is new? what is interesting
+* data dictionary is wrong and not noting the different versions
 * Keybert / bertopic / embeddings
     * have some stretch things in the plan
     * could try different embedding models

@@ -166,6 +166,133 @@ def plot_contact_area_pair_heatmap(df, include_unknown=True, normalize=None,
 
 
 # ===========================================================================
+# 1b. Pre-crash movement pair co-occurrence
+# ===========================================================================
+# Like the contact-area pair helpers above, but for the single-valued
+# "SV Pre-Crash Movement" / "CP Pre-Crash Movement" columns.  Each row
+# contributes exactly one (sv_move, cp_move) pair (vs. up to N*M for the
+# multi-flag contact-area columns).
+SV_MOVEMENT_COL = 'SV Pre-Crash Movement'
+CP_MOVEMENT_COL = 'CP Pre-Crash Movement'
+
+
+def pre_crash_movement_pairs(df, sv_col=SV_MOVEMENT_COL, cp_col=CP_MOVEMENT_COL,
+                             include_unknown=True, include_nan=False):
+    '''
+    Per-incident (SV movement, CP movement) co-occurrence counts.
+
+    Returns a DataFrame with columns:
+      sv_move, cp_move, count,
+      pct_of_rows  - count / len(df)
+      pct_of_pairs - count / total kept pairs (sums to 100)
+    '''
+    if sv_col not in df.columns or cp_col not in df.columns:
+        return pd.DataFrame(
+            columns=['sv_move', 'cp_move', 'count', 'pct_of_rows', 'pct_of_pairs']
+        )
+
+    pairs = pd.DataFrame({
+        'sv_move': df[sv_col].values,
+        'cp_move': df[cp_col].values,
+    })
+    if not include_nan:
+        pairs = pairs.dropna()
+    else:
+        pairs = pairs.fillna('NaN')
+    if not include_unknown:
+        pairs = pairs[(pairs['sv_move'] != 'Unknown')
+                      & (pairs['cp_move'] != 'Unknown')]
+
+    counts = (pairs.groupby(['sv_move', 'cp_move']).size()
+              .reset_index(name='count'))
+    if counts.empty:
+        return counts.assign(pct_of_rows=[], pct_of_pairs=[])
+
+    n_rows = max(len(df), 1)
+    n_pairs = int(counts['count'].sum()) or 1
+    counts['pct_of_rows'] = (counts['count'] / n_rows * 100).round(2)
+    counts['pct_of_pairs'] = (counts['count'] / n_pairs * 100).round(2)
+    return counts.sort_values('count', ascending=False).reset_index(drop=True)
+
+
+def pre_crash_movement_matrix(df, sv_col=SV_MOVEMENT_COL, cp_col=CP_MOVEMENT_COL,
+                              include_unknown=True, include_nan=False,
+                              normalize=None):
+    '''
+    Matrix view: rows = SV movement, cols = CP movement.
+
+    normalize:
+      None     - raw counts
+      'rows'   - share within each SV-movement row
+      'cols'   - share within each CP-movement column
+      'all'    - share of total pairs
+    '''
+    pairs = pre_crash_movement_pairs(df, sv_col=sv_col, cp_col=cp_col,
+                                     include_unknown=include_unknown,
+                                     include_nan=include_nan)
+    if pairs.empty:
+        return pd.DataFrame()
+
+    mat = pairs.pivot_table(
+        index='sv_move', columns='cp_move', values='count',
+        aggfunc='sum', fill_value=0,
+    )
+
+    # Row/column ordering: most-common movements first on each axis so the
+    # heatmap reads top-left = most-common-vs-most-common.
+    row_order = mat.sum(axis=1).sort_values(ascending=False).index
+    col_order = mat.sum(axis=0).sort_values(ascending=False).index
+    mat = mat.reindex(index=row_order, columns=col_order, fill_value=0)
+
+    if normalize == 'rows':
+        return (mat.div(mat.sum(axis=1).replace(0, np.nan), axis=0) * 100).round(1)
+    if normalize == 'cols':
+        return (mat.div(mat.sum(axis=0).replace(0, np.nan), axis=1) * 100).round(1)
+    if normalize == 'all':
+        total = mat.values.sum() or 1
+        return (mat / total * 100).round(1)
+    return mat
+
+
+def plot_pre_crash_movement_heatmap(df, sv_col=SV_MOVEMENT_COL,
+                                    cp_col=CP_MOVEMENT_COL,
+                                    include_unknown=True, include_nan=False,
+                                    normalize=None, ax=None, figsize=(9, 7),
+                                    title=None, cmap='Blues', annot=True):
+    '''Heatmap of SV (rows) vs CP (cols) pre-crash-movement co-occurrence.'''
+    mat = pre_crash_movement_matrix(df, sv_col=sv_col, cp_col=cp_col,
+                                    include_unknown=include_unknown,
+                                    include_nan=include_nan,
+                                    normalize=normalize)
+    if mat.empty:
+        return None
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+    im = ax.imshow(mat.values, cmap=cmap, aspect='auto')
+    ax.set_xticks(range(len(mat.columns)))
+    ax.set_xticklabels(mat.columns, rotation=45, ha='right')
+    ax.set_yticks(range(len(mat.index)))
+    ax.set_yticklabels(mat.index)
+    ax.set_xlabel('CP pre-crash movement')
+    ax.set_ylabel('SV pre-crash movement')
+    suffix = f' ({normalize} %)' if normalize else ''
+    ax.set_title(title or f'SV x CP pre-crash movement{suffix}')
+    if annot:
+        fmt = '{:.1f}' if normalize else '{:.0f}'
+        vmax = mat.values.max() if mat.size else 0
+        for i in range(mat.shape[0]):
+            for j in range(mat.shape[1]):
+                v = mat.values[i, j]
+                if v:
+                    ax.text(j, i, fmt.format(v), ha='center', va='center',
+                            fontsize=8,
+                            color='white' if v > vmax / 2 else 'black')
+    plt.colorbar(im, ax=ax)
+    plt.tight_layout()
+    return ax
+
+
+# ===========================================================================
 # 2. Categorical consolidation helpers
 # ===========================================================================
 # Light text canonicalization specific to this dataset.  More aggressive than
