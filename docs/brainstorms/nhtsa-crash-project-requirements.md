@@ -1,6 +1,6 @@
 ---
 date: 2026-04-27
-topic: nhtsa-crash-portfolio
+topic: nhtsa-crash-project
 ---
 
 # NHTSA AV Crash Data Site — Self-Directed Learning Project
@@ -9,7 +9,7 @@ topic: nhtsa-crash-portfolio
 
 A working data scientist wants to (1) re-exercise existing data engineering, EDA, and ML skills on a real, public, non-trivial dataset, and (2) genuinely learn agentic systems and RAG by building them — not by reading about them. The output is a public website that doubles as a learning artifact: a place where future-you can re-read what you built and how, and where anyone who lands on it can see what AV crash data actually says.
 
-Audience is self-first. Polish matters insofar as a year-from-now-you (or a curious visitor) can navigate it without confusion, but no portfolio-comparison pressure shapes scope. The compounding goal is that the build *workflow* (compound engineering: hooks, slash commands, evals, eventually issue→PR agents) becomes its own learnable skill alongside the project content.
+Audience is self-first. Polish matters insofar as a year-from-now-you (or a curious visitor) can navigate it without confusion. The compounding goal is that the build *workflow* (compound engineering: hooks, slash commands, evals, eventually issue→PR agents) becomes its own learnable skill alongside the project content.
 
 Data source: NHTSA Standing General Order on Crash Reporting (https://www.nhtsa.gov/laws-regulations/standing-general-order-crash-reporting). The dataset has both structured tabular fields and free-text incident narratives — that mix is what makes it interesting for both classical ML and modern NLP/RAG/agentic work.
 
@@ -82,7 +82,7 @@ Each phase ends with the site deployed and the new capability visible. IA is eme
 ## Scope Boundaries
 
 - **No upfront narrative spine.** Site IA emerges. We will not pick a single anchor question and force every phase to answer it.
-- **No "kitchen-sink portfolio" framing.** Audience is self; presentation polish is bounded by "navigable in a year" not "wow a recruiter in 30 seconds."
+- **No "kitchen-sink" framing.** Audience is self; presentation polish is bounded by "navigable in a year" not "wow a recruiter in 30 seconds."
 - **No carry-forward from old iterations.** Clean rebuild, including the fault-attribution + debate prototype.
 - **Time series scope is bounded.** One honest forecast at one aggregation level is the bar; we are not building a full forecasting platform.
 - **The fault debate is the only multi-agent system in scope through P4.** Multi-agent investigative pipelines, fully agent-native visitor UX, and workflow agents that ship their own work are explicitly out of P0–P4 scope (some return as P5 stretch).
@@ -93,7 +93,7 @@ Each phase ends with the site deployed and the new capability visible. IA is eme
 ## Key Decisions
 
 - **Phase 0 exists, even though it wasn't in your original list.** Standing up the empty deployed site + AI-dev workflow first means every later phase compounds on a working substrate. Retrofitting compound engineering after P3 would be expensive.
-- **Audience = self-learning, not portfolio.** Polish bounded by "future-me can re-read this," not "stranger judges this in 5 minutes." Frees us from kitchen-sink instincts.
+- **Audience = self-learning** Polish bounded by "future-me can re-read this," not "stranger judges this in 5 minutes." Frees us from kitchen-sink instincts.
 - **Primary learning frontiers = agentic + RAG.** P3 and P4 get the most rigor (real eval sets, honest writeups). P1–P2 ship adequate.
 - **Production ML is "redo familiar work AI-augmented."** Not the place to invent technique. The novelty is the workflow, and the writeup of that workflow is part of the P2 deliverable.
 - **Stack: Next.js + FastAPI + Postgres on Railway.** Next.js chosen because UI is the kind of code AI tools are good at producing — low marginal cost, high flexibility for agentic UIs. FastAPI keeps Python-centric ML/agent code idiomatic.
