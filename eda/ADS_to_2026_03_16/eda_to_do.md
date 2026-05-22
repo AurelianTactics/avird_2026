@@ -50,11 +50,14 @@ Potential follow up EDA items to do
     * DONE combination of the above maybe: injury severity and passenger versus CP person / pedestrian. I think this needs multiple columns:
         * Highest Injury Severity Alleged, 'Crash With' (and related to tell if Crash partner was a vehicle or person), 'Narrative', 'SV Were All Passengers Belted?',  'CP Any Air Bags Deployed?',  'SV Any Air Bags Deployed?',
     * DONE see results for the pre crash movements, maybe add some of hte ocmbinations to the target
-    * making some functions, review and see the results
+    * DONE making some functions, review and see the results
         * look over the code, maybe make the serious one a bit tighter. seems to flag a bit
 
 * then when the target created, try some basic EDA to see which things may be useful
-    * against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree)
+    * decide which targets to keep
+        * Injury Reported,	SV Speed >= 15
+    * make the plan with the below
+    * against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score, correlation), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree), brainstowrm some more
     * goal here would be more a useful script and easy readout rather than a notebook maybe
         * maybe broken up into multiple things, I think I have a good enough feel on these to make this more reproducible
 * DONE filtering options
@@ -123,11 +126,14 @@ Potential follow up EDA items to do
 ## NLP EDA To Do
 * DONE LDA: count vectorizer, understand the args
 * DONE NMF: tf-idf understand the args
-* keybert
-* other topic ways
+* DONE keybert
+    * backlog: should be cached better with the embedding on this
+* DONE other topic ways
     * bertopic
+* DONE make embeddings and project into lower space
+* DONE spacy
 * classification
-* make embeddings and project into lower space
+
 * narrative data ideas
 	ontology of narrative
 	classification and attributes
@@ -161,10 +167,16 @@ Potential follow up EDA items to do
     * some ideas here: eda\ADS_to_2026_03_16\01_eda_initial_explore_2026.ipynb
 * maybe dynamic stuff like heatmap et all based on the user filters (maybe in a text box)
 * heatmap (or maybe more intersting) of the pre crash movements
-
+* not quite tehre but maybe the spacy crosstab by org and the entity types can be interesting tos ee what is going on
+*  eda_utils_spacy.build_maneuver_matcher might be something fun for the website
 
 
 # Backlog
+* teh spacy maneuver and phrase matcher might ahve some fun things to try later
+* somethign displacy for the website make sense?
+    * idk if not super useful for non data scientist but maybe something similar for prhase matching based on RAG ro what not
+* not super thrilled with how BERTopic came out
+    * maybe mroe follow up or different tools
 * better constructed target
     * seriousness uesing actual data + an LLM
     * use the pre crash movemetns for weird maneuvers
