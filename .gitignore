@@ -2,3 +2,6 @@
 private/*
 *.pyc
 __pycache__/
+.env
+.pytest_cache/
+data/embeddings/
