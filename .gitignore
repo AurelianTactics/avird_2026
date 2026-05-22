@@ -5,3 +5,5 @@ __pycache__/
 .env
 .pytest_cache/
 data/embeddings/
+
+eda/ADS_to_2026_03_16/artifacts_spacy/*
