@@ -2,3 +2,5 @@
 private/*
 *.pyc
 __pycache__/
+
+eda/ADS_to_2026_03_16/artifacts_spacy/*

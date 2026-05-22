@@ -123,6 +123,9 @@ Potential follow up EDA items to do
 ## NLP EDA To Do
 * DONE LDA: count vectorizer, understand the args
 * DONE NMF: tf-idf understand the args
+* DONE spaCy capability tour (linguistic features, NER, Matcher/PhraseMatcher, displaCy, similarity)
+    * eda/eda_utils_spacy.py + eda/ADS_to_2026_03_16/05_eda_spacy_2026.ipynb
+    * artifacts under eda/ADS_to_2026_03_16/artifacts_spacy/
 * keybert
 * other topic ways
     * bertopic
