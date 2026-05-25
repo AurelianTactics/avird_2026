@@ -57,7 +57,14 @@ Potential follow up EDA items to do
     * decide which targets to keep
         * Injury Reported,	SV Speed >= 15
     * make the plan with the below
-    * against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score, correlation), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree), brainstowrm some more
+    * DONE (Injury Reported only) against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score, correlation), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree), brainstowrm some more
+        * Plan: `docs/plans/2026-05-22-001-feat-injury-target-analysis-plan.md`
+        * Utils: `eda/eda_utils_target_univariate.py`, `eda/eda_utils_target_models.py`, `eda/eda_utils_target_interactions.py`
+        * Notebook: `eda/ADS_to_2026_03_16/06_eda_target_injury_2026.ipynb`
+        * Artifacts: `eda/ADS_to_2026_03_16/artifacts_target_injury/{basic_eda,univariate,models,interactions}/`
+        * Env: `~/claude_code_repos/my-uv-envs/avird-2026-eda-target/` (Python 3.12 sidecar for LightGBM + SHAP)
+        * Tests: `eda/tests/test_eda_utils_target_univariate.py`, `eda/tests/test_eda_utils_target_interactions.py`
+        * STILL TO DO: mirror the same flow on `SV Speed >= 15` -- reuse all three utils, only the target column changes
     * goal here would be more a useful script and easy readout rather than a notebook maybe
         * maybe broken up into multiple things, I think I have a good enough feel on these to make this more reproducible
 * DONE filtering options
