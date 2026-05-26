@@ -36,7 +36,7 @@ Potential follow up EDA items to do
     * working on a function, check the results
 
 ### Target related
-* make my own target(s)
+* DONE make my own target(s)
     * DONE do the entity, other treatement, and the incident duplicates
         * can do the below and then think how I want to do my first report
     * DONE explore the data and then see which of these can be made into a binary 1/0 or multi class
@@ -60,6 +60,12 @@ Potential follow up EDA items to do
     * against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score, correlation), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree), brainstowrm some more
     * goal here would be more a useful script and easy readout rather than a notebook maybe
         * maybe broken up into multiple things, I think I have a good enough feel on these to make this more reproducible
+    * DONE plan
+    * work
+        * stopped here
+    * ce review
+    * my review
+    * findings
 * DONE filtering options
     * remove duplicate incidents, leave the last
         * to do: look int o those
@@ -82,18 +88,17 @@ Potential follow up EDA items to do
 
 ### Explore the data a bit more
 * DONE BOTH figure which entity to group on
-* do the entity, other treatement, and the incident duplicates
+* DONE do the entity, other treatement, and the incident duplicates
     * can do the below and then think how I want to do my first report
-* dig more into the driver column and what it means and how it can be used for a target
+* DONE dig more into the driver column and what it means and how it can be used for a target
     * Driver / Operator Type: probalby need to filter by something ueful
     * maybe better to use the Automation System Engaged rather then rely on this? or at least try to match them up to see if it makes sense
-* can add things like ODD and definitions
-* maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
+* DONE can add things like ODD and definitions
 * DONE CAN ADD TO WEBSITE heatmap for CP and SV pre crash movements
     * maybe relate to the contact areas stuff as well
     * CP Pre-Crash Movement
     * SV Pre-Crash Movement
-* who is redacting the narrative by main entity
+* DONE who is redacting the narrative by main entity
 
 ## try with an LLM
 * DONE what can be treated, maybe try some simple treatment ideas based on value counts
@@ -161,8 +166,6 @@ Potential follow up EDA items to do
 # Website
 * can look at all incidents but also need to group them
 * thinking maybe basic graphs and then for the website a dropdown of key things or scrollable and the user can select which type of incidents to have at the top
-
-
 * heatmap of the contact areas with options
     * first is side, rear, front
     * then by contact areas
@@ -172,6 +175,8 @@ Potential follow up EDA items to do
 * heatmap (or maybe more intersting) of the pre crash movements
 * not quite tehre but maybe the spacy crosstab by org and the entity types can be interesting tos ee what is going on
 *  eda_utils_spacy.build_maneuver_matcher might be something fun for the website
+* redacted narratives. seems like Tesla only one recent and active
+    * show the percent and count by entity, maybe recently as well too
 
 
 # Backlog
@@ -227,6 +232,7 @@ Potential follow up EDA items to do
 * data filters by string rather than drop downs maybe
 * LDA and NMF topic analysis could be expanded upon (K sweeps, coherance and other metric plots, more random seeds, more hyperparam tuning)
     * way to have the agent do more of this
+* maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
 
 # Learnings
 * lot of interesting python packages for fuzzy matching / data clearning
