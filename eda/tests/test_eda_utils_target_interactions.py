@@ -72,6 +72,17 @@ def test_target_rate_pivot_numeric_qcut_bucketing(interaction_df):
     assert rate.shape[0] >= 2
 
 
+def test_bucketize_numeric_qcut_collapse_falls_back_to_value_bucketing():
+    '''A heavily-tied numeric whose qcut collapses to a single bin must fall
+    back to value bucketing instead of returning a degenerate one-level axis.'''
+    from eda_utils_target_interactions import _bucketize_for_pivot
+    # 95% one value, 5% another -> nunique==2 (passes the zero-variance guard)
+    # but qcut(duplicates='drop') collapses to a single interval.
+    s = pd.Series([5.0] * 95 + [6.0] * 5)
+    out = _bucketize_for_pivot(s, max_levels=10)
+    assert out.nunique() >= 2
+
+
 def test_target_rate_pivot_missing_column_raises(interaction_df):
     from eda_utils_target_interactions import target_rate_pivot
     with pytest.raises(KeyError, match='not_a_col'):

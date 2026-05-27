@@ -91,6 +91,30 @@ def test_default_feature_columns_airbag_target_drops_three_source_cols():
     assert feats == ['other']
 
 
+def test_default_feature_columns_drops_all_other_derived_targets_incl_sv_speed():
+    '''Regression: every OTHER derived target -- including the templated
+    ``SV Speed >= 15`` column the old static list omitted -- must be dropped
+    from the feature set so it cannot leak into the ranking / SHAP.'''
+    from eda_utils_target_univariate import default_feature_columns
+    target_col = 'Injury Reported'
+    derived_targets = [
+        'No Injury Reported', 'Injury Reported', 'Multi Class Injury',
+        'Binary Airbag Deployed', 'Binary Vehicle Towed',
+        'SV Speed >= 15', 'Potential Non-Trivial Accident',
+    ]
+    cols = derived_targets + ['Highest Injury Severity Alleged',
+                              'Crash With', 'master_entity']
+    df = pd.DataFrame({c: [0, 1] for c in cols})
+    feats = default_feature_columns(df, target_col)
+    for t in derived_targets:
+        assert t not in feats, f'{t!r} leaked into the feature set'
+    # the target's own source column is dropped too
+    assert 'Highest Injury Severity Alleged' not in feats
+    # genuine pre-incident features survive
+    assert 'Crash With' in feats
+    assert 'master_entity' in feats
+
+
 def test_default_feature_columns_extra_drop_extends_drop_set(synth_df):
     from eda_utils_target_univariate import default_feature_columns
     feats = default_feature_columns(synth_df, 'target', extra_drop=('noise_num',))
@@ -201,6 +225,38 @@ def test_score_mutual_info_categorical_perfect_signal(synth_df):
     assert mi > 0.3
 
 
+def test_score_mutual_info_near_unique_categorical_returns_nan():
+    '''Near-unique categoricals (IDs, raw timestamps) overfit discrete MI;
+    the guard returns NaN instead of an inflated score.'''
+    from eda_utils_target_univariate import _score_mutual_info
+    target = pd.Series([0] * 50 + [1] * 50)
+    near_unique = pd.Series([f'id_{i}' for i in range(100)])
+    mi, n_used = _score_mutual_info(near_unique, target, discrete=True)
+    assert n_used == 100
+    assert np.isnan(mi)
+
+
+def test_rank_features_datetime_scored_as_numeric_not_inflated():
+    '''Datetime columns are scored on the numeric track (meaningful AUC),
+    not as near-unique categoricals (which inflated discrete MI to ~0.7 on
+    pure noise).'''
+    from eda_utils_target_univariate import rank_features, _classify_dtype
+    rng = np.random.default_rng(0)
+    n = 120
+    target = np.array([0] * 60 + [1] * 60)
+    dates = pd.to_datetime('2024-01-01') + pd.to_timedelta(
+        rng.integers(0, 365, n), unit='D')
+    df = pd.DataFrame({'when': dates, 'target': target})
+    assert _classify_dtype(df['when']) == 'numeric'
+    out = rank_features(df, 'target', ['when'])
+    row = out.iloc[0]
+    # numeric track: AUC present, chi2 (categorical-only) is NaN
+    assert not np.isnan(row['auc'])
+    assert np.isnan(row['chi2_p'])
+    # noise dates must not produce a near-perfect MI
+    assert np.isnan(row['mutual_info']) or row['mutual_info'] < 0.2
+
+
 def test_score_chi2_perfect_cat_near_zero_p(synth_df):
     from eda_utils_target_univariate import _score_chi2
     p, chi2, n_used = _score_chi2(synth_df['perfect_cat'], synth_df['target'])
@@ -230,7 +286,7 @@ def test_rank_features_columns_and_order(synth_df):
              'noise_num', 'all_nan_num', 'single_val_num']
     out = rank_features(synth_df, 'target', feats)
 
-    expected = ['feature', 'dtype', 'n_non_null',
+    expected = ['feature', 'dtype', 'n_non_null', 'n_unique',
                 'auc', 'auc_direction', 'ks',
                 'mutual_info', 'chi2_p', 'correlation']
     assert list(out.columns) == expected

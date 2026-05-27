@@ -296,7 +296,8 @@ def evaluate_classifier(model, X_test, y_test, name):
     Returns a flat dict suitable for stacking into a comparison DataFrame:
         ``{name, auc, pr_auc, n_test, n_pos_test}``
     '''
-    X_test = _apply_lgbm_name_map(model, X_test) if hasattr(model, '_orig_feature_name_map_') else X_test
+    # _apply_lgbm_name_map is a no-op for models without a sanitized name map.
+    X_test = _apply_lgbm_name_map(model, X_test)
     proba = model.predict_proba(X_test)[:, 1]
     y = np.asarray(y_test).astype(int)
     try:
@@ -339,12 +340,11 @@ def feature_importance_lgbm(model, feature_cols=None):
     return out.sort_values('gain', ascending=False).reset_index(drop=True)
 
 
-def feature_importance_logistic(pipeline, feature_cols=None):
+def feature_importance_logistic(pipeline):
     '''Tidy ``[feature, coef, abs_coef]`` for the LR pipeline from ``fit_logistic``.
 
-    Expands one-hot categoricals back into ``parent__value`` rows. ``feature_cols``
-    is the original (pre-encoding) feature list; if omitted it is derived from
-    the fitted ColumnTransformer.
+    Expands one-hot categoricals back into ``parent__value`` rows. The encoded
+    feature names are read directly from the fitted ``ColumnTransformer``.
     '''
     pre = pipeline.named_steps['pre']
     clf = pipeline.named_steps['clf']
@@ -464,7 +464,9 @@ def shap_summary_plot(model, X_sample, out_path,
     explanation = explainer(X_sample)
     pos = _positive_class_shap_values(explanation, X_sample.shape[1])
 
-    fig = plt.figure(figsize=(8, max(4, min(max_display, X_sample.shape[1]) * 0.3)))
+    # shap.summary_plot(show=False) creates and draws into its own figure;
+    # capture it with gcf() rather than pre-creating one (a pre-created figure
+    # would be left as an unclosed orphan because summary_plot ignores it).
     shap.summary_plot(
         pos, X_sample,
         plot_type='bar' if plot_type == 'bar' else 'dot',

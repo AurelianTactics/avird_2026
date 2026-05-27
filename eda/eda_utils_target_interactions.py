@@ -24,8 +24,14 @@ import numpy as np
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier, export_text, plot_tree
 
+# Single source of truth shared with eda_utils_target_univariate: the
+# missing-value sentinel and the Windows-safe filename helper live there, so
+# importing them here avoids drift between two copies.
+from eda_utils_target_univariate import (
+    _MISSING_SENTINEL as _MISSING_LABEL,
+    _safe_filename,
+)
 
-_MISSING_LABEL = '__MISSING__'
 _OTHER_LABEL = '__OTHER__'
 
 
@@ -42,7 +48,10 @@ def _bucketize_for_pivot(series, max_levels):
       bucket the rest as ``__OTHER__``. NaNs become ``__MISSING__``.
 
     Returns the bucketed Series. Constant numeric columns return as a
-    single-level series (caller can skip the pair).
+    single-level series (caller can skip the pair). A heavily-tied numeric
+    whose ``qcut`` collapses to a single bin falls back to value bucketing so
+    the axis still reflects the actual distinct values instead of a degenerate
+    one-row heatmap.
     '''
     if pd.api.types.is_numeric_dtype(series) and not pd.api.types.is_bool_dtype(series):
         x = pd.to_numeric(series, errors='coerce')
@@ -52,19 +61,29 @@ def _bucketize_for_pivot(series, max_levels):
         try:
             binned = pd.qcut(x, q=max_levels, duplicates='drop')
         except ValueError:
-            return x.astype('object').where(x.notna(), _MISSING_LABEL)
+            binned = None
+        # qcut can silently collapse a heavily-tied numeric (most mass on one
+        # value) to a single bin, rendering as a degenerate 1xN heatmap row.
+        # Detect that and fall back to value bucketing on the raw values.
+        if binned is None or binned.cat.categories.size < 2:
+            return _value_bucketize(
+                x.astype('object').where(x.notna(), _MISSING_LABEL), max_levels)
         # Replace NaN bin assignment with the MISSING label
-        binned = binned.astype('object').where(x.notna(), _MISSING_LABEL)
-        return binned
+        return binned.astype('object').where(x.notna(), _MISSING_LABEL)
 
     s = series.astype('object').where(series.notna(), _MISSING_LABEL)
+    return _value_bucketize(s, max_levels)
+
+
+def _value_bucketize(s, max_levels):
+    '''Keep the top ``max_levels`` values of an object Series by frequency,
+    bucketing the rest as ``__OTHER__``.'''
     counts = s.value_counts(dropna=False)
     keep = set(counts.head(max_levels).index)
     return s.where(s.isin(keep), _OTHER_LABEL)
 
 
-def target_rate_pivot(df, feat_a, feat_b, target_col,
-                      max_levels=10, fillna=_MISSING_LABEL):
+def target_rate_pivot(df, feat_a, feat_b, target_col, max_levels=10):
     '''Mean(target) and count pivots over (feat_a, feat_b).
 
     Returns ``(rate_pivot, count_pivot)``. The rate pivot carries NaN in
@@ -146,13 +165,6 @@ def plot_target_rate_heatmap(df, feat_a, feat_b, target_col,
     plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04,
                  label=f'P({target_col} = 1)')
     return ax
-
-
-def _safe_filename(name):
-    '''Make a column name safe to use as a filename stem on Windows.'''
-    bad = '/\\:*?"<>|'
-    out = ''.join('__' if ch in bad else ch for ch in name)
-    return out.rstrip(' .')
 
 
 def pairwise_heatmaps_to_png(df, feature_cols, target_col, out_dir,

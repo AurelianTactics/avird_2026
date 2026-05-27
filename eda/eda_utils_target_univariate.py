@@ -66,18 +66,14 @@ DEFAULT_DROP_COLS = (
     'Serial Number',
     'Same Vehicle ID',
     'Same Incident ID',
-
-    # Other derived target columns produced by ``add_all_targets``.
-    # The target the notebook picks for *this* run stays in the frame and
-    # is dropped via ``default_feature_columns(target_col=...)``; the other
-    # six are dropped here to prevent cross-target leakage when the
-    # SHAP / univariate rankings score features against the chosen target.
-    'No Injury Reported',
-    'Multi Class Injury',
-    'Binary Airbag Deployed',
-    'Binary Vehicle Towed',
-    'Potential Non-Trivial Accident',
 )
+# NOTE: the *other* derived-target columns produced by ``add_all_targets``
+# (every generated target except the active one) are intentionally NOT listed
+# statically above. They are dropped dynamically by ``default_feature_columns``
+# via ``_derived_target_columns``, which resolves the canonical names from
+# ``eda_utils_targets.TARGET_COL_NAMES``. A hand-maintained list silently
+# omitted the templated ``SV Speed >= {threshold}`` column, leaking it into the
+# feature set / ranking / SHAP; deriving from upstream prevents that drift.
 
 
 # Per-target source columns -- the upstream columns each generated target is
@@ -122,6 +118,47 @@ TARGET_SOURCE_COLS = {
 }
 
 
+# Fallback derived-target names, used only if ``eda_utils_targets`` cannot be
+# imported. Mirrors ``eda_utils_targets.TARGET_COL_NAMES``; the SV-speed target
+# is templated, so it is matched by prefix rather than an exact name.
+_FALLBACK_DERIVED_TARGET_NAMES = (
+    'No Injury Reported',
+    'Injury Reported',
+    'Multi Class Injury',
+    'Binary Airbag Deployed',
+    'Binary Vehicle Towed',
+    'Potential Non-Trivial Accident',
+)
+_SV_SPEED_TARGET_PREFIX = 'SV Speed >= '
+
+
+def _derived_target_columns(df_columns):
+    '''Names in ``df_columns`` that are derived-target columns from
+    ``add_all_targets`` (so they can be dropped from any feature set).
+
+    Reads the canonical names from ``eda_utils_targets.TARGET_COL_NAMES`` so
+    the drop-set never drifts from upstream. The SV-speed target name is a
+    template (``"SV Speed >= {threshold}"``); it is matched by prefix so any
+    threshold the notebook passed to ``add_all_targets`` is caught.
+    '''
+    columns = list(df_columns)
+    try:
+        from eda_utils_targets import TARGET_COL_NAMES
+        names = list(TARGET_COL_NAMES.values())
+    except Exception:
+        names = list(_FALLBACK_DERIVED_TARGET_NAMES)
+        names.append(_SV_SPEED_TARGET_PREFIX + '{threshold}')
+
+    derived = set()
+    for name in names:
+        if '{' in name:
+            prefix = name.split('{', 1)[0]
+            derived.update(c for c in columns if str(c).startswith(prefix))
+        else:
+            derived.add(name)
+    return derived
+
+
 def default_feature_columns(df, target_col, drop_cols=DEFAULT_DROP_COLS,
                             extra_drop=()):
     '''Return the list of eligible feature columns after applying drop-lists.
@@ -129,6 +166,10 @@ def default_feature_columns(df, target_col, drop_cols=DEFAULT_DROP_COLS,
     Drops the static ``drop_cols`` (defaults to ``DEFAULT_DROP_COLS``), the
     target column itself, the source columns of ``target_col`` from
     ``TARGET_SOURCE_COLS`` (falls back to empty if the target is unknown),
+    every *other* derived-target column produced by ``add_all_targets``
+    (resolved dynamically via ``_derived_target_columns`` so the
+    cross-target-leakage drop never drifts from upstream -- this is what keeps
+    the templated ``SV Speed >= {threshold}`` column out of the feature set),
     and any ``extra_drop`` the caller passes in.
 
     Raises ``KeyError`` if ``target_col`` is not in ``df.columns``.
@@ -139,22 +180,24 @@ def default_feature_columns(df, target_col, drop_cols=DEFAULT_DROP_COLS,
             f'(have {len(df.columns)} columns)'
         )
     source_cols = TARGET_SOURCE_COLS.get(target_col, ())
-    excluded = set(drop_cols) | set(source_cols) | {target_col} | set(extra_drop)
+    derived_targets = _derived_target_columns(df.columns)
+    excluded = (set(drop_cols) | set(source_cols) | set(derived_targets)
+                | {target_col} | set(extra_drop))
     return [c for c in df.columns if c not in excluded]
 
 
 # ---------------------------------------------------------------------------
 # Basic EDA by target
 # ---------------------------------------------------------------------------
-def value_counts_by_target(df, feature_col, target_col, dropna=False,
-                           normalize=False):
+def value_counts_by_target(df, feature_col, target_col, dropna=False):
     '''Long-form value counts of ``feature_col`` segmented by ``target_col``.
 
     Returns a DataFrame with columns
     ``[feature_value, target_value, count, share_within_target]`` so the
     reader can see positive-rate-per-feature-value at a glance. NaN feature
     values are kept by default (``dropna=False``) and shown as ``NaN`` in
-    the ``feature_value`` column.
+    the ``feature_value`` column. ``share_within_target`` is always the
+    normalized view, so there is no separate ``normalize`` flag.
     '''
     if feature_col not in df.columns:
         raise KeyError(f'feature_col={feature_col!r} not in df')
@@ -249,7 +292,17 @@ def _is_numeric_dtype(series):
 
 
 def _coerce_numeric(series):
-    '''Best-effort numeric coercion. Returns float Series with NaN for non-numeric cells.'''
+    '''Best-effort numeric coercion. Returns float Series with NaN for non-numeric cells.
+
+    Datetime columns are coerced to their int64 nanoseconds-since-epoch value
+    (NaT -> NaN) so temporal features are scored on the numeric track (a
+    monotonic time trend that AUC / correlation handle) instead of being
+    treated as near-unique categorical levels -- the latter inflates discrete
+    mutual information.
+    '''
+    if pd.api.types.is_datetime64_any_dtype(series):
+        as_float = series.astype('int64').astype(float)
+        return as_float.where(series.notna(), np.nan)
     if pd.api.types.is_numeric_dtype(series):
         return series.astype(float)
     return pd.to_numeric(series, errors='coerce')
@@ -333,7 +386,14 @@ def _score_mutual_info(series, target, discrete):
 
     if discrete:
         codes, _ = _encode_categorical(series[mask])
-        if len(np.unique(codes)) < 2:
+        n_levels = len(np.unique(codes))
+        if n_levels < 2:
+            return (np.nan, n_used)
+        # Near-unique categoricals (IDs, raw datetimes that slipped past the
+        # drop-list) overfit discrete MI -- each level maps to ~one row, which
+        # inflates the score and lets noise dominate the ranking. Treat them as
+        # unreliable rather than emitting a misleading number.
+        if n_levels > max(20, 0.5 * n_used):
             return (np.nan, n_used)
         X = codes.reshape(-1, 1)
         mi = mutual_info_classif(X, y, discrete_features=True, random_state=0)
@@ -394,11 +454,15 @@ def _score_correlation(series, target):
 def _classify_dtype(series):
     '''Bucket a column into 'numeric' or 'categorical' for scoring dispatch.
 
-    Booleans are scored as numeric (0/1). Object / string / category dtypes
-    are categorical. Datetime columns are treated as categorical (their
-    raw timestamp magnitude is rarely meaningful as an AUC ranking).
+    Booleans are scored as numeric (0/1). Datetime columns are scored as
+    numeric on their ns-since-epoch representation (see ``_coerce_numeric``)
+    rather than categorical -- treating timestamps as categorical levels makes
+    them near-unique, which inflates discrete mutual information. Object /
+    string / category dtypes are categorical.
     '''
     if pd.api.types.is_bool_dtype(series):
+        return 'numeric'
+    if pd.api.types.is_datetime64_any_dtype(series):
         return 'numeric'
     if pd.api.types.is_numeric_dtype(series):
         return 'numeric'
@@ -409,11 +473,19 @@ def rank_features(df, target_col, feature_cols=None, verbose=False):
     '''Score every feature against ``target_col`` and return a tidy ranking.
 
     Returns a DataFrame with columns
-    ``[feature, dtype, n_non_null, auc, auc_direction, ks, mutual_info,
-       chi2_p, correlation]``
+    ``[feature, dtype, n_non_null, n_unique, auc, auc_direction, ks,
+       mutual_info, chi2_p, correlation]``
     sorted by ``mutual_info`` descending. Metrics not applicable to a
     feature's dtype return NaN (numeric-only: AUC / KS / correlation;
     categorical-only: chi-square). Mutual information runs for both.
+
+    Caveat on the default sort: ``mutual_info`` comes from two different
+    estimators (continuous for numeric, discrete for categorical) and is not
+    strictly comparable across dtypes -- discrete MI carries a positive bias
+    that grows with cardinality. ``n_unique`` is reported alongside so the
+    reader can spot high-cardinality inflation, and near-unique categoricals
+    are dropped from MI entirely (see ``_score_mutual_info``). Cross-check the
+    per-metric columns rather than reading the MI sort as ground truth.
 
     NaN handling per metric:
       * AUC / KS / correlation: drop NaN feature rows before scoring.
@@ -442,10 +514,12 @@ def rank_features(df, target_col, feature_cols=None, verbose=False):
         series = df[feat]
         kind = _classify_dtype(series)
         n_non_null = int(series.notna().sum())
+        n_unique = int(series.nunique(dropna=True))
         row = {
             'feature': feat,
             'dtype': str(series.dtype),
             'n_non_null': n_non_null,
+            'n_unique': n_unique,
             'auc': np.nan,
             'auc_direction': np.nan,
             'ks': np.nan,
@@ -477,7 +551,7 @@ def rank_features(df, target_col, feature_cols=None, verbose=False):
         rows.append(row)
 
     out = pd.DataFrame(rows, columns=[
-        'feature', 'dtype', 'n_non_null',
+        'feature', 'dtype', 'n_non_null', 'n_unique',
         'auc', 'auc_direction', 'ks', 'mutual_info', 'chi2_p', 'correlation',
     ])
     return out.sort_values('mutual_info', ascending=False,
