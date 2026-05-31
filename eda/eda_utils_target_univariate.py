@@ -6,7 +6,7 @@ Three function groups:
 1. Feature schema      -- ``DEFAULT_DROP_COLS``, ``TARGET_SOURCE_COLS``,
                           ``default_feature_columns``
 2. Basic EDA by target -- ``value_counts_by_target``, ``describe_by_target``,
-                          ``basic_eda_to_csvs``
+                          ``basic_eda_by_target`` (inline display, optional CSVs)
 3. Univariate ranking  -- ``rank_features`` (+ ``_score_*`` helpers added in
                           a downstream pass)
 
@@ -189,15 +189,34 @@ def default_feature_columns(df, target_col, drop_cols=DEFAULT_DROP_COLS,
 # ---------------------------------------------------------------------------
 # Basic EDA by target
 # ---------------------------------------------------------------------------
-def value_counts_by_target(df, feature_col, target_col, dropna=False):
-    '''Long-form value counts of ``feature_col`` segmented by ``target_col``.
+def value_counts_by_target(df, feature_col, target_col, dropna=False,
+                           positive_label=1):
+    '''Wide value counts of ``feature_col`` segmented by ``target_col``.
 
-    Returns a DataFrame with columns
-    ``[feature_value, target_value, count, share_within_target]`` so the
-    reader can see positive-rate-per-feature-value at a glance. NaN feature
-    values are kept by default (``dropna=False``) and shown as ``NaN`` in
-    the ``feature_value`` column. ``share_within_target`` is always the
-    normalized view, so there is no separate ``normalize`` flag.
+    One row per distinct feature value, columns in this order:
+
+      * ``pos_rate`` -- ``P(target == positive_label | feature_value)``, i.e.
+        of the rows with this feature value, the fraction in the positive
+        class. This is the headline signal: it reads *across* the row and is
+        directly comparable between feature values (unaffected by class
+        imbalance, unlike the raw share columns).
+      * ``share_within_target={t}`` -- one per target value ``t``: of all rows
+        in target class ``t``, the fraction with this feature value. Sums to
+        1.0 down each column. Comparing ``=0`` vs ``=1`` shows whether a value
+        is over-/under-represented in the positive class.
+      * ``count={t}`` -- raw row count per target value, kept last so the
+        reader can judge how much sample backs each rate.
+
+    Rows are sorted by total count across targets, descending (the
+    ``value_counts()`` convention), so ``.head(n)`` shows the dominant feature
+    values rather than the alphabetically-first ones.
+
+    NaN feature values are kept by default (``dropna=False``) and appear as a
+    ``NaN`` row in the index. Feature values absent for a given target get
+    ``count == 0`` / ``share == 0`` (not NaN), so the table is gap-free.
+
+    ``pos_rate`` is NaN when ``positive_label`` never appears in ``target_col``
+    (the positive class is undefined).
     '''
     if feature_col not in df.columns:
         raise KeyError(f'feature_col={feature_col!r} not in df')
@@ -214,10 +233,38 @@ def value_counts_by_target(df, feature_col, target_col, dropna=False):
     totals = tab.groupby(target_col)['count'].transform('sum')
     tab['share_within_target'] = tab['count'] / totals.replace(0, np.nan)
 
-    out = tab.rename(columns={feature_col: 'feature_value',
-                              target_col: 'target_value'})
-    # Order columns deterministically.
-    return out[['feature_value', 'target_value', 'count', 'share_within_target']]
+    # Pivot to one column per target value. A feature value missing for a
+    # target is a genuine zero count (not unknown), so fill before assembling.
+    counts = (tab.pivot(index=feature_col, columns=target_col, values='count')
+              .fillna(0).astype('int64'))
+    shares = (tab.pivot(index=feature_col, columns=target_col,
+                        values='share_within_target')
+              .fillna(0.0))
+    target_values = list(counts.columns)
+
+    # pos_rate = positive-class count / row total, read across the row. With
+    # ~9.5% positives the raw share columns are dwarfed by the negative class;
+    # pos_rate normalizes that out so feature values compare directly.
+    n_total = counts.sum(axis=1)
+    out = pd.DataFrame(index=counts.index)
+    if positive_label in counts.columns:
+        out['pos_rate'] = counts[positive_label] / n_total.replace(0, np.nan)
+    else:
+        out['pos_rate'] = np.nan
+    for t in target_values:
+        out[f'share_within_target={t}'] = shares[t]
+    for t in target_values:
+        out[f'count={t}'] = counts[t]
+
+    # Sort by total count across targets, descending -- the value_counts()
+    # convention. Without this the pivot leaves rows in alphabetical order, so
+    # head(top_n) would show the first N names instead of the dominant levels
+    # (e.g. cut off 'Waymo' on a high-cardinality entity column). Stable sort
+    # keeps ties in their (alphabetical) pivot order.
+    order = n_total.sort_values(ascending=False, kind='stable').index
+    out = out.loc[order]
+    out.index.name = 'feature_value'  # set after .loc, which inherits order's name
+    return out
 
 
 def describe_by_target(df, feature_col, target_col):
@@ -246,38 +293,86 @@ def _safe_filename(name):
     return out.rstrip(' .')  # avoid trailing-space/dot files on Windows
 
 
-def basic_eda_to_csvs(df, target_col, feature_cols, out_dir):
-    '''Orchestrator: write per-feature value-counts + describe CSVs.
+def _display_side_by_side(named_tables, header=None):
+    '''Render ``[(name, DataFrame), ...]`` horizontally in a notebook.
 
-    For every column in ``feature_cols`` writes two CSVs to ``out_dir``:
-      * ``{feature}__value_counts.csv`` -- output of ``value_counts_by_target``
-      * ``{feature}__describe.csv``     -- output of ``describe_by_target``
-
-    Creates ``out_dir`` (and any missing parents) on entry. Returns the list
-    of paths written, in the order they were written.
+    Uses ``IPython.display`` when available so the tables sit next to each
+    other instead of stacking vertically. Falls back to plain ``print`` (still
+    stacked) when run outside a notebook, so callers never crash headless.
     '''
-    out_dir = Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        from IPython.display import display, HTML
+    except Exception:  # not in a notebook / IPython unavailable
+        if header:
+            print(f'=== {header} ===')
+        for name, tbl in named_tables:
+            print(f'-- {name} --')
+            print(tbl)
+        return
 
-    paths = []
+    parts = []
+    if header:
+        parts.append(f'<h4 style="margin:0.4em 0">{header}</h4>')
+    parts.append('<div style="display:flex;gap:2.5em;align-items:flex-start;'
+                 'flex-wrap:wrap">')
+    for name, tbl in named_tables:
+        parts.append(
+            f'<div><div style="font-weight:600;margin-bottom:0.2em">{name}'
+            f'</div>{tbl.to_html()}</div>'
+        )
+    parts.append('</div>')
+    display(HTML(''.join(parts)))
+
+
+def basic_eda_by_target(df, target_col, feature_cols, out_dir=None,
+                        show=True, top_n=20):
+    '''Per-feature value-counts + describe, displayed inline in the notebook.
+
+    For every column in ``feature_cols`` this computes
+    ``value_counts_by_target`` (wide) and ``describe_by_target`` and, when
+    ``show`` is true, renders the two tables *side by side* under a feature
+    header -- so basic EDA is readable directly in the notebook instead of
+    being scattered across hundreds of CSV files.
+
+    Artifacts are opt-in: pass ``out_dir`` to also write
+    ``{feature}__value_counts.csv`` / ``{feature}__describe.csv`` (the parent
+    directory is created on entry). Leave ``out_dir=None`` (the default) and
+    nothing is written to disk.
+
+    ``top_n`` caps the value-counts rows shown for high-cardinality features
+    (the full table is still returned / written). Returns a dict
+    ``{feature: {'value_counts': DataFrame, 'describe': DataFrame}}`` so the
+    notebook can reuse any table without recomputing.
+    '''
+    if out_dir is not None:
+        out_dir = Path(out_dir)
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+    results = {}
     for feat in feature_cols:
         if feat not in df.columns:
             # Defensive: the notebook builds feature_cols from
             # default_feature_columns(df, ...), but if a caller passes a
             # column that isn't in df, skip rather than raise.
             continue
-        stem = _safe_filename(feat)
-        vc_path = out_dir / f'{stem}__value_counts.csv'
-        ds_path = out_dir / f'{stem}__describe.csv'
 
         vc = value_counts_by_target(df, feat, target_col)
-        vc.to_csv(vc_path, index=False)
-        paths.append(vc_path)
-
         ds = describe_by_target(df, feat, target_col)
-        ds.to_csv(ds_path)
-        paths.append(ds_path)
-    return paths
+        results[feat] = {'value_counts': vc, 'describe': ds}
+
+        if show:
+            shown_vc = vc.head(top_n) if top_n is not None else vc
+            _display_side_by_side(
+                [('value counts', shown_vc), ('describe', ds)],
+                header=f'{feat}  vs  {target_col}',
+            )
+
+        if out_dir is not None:
+            stem = _safe_filename(feat)
+            vc.to_csv(out_dir / f'{stem}__value_counts.csv')
+            ds.to_csv(out_dir / f'{stem}__describe.csv')
+
+    return results
 
 
 # ---------------------------------------------------------------------------

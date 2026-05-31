@@ -131,20 +131,65 @@ def test_default_feature_columns_raises_for_missing_target(synth_df):
 # ---------------------------------------------------------------------------
 # Basic-EDA helpers
 # ---------------------------------------------------------------------------
-def test_value_counts_by_target_share_sums_to_one_per_target(synth_df):
+def test_value_counts_by_target_is_wide_with_pos_rate_share_and_count(synth_df):
     from eda_utils_target_univariate import value_counts_by_target
     out = value_counts_by_target(synth_df, 'perfect_cat', 'target')
-    assert set(out.columns) == {'feature_value', 'target_value', 'count',
-                                'share_within_target'}
-    for tval, grp in out.groupby('target_value'):
-        assert grp['share_within_target'].sum() == pytest.approx(1.0)
+    # Flat columns, pos_rate first, then shares, then counts.
+    assert list(out.columns) == [
+        'pos_rate',
+        'share_within_target=0', 'share_within_target=1',
+        'count=0', 'count=1',
+    ]
+    assert out.index.name == 'feature_value'
+    # share sums to 1.0 down each target column
+    assert out['share_within_target=0'].sum() == pytest.approx(1.0)
+    assert out['share_within_target=1'].sum() == pytest.approx(1.0)
 
 
-def test_value_counts_by_target_single_value_feature_does_not_raise(synth_df):
+def test_value_counts_by_target_pos_rate_is_per_feature_value(synth_df):
+    from eda_utils_target_univariate import value_counts_by_target
+    # 'A' occurs only when target == 1 -> pos_rate 1.0; 'B' only when 0 -> 0.0.
+    out = value_counts_by_target(synth_df, 'perfect_cat', 'target')
+    assert out.loc['A', 'pos_rate'] == pytest.approx(1.0)
+    assert out.loc['B', 'pos_rate'] == pytest.approx(0.0)
+
+
+def test_value_counts_by_target_pos_rate_nan_when_label_absent(synth_df):
+    from eda_utils_target_univariate import value_counts_by_target
+    # positive_label not present in the target column -> pos_rate undefined.
+    out = value_counts_by_target(synth_df, 'perfect_cat', 'target',
+                                 positive_label=99)
+    assert out['pos_rate'].isna().all()
+
+
+def test_value_counts_by_target_sorted_by_total_count_desc():
+    from eda_utils_target_univariate import value_counts_by_target
+    # 'zzz' dominates but sorts LAST alphabetically -- proves the ordering is
+    # by frequency, not name, so head(n) wouldn't cut off the dominant level.
+    df = pd.DataFrame({
+        'feat': ['zzz'] * 30 + ['aaa'] * 5 + ['mmm'] * 1,
+        'tgt': [0, 1] * 18,
+    })
+    out = value_counts_by_target(df, 'feat', 'tgt')
+    assert out.index[0] == 'zzz'
+    totals = (out['count=0'] + out['count=1']).tolist()
+    assert totals == sorted(totals, reverse=True)
+
+
+def test_value_counts_by_target_single_value_feature_one_row(synth_df):
     from eda_utils_target_univariate import value_counts_by_target
     out = value_counts_by_target(synth_df, 'single_val_num', 'target')
-    # 1 distinct value x 2 target values = 2 rows
-    assert len(out) == 2
+    # 1 distinct feature value = 1 row in the wide table
+    assert len(out) == 1
+
+
+def test_value_counts_by_target_absent_value_is_zero_not_nan(synth_df):
+    from eda_utils_target_univariate import value_counts_by_target
+    # 'A' only occurs when target == 1, so its count/share for target 0 is 0.
+    out = value_counts_by_target(synth_df, 'perfect_cat', 'target')
+    assert out.loc['A', 'count=0'] == 0
+    assert out.loc['A', 'share_within_target=0'] == 0.0
+    assert out.loc['A', 'count=1'] == 50
 
 
 def test_describe_by_target_returns_per_target_columns(synth_df):
@@ -156,17 +201,35 @@ def test_describe_by_target_returns_per_target_columns(synth_df):
     assert out.loc['mean', 1] > out.loc['mean', 0]
 
 
-def test_basic_eda_to_csvs_creates_files(synth_df, tmp_path):
-    from eda_utils_target_univariate import basic_eda_to_csvs
+def test_basic_eda_by_target_returns_frames_without_writing(synth_df):
+    from eda_utils_target_univariate import basic_eda_by_target
+    feats = ['perfect_num', 'perfect_cat']
+    results = basic_eda_by_target(synth_df, 'target', feats, show=False)
+    assert set(results) == set(feats)
+    for feat in feats:
+        assert set(results[feat]) == {'value_counts', 'describe'}
+        assert not results[feat]['value_counts'].empty
+        assert not results[feat]['describe'].empty
+
+
+def test_basic_eda_by_target_writes_csvs_when_out_dir_given(synth_df, tmp_path):
+    from eda_utils_target_univariate import basic_eda_by_target
     out_dir = tmp_path / 'basic'
     feats = ['perfect_num', 'perfect_cat']
-    paths = basic_eda_to_csvs(synth_df, 'target', feats, out_dir)
+    basic_eda_by_target(synth_df, 'target', feats, out_dir=out_dir, show=False)
     assert out_dir.exists()
+    written = sorted(p.name for p in out_dir.glob('*.csv'))
     # 2 features * 2 files each
-    assert len(paths) == 4
-    for p in paths:
-        assert p.exists()
+    assert len(written) == 4
+    for p in out_dir.glob('*.csv'):
         assert p.stat().st_size > 0
+
+
+def test_basic_eda_by_target_skips_missing_columns(synth_df):
+    from eda_utils_target_univariate import basic_eda_by_target
+    results = basic_eda_by_target(
+        synth_df, 'target', ['perfect_num', 'not_a_column'], show=False)
+    assert set(results) == {'perfect_num'}
 
 
 # ---------------------------------------------------------------------------
