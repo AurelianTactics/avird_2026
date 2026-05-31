@@ -53,18 +53,21 @@ Potential follow up EDA items to do
     * DONE making some functions, review and see the results
         * look over the code, maybe make the serious one a bit tighter. seems to flag a bit
 
-* then when the target created, try some basic EDA to see which things may be useful
-    * decide which targets to keep
+* DONE then when the target created, try some basic EDA to see which things may be useful
+    * DONE decide which targets to keep
         * Injury Reported,	SV Speed >= 15
-    * make the plan with the below
-    * against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score, correlation), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree), brainstowrm some more
-    * goal here would be more a useful script and easy readout rather than a notebook maybe
+    * DONE make the plan with the below
+    * DONE against target (displays, percents), univariate (AUC, KS, mutual information, chi2, overall score, correlation), quick RF / LR / lightbm test (with SHAP), maybe interactions (heatmap & 2 stub tree), brainstowrm some more
+    * DONE goal here would be more a useful script and easy readout rather than a notebook maybe
         * maybe broken up into multiple things, I think I have a good enough feel on these to make this more reproducible
     * DONE plan
-    * work
-        * stopped here
-    * ce review
+    * DONE work
+    * DONE ce review
+        * docs/reviews/2026-05-25-code-review-injury-target.md
     * my review
+        * hundreds of artifacts, even the fucking value counts. this needs to be done better
+            prompt:
+            This is unwieldy. For some reasons there are hundreds of artifacts. Even the value counts and describe across hundres of files. Maybe parts of this should be a notebook? The benefit to an artifact from a .py file is it is easy to run and reproduce but if it loses to much usability and eligibility then it's not worth doing as a .py file and can do as a .ipynb file.
     * findings
 * DONE filtering options
     * remove duplicate incidents, leave the last
@@ -100,6 +103,7 @@ Potential follow up EDA items to do
     * SV Pre-Crash Movement
 * DONE who is redacting the narrative by main entity
 
+
 ## try with an LLM
 * DONE what can be treated, maybe try some simple treatment ideas based on value counts
     * Make and model can be consolidated: some duplicate options
@@ -116,17 +120,14 @@ Potential follow up EDA items to do
         * yeah this is wrong
     * contact as % against each other should be more in depth
     * way to do contact and who was moving and what not, might be able to do more with that
-* by entity and the % of the severity versus overall
-* incidents by month by severity
-* WHich source the comnplaint came from by entity could be worht following up on
-* data availability by entity to see which entities share what
-* narrative plus xyz fields (within ODD, driver / operator, engagement status) to see what rows shoudl be cleneed
-* see if can create some fun topics
+
+* DONE see if can create some fun topics
+
 
 ## treatment follow up
-* make an overall entity
-* lot of duplicate entity id
-* see how the fuzzy treatment options dis
+* DONE make an overall entity
+* DONE lot of duplicate entity id
+* DONE see how the fuzzy treatment options dis
 
 ## NLP EDA To Do
 * DONE LDA: count vectorizer, understand the args
@@ -141,13 +142,10 @@ Potential follow up EDA items to do
 * DONE make embeddings and project into lower space
 * DONE spacy
 * classification
-
 * narrative data ideas
 	ontology of narrative
 	classification and attributes
 	who classifies it and how much and why
-* see list of things to try in my brainstorm
-    
 
 
 ## Improve Agent context
@@ -174,12 +172,18 @@ Potential follow up EDA items to do
 * maybe dynamic stuff like heatmap et all based on the user filters (maybe in a text box)
 * heatmap (or maybe more intersting) of the pre crash movements
 * not quite tehre but maybe the spacy crosstab by org and the entity types can be interesting tos ee what is going on
-*  eda_utils_spacy.build_maneuver_matcher might be something fun for the website
+* eda_utils_spacy.build_maneuver_matcher might be something fun for the website
 * redacted narratives. seems like Tesla only one recent and active
     * show the percent and count by entity, maybe recently as well too
 
 
 # Backlog
+* Using topic plus some of the NLP based tools (like BertTOpic)
+* data availability by entity to see which entities share what
+* narrative plus xyz fields (within ODD, driver / operator, engagement status) to see what rows shoudl be cleneed
+* by entity and the % of the severity versus overall
+* incidents by month by severity
+* WHich source the comnplaint came from by entity could be worht following up on
 * teh spacy maneuver and phrase matcher might ahve some fun things to try later
 * somethign displacy for the website make sense?
     * idk if not super useful for non data scientist but maybe something similar for prhase matching based on RAG ro what not
@@ -233,6 +237,14 @@ Potential follow up EDA items to do
 * LDA and NMF topic analysis could be expanded upon (K sweeps, coherance and other metric plots, more random seeds, more hyperparam tuning)
     * way to have the agent do more of this
 * maybe can do somethign with mileage. would ideally need mileage of all the vehicles to understand if any affect
+* from target analysis:
+    crash with other fixed object and and other see narrative might be worth reasing
+    certain car or cars accounting for more rates
+    contact areas and the movemetns from both
+        maybe for the website
+    for incident time anything in there?
+    this with pre contact moving only
+    have thea gent run this analysi and see waht is important
 
 # Learnings
 * lot of interesting python packages for fuzzy matching / data clearning
