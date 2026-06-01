@@ -148,25 +148,34 @@ Potential follow up EDA items to do
     * bertopic
 * DONE make embeddings and project into lower space
 * DONE spacy
-* classification
-* narrative data ideas
-	ontology of narrative
-	classification and attributes
-	who classifies it and how much and why
 
+# when done
+* see what from EDA and the backlog would be interesting for something more formalized on the site
+    * look through my own notes
+        * STOPPED HERE I NEED TO GO THROUGH TH IS
+            * eda\ADS_to_2026_03_16\04_eda_target_exploration.ipynb (this one next)
+            * go through this file at some point
+    * agent review
+        * started plan for this and the improve agent context
+            * STOPPED HERE
+* make a file for a decent ish report
+    * look through all your notes in notebooks and elsewhere
+    * thinking a jupyter notebook as a .html
+        * alternatives are a blog or a streamlit like app
+        * want it to be a point in time
 
-## Improve Agent context
+# Improve Agent context
 * Plan out how to give the agent better context
     * data\nhtsa\SGO-2021-01_Data_Element_Definitions.pdf to a more usable format
     * column names to a usable directory with progressive disclosure
     * basic findings to a usable directory with progressive disclosure
 * how to update CLAUDE.MD so the EDA context can be expanded
 * research some best practies
+    * tried claude version of deep research
+        * STOPPED HERE NEED TO READ FINDINGS AND INCORPORATE
 
-# when done
-* see what from EDA and the backlog would be interesting for something more formalized on the site
-* make a file for a decent ish report
-    * look through all your notes in notebooks and elsewhere
+# before backlog / website
+    * move those items from here to a more logical, central place that can be added on in the future
     
 # Website
 * can look at all incidents but also need to group them
@@ -185,6 +194,12 @@ Potential follow up EDA items to do
 
 
 # Backlog
+* NLP EDA
+    * classification
+    * narrative data ideas
+        ontology of narrative
+        classification and attributes
+        who classifies it and how much and why
 * Using topic plus some of the NLP based tools (like BertTOpic)
 * data availability by entity to see which entities share what
 * narrative plus xyz fields (within ODD, driver / operator, engagement status) to see what rows shoudl be cleneed
@@ -252,6 +267,8 @@ Potential follow up EDA items to do
     for incident time anything in there?
     this with pre contact moving only
     have thea gent run this analysi and see waht is important
+* MCP, queryable findings with dynamic results
+* follow up: of the low speed / no speed how many were SV properly at low speed / no speed and how many may have caused the accident
 
 # Learnings
 * lot of interesting python packages for fuzzy matching / data clearning
