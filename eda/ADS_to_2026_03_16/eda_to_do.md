@@ -151,15 +151,14 @@ Potential follow up EDA items to do
 
 # when done
 * see what from EDA and the backlog would be interesting for something more formalized on the site
-    * look through my own notes
-        * STOPPED HERE I NEED TO GO THROUGH TH IS
-            * eda\ADS_to_2026_03_16\04_eda_target_exploration.ipynb (this one next)
-            * go through this file at some point
+    * DONE look through my own notes
     * agent review
         * started plan for this and the improve agent context
             * STOPPED HERE
+        * add my notes page for agent to review
+            * look through this page to add to it
 * make a file for a decent ish report
-    * look through all your notes in notebooks and elsewhere
+    * DONE look through all your notes in notebooks and elsewhere
     * thinking a jupyter notebook as a .html
         * alternatives are a blog or a streamlit like app
         * want it to be a point in time
@@ -175,7 +174,7 @@ Potential follow up EDA items to do
         * STOPPED HERE NEED TO READ FINDINGS AND INCORPORATE
 
 # before backlog / website
-    * move those items from here to a more logical, central place that can be added on in the future
+* move those items from here to a more logical, central place that can be added on in the future
     
 # Website
 * can look at all incidents but also need to group them
@@ -191,6 +190,7 @@ Potential follow up EDA items to do
 * eda_utils_spacy.build_maneuver_matcher might be something fun for the website
 * redacted narratives. seems like Tesla only one recent and active
     * show the percent and count by entity, maybe recently as well too
+* target against key columns as describe and value count. stretch: user can make the target witha  text description
 
 
 # Backlog

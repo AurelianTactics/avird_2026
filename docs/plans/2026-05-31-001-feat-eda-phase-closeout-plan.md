@@ -10,7 +10,7 @@ origin: docs/brainstorms/nhtsa-crash-project-requirements.md
 
 ## Summary
 
-Close out the EDA phase by harvesting the findings currently scattered across 9 notebooks, ~17 `eda_utils_*.py` modules, three track plans, two reviews, and several scrap notes — processing them **once** into a working inventory, then splitting that inventory by durability into two deliverables. (1) A **durable agent-context layer**: a thin `eda/CLAUDE.md` index plus an on-demand findings/decisions file under `eda/context/`, deliberately excluding volatile point-in-time stats so agents are not anchored to numbers that will move on the next data refresh. (2) A **point-in-time EDA report notebook** (off-site, repo-resident, exported to frozen dated HTML) that is the rich superset — main steps, curated interesting findings, the single central "what was and wasn't tried" coverage log, links out to notebooks/GitHub/docs for the deep stuff not worth showing inline, and next-step sparks. Backlog and unfinished plumbing (including the `06_eda_clean_up_summary.ipynb` orchestration TODOs) are summarized as deferred, not built.
+Close out the EDA phase by harvesting the findings currently scattered across 9 notebooks, ~17 `eda_utils_*.py` modules, three track plans, two reviews, and several scrap notes — processing them **once** into a working inventory, then splitting that inventory by durability into two deliverables. (1) A **durable agent-context layer**: a thin `eda/CLAUDE.md` index plus an on-demand findings/decisions file under `eda/context/`, deliberately excluding volatile point-in-time stats so agents are not anchored to numbers that will move on the next data refresh. (2) A **point-in-time EDA report notebook** (off-site, repo-resident, exported to frozen dated HTML) that is the rich superset — main steps, curated interesting findings, the single central "what was and wasn't tried" coverage log, links out to notebooks/GitHub/docs for the deep stuff not worth showing inline, and next-step sparks. Backlog and unfinished plumbing (including the orchestration TODOs) are summarized as deferred, not built.
 
 ---
 
@@ -26,7 +26,7 @@ The EDA work in `eda/ADS_to_2026_03_16/` is effectively complete — `eda_to_do.
 - R2. A point-in-time EDA **report notebook** (off-site, repo-resident) consolidates: data overview, main steps taken, curated interesting findings, and the single central "what was and wasn't tried" coverage log — with links out to notebooks/GitHub/docs for deep material not worth rendering inline. (Supports origin R13, R17.)
 - R3. Findings are processed **once** into a working inventory, then split by durability — durable subset → agent context (R1); full set incl. transitory/interesting/idea-sparks → report (R2) — so there is one harvest feeding two curated outputs. (Satisfied across U1 → U2 → U3; "done" when both outputs are written from the single U1 inventory.)
 - R4. The report is exported to a **frozen, dated** HTML artifact committed in the repo (point-in-time snapshot).
-- R5. Backlog and unfinished work (including the `06_eda_clean_up_summary.ipynb` orchestration TODOs) are summarized and clearly marked deferred — not built in this phase.
+- R5. Backlog and unfinished work (including the orchestration TODOs) are summarized and clearly marked deferred — not built in this phase.
 
 **Origin acceptance trace:** origin R4/R8 (progressive-disclosure `CLAUDE.md` convention) are continued by the agent-context layer (U2). Origin R12 (data dictionary) is already satisfied by `eda/context/data_dictionary.md/.csv`; this plan references it rather than rebuilding it. Origin R13 (baseline EDA published) and R17 (candid writeup of where AI tools helped vs. misled) are advanced here as a repo-resident report; on-site publishing is deferred to the website phase.
 
@@ -42,7 +42,6 @@ The EDA work in `eda/ADS_to_2026_03_16/` is effectively complete — `eda_to_do.
 ### Deferred to Follow-Up Work
 
 - Publish the report (or successor interactive EDA pages) to the deployed site — website build phase.
-- Finish the `06_eda_clean_up_summary.ipynb` cleanup orchestration (`is_latest_of_multiple_report`, full step pipeline, created-columns manifest) — data-ingestion phase. Summarized here, not executed.
 - Backlog items enumerated in `eda_to_do.md` (NLP follow-ups, better targets, incremental-analysis skill, etc.).
 
 ---
@@ -112,9 +111,8 @@ The EDA work in `eda/ADS_to_2026_03_16/` is effectively complete — `eda_to_do.
 - Sweep the harvest surface: the 9 notebooks under `eda/ADS_to_2026_03_16/`, `eda_utils_*.py` docstrings, `artifacts_*/` outputs, the three `docs/plans/` track plans, `docs/reviews/` + `docs/code-reviews/`, `embeddings_notes.md`, `private/scratch_plans/narrative_ontology.md`, and the `DONE`/backlog lines of `eda_to_do.md`.
 - For each finding capture: short description, key result, **durability tag** (durable structure/decision/caveat vs. volatile point-in-time stat), where it lives (notebook/util/artifact path), and a **show-inline vs. link-out** tag.
 - Explicitly list the known durable anchors so they aren't lost: old-vs-new SGO schema split, compound-vs-simple airbag/towed columns, narrative `--- next report ---` separator polluting sentence segmentation, `Engagement Status` (new) vs `Automation System Engaged?` (old) mapping, `master_entity` grouping choice, the dedupe rule, treatment passes, targets kept (`Injury Reported`, `SV Speed >= 15`), and narrative-redaction pattern (Tesla recent/active).
-
-**Patterns to follow:**
-- `private/scratch_plans/` working-notes convention (`scratch_plans_readme.md`).
+- Rough human summary that touches on main topics and things wanted to rerun is here: eda\ADS_to_2026_03_16\eda_summary_of_notes_spring_2026_first_iteration.md
+- Rough work completed is here and may help with organizing: eda\ADS_to_2026_03_16\eda_to_do.md
 
 **Test scenarios:**
 - Test expectation: none — scratch processing artifact, no behavioral change.
@@ -144,7 +142,6 @@ The EDA work in `eda/ADS_to_2026_03_16/` is effectively complete — `eda_to_do.
 - `agent_check.md` is the lightweight verification set from `context_ideas.md` — questions whose answers prove the context is sufficient.
 
 **Patterns to follow:**
-- `private/scratch_plans/context_ideas.md` (thin entrypoint + on-demand, `@`-import sparingly).
 - Existing `eda/context/README.md` structure.
 
 **Test scenarios:**
@@ -174,7 +171,7 @@ The EDA work in `eda/ADS_to_2026_03_16/` is effectively complete — `eda_to_do.
 - Header cell states the snapshot date and that it is point-in-time.
 
 **Patterns to follow:**
-- Existing notebook setup preamble (`sys.path.append('..')`, `autoreload`, `eda_utils_*` imports) as in `06_eda_clean_up_summary.ipynb` / `06_eda_target_injury_2026.ipynb`.
+- Existing notebook setup preamble (`sys.path.append('..')`, `autoreload`, `eda_utils_*` imports) as in `06_eda_clean_up_summary.ipynb` / `07_eda_target_injury_2026.ipynb`.
 
 **Test scenarios:**
 - Happy path: the notebook executes top-to-bottom in the 3.12 report env, no cell errors; every committed `report_assets/` image resolves and every live-computed chart renders.
@@ -240,3 +237,4 @@ The EDA work in `eda/ADS_to_2026_03_16/` is effectively complete — `eda_to_do.
 - Related learning: `docs/solutions/architecture-patterns/narrative-embeddings-pipeline-2026-05-18.md`
 - Design source for agent context: `private/scratch_plans/context_ideas.md`
 - Backlog source of truth: `eda/ADS_to_2026_03_16/eda_to_do.md`
+- Human findings that contain some key things to review and implement in close out: eda\ADS_to_2026_03_16\eda_summary_of_notes_spring_2026_first_iteration.md
