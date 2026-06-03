@@ -7804,17 +7804,17 @@ a.anchor-link {
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
 <h1 id="AV-Incident-EDA-%E2%80%94-Point-in-Time-Report">AV Incident EDA — Point-in-Time Report<a class="anchor-link" href="#AV-Incident-EDA-%E2%80%94-Point-in-Time-Report">¶</a></h1><p><strong>Snapshot date: 2026-06-02</strong>  ·  Data window: SGO ADS incident reports through 2026-03-16</p>
 <blockquote>
-<p>⚠️ <strong>Point-in-time snapshot.</strong> The SGO dataset refreshes periodically. Every
+<p><strong>Point-in-time snapshot.</strong> The SGO dataset refreshes periodically. Every
 number, chart, and ranking below reflects the data as of the snapshot date and
-<strong>will move on the next refresh</strong> — do not cite these figures as current. The
-<em>durable</em> structure, decisions, and caveats (the parts that survive a refresh)
-live in <code>eda/context/findings.md</code>; this report is the rich human-facing
-superset that also carries the volatile findings, the central "what was and
+may move on the next refresh. The
+structure, decisions, and caveats (the parts that survive a refresh)
+live in <code>eda/context/findings.md</code>; this report is the human-facing
+superset that also carries the findings, the central "what was and
 wasn't tried" coverage log, and next-step sparks.</p>
 </blockquote>
-<p>This report <strong>harvests and curates</strong> existing EDA work — it does not run new
+<p>This report curates existing EDA work — it does not run new
 analyses. Light charts are recomputed live from the cleaned dataframe; heavier
-visuals (LightGBM/SHAP, spaCy/displaCy, embeddings/UMAP) are <strong>linked out</strong> to
+visuals (LightGBM/SHAP, spaCy/displaCy, embeddings/UMAP) are linked out to
 their owning notebooks rather than re-run here.</p>
 <p><strong>Contents</strong></p>
 <ol>
@@ -8841,6 +8841,24 @@ the cache can still be cheaply rebuilt, then try a second embedding model.</li>
 new and what changed against this snapshot.</li>
 <li>Bucket <strong>SV precrash speed</strong> properly and revisit the low/no-speed cohort: of
 those, how many were the AV legitimately stopped vs. plausibly at fault.</li>
+<li>See many other backlog/todos/items</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=033e3e0b">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="7.-Use-of-AI">7. Use of AI<a class="anchor-link" href="#7.-Use-of-AI">¶</a></h2><ul>
+<li>Heavily uses Claude Code and Opus 4.7, which was one of the goals of this EDA phase. How can coding AI assist with EDA? What parts can it handle well or not?</li>
+<li>I found Claude good at writing functions to .py files. The work on the .ipynb files, summarizing findings, and interating on results could be a bit hit or miss. Claude would frequently ask for permission to read, run, or edits cells. Asking Claude to write from a .py file to static artifacts produced a mess of hundreds of artifacts. Finding the right balance and learning where to lean on the AI more will be helpful.</li>
+<li>I still had to review many of the functions because some initial versions may have been technically correct but missed the goal. In particular for the crash area and pre-movement heatmap matches I had to hold Claude's hand through iterations to make sure the point was understood and the function was fixed correctly.</li>
+<li>Claude was great at iterating on the NLP work, explaining the parts, and helping tune parameters. Some stuff fell out nearly correctly, like the fuzzy logic and some of the basic NLP stuff. Some of the more advanced stuff would be helpful if Claude could iterate and try different ideas though I likely needed to give it a better harness.</li>
+<li>I strugged to turn the result and findings into an agent accessible and usable context directory. This is in the backlog of things to improve and devote more time too.</li>
 </ul>
 </div>
 </div>
