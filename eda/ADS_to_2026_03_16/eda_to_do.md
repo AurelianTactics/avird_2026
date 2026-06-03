@@ -150,31 +150,31 @@ Potential follow up EDA items to do
 * DONE spacy
 
 # when done
-* see what from EDA and the backlog would be interesting for something more formalized on the site
+* DONE see what from EDA and the backlog would be interesting for something more formalized on the site
     * DONE look through my own notes
     * agent review
         * started plan for this and the improve agent context
             * STOPPED HERE
         * add my notes page for agent to review
             * look through this page to add to it
-* make a file for a decent ish report
+* DONE make a file for a decent ish report
     * DONE look through all your notes in notebooks and elsewhere
     * thinking a jupyter notebook as a .html
         * alternatives are a blog or a streamlit like app
         * want it to be a point in time
 
 # Improve Agent context
-* Plan out how to give the agent better context
+* DONE Plan out how to give the agent better context
     * data\nhtsa\SGO-2021-01_Data_Element_Definitions.pdf to a more usable format
     * column names to a usable directory with progressive disclosure
     * basic findings to a usable directory with progressive disclosure
-* how to update CLAUDE.MD so the EDA context can be expanded
+* DONE how to update CLAUDE.MD so the EDA context can be expanded
 * research some best practies
     * tried claude version of deep research
-        * STOPPED HERE NEED TO READ FINDINGS AND INCORPORATE
+        * STOPPED HERE
 
 # before backlog / website
-* move those items from here to a more logical, central place that can be added on in the future
+* DONE move those items from here to a more logical, central place that can be added on in the future
     
 # Website
 * can look at all incidents but also need to group them

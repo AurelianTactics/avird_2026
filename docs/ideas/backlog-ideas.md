@@ -77,3 +77,5 @@ Unsorted, rough backlog items for potential future implementation
     have thea gent run this analysi and see waht is important
 * MCP, queryable findings with dynamic results
 * follow up: of the low speed / no speed how many were SV properly at low speed / no speed and how many may have caused the accident
+* better context curation
+* better at reading findings and iterating to next part of EDA
