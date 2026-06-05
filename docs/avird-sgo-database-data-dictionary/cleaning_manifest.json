@@ -1,0 +1,200 @@
+{
+  "generated_at": "2026-06-05T12:06:18.581492+00:00",
+  "pipeline_version": 1,
+  "source_batch_ids": [
+    "4dd7feb419024d45acb19cba8cf6d3f8",
+    "96895f7c5ddc40c586624e0f728cb9df"
+  ],
+  "built_at": "2026-06-05T12:06:12.157139+00:00",
+  "steps": [
+    {
+      "step": "promote_typed_columns",
+      "description": "Promote high-value raw TEXT columns to real types.",
+      "rule_summary": "pd.to_datetime / pd.to_numeric on the listed raw columns (errors->NaT/NaN).",
+      "input_columns": [
+        "Incident Date",
+        "Latitude",
+        "Longitude",
+        "SV Precrash Speed (MPH)"
+      ],
+      "output_columns": [
+        "incident_date",
+        "lat_numeric",
+        "lon_numeric",
+        "sv_precrash_speed_mph"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 3116
+    },
+    {
+      "step": "dedupe_flag",
+      "description": "Flag the canonical row per incident without dropping rows.",
+      "rule_summary": "Non-destructive sibling of ``dedupe_same_incident``.",
+      "input_columns": [
+        "Same Incident ID",
+        "Reporting Entity",
+        "Incident Date",
+        "Incident Time (24:00)",
+        "VIN",
+        "Report Submission Date",
+        "Report Version",
+        "Report ID",
+        "Narrative"
+      ],
+      "output_columns": [
+        "has_multiple_reports",
+        "is_latest_of_multiple_report",
+        "Narrative - Same Incident ID"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 3120
+    },
+    {
+      "step": "treatments",
+      "description": "Append cleaned org/state columns, master_entity and Make Model.",
+      "rule_summary": "Run every treatment in this module against *df* and return a frame with cleaned columns appended alongside the originals.",
+      "input_columns": [
+        "Operating Entity",
+        "Reporting Entity",
+        "Investigating Agency",
+        "State or Local Permit",
+        "Make",
+        "Model",
+        "State"
+      ],
+      "output_columns": [
+        "Operating Entity Clean",
+        "Reporting Entity Clean",
+        "Investigating Agency Clean",
+        "State or Local Permit Clean",
+        "Make Clean",
+        "Model Clean",
+        "State Clean",
+        "master_entity",
+        "Make Model"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 3120
+    },
+    {
+      "step": "harmonize_engagement",
+      "description": "Harmonize automation engagement across schema versions.",
+      "rule_summary": "Add automation_engaged_clean {Engaged, Not Engaged, Unknown} and automation_system_type {ADS, ADAS, Unknown}.",
+      "input_columns": [
+        "Engagement Status",
+        "Automation System Engaged?"
+      ],
+      "output_columns": [
+        "automation_engaged_clean",
+        "automation_system_type"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 3120,
+      "caveat": "Semantic mismatch across versions: the early schema's 'Automation System Engaged?' encodes which system was involved (ADS/ADAS), while the later schema's 'Engagement Status' encodes the engagement state (Verified Engaged / Not Engaged). automation_engaged_clean folds both into an engagement state and is additive -- the raw columns are retained."
+    },
+    {
+      "step": "harmonize_belted",
+      "description": "Harmonize passenger belt status across schema versions.",
+      "rule_summary": "Add passengers_belted_clean {All Belted, No Passengers, Not Belted, Unknown}. Combines early 'SV Were All Passengers Belted?' and later 'Were All Passengers Belted?'.",
+      "input_columns": [
+        "SV Were All Passengers Belted?",
+        "Were All Passengers Belted?"
+      ],
+      "output_columns": [
+        "passengers_belted_clean"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 3117
+    },
+    {
+      "step": "harmonize_weather",
+      "description": "Harmonize weather flags onto a shared vocabulary.",
+      "rule_summary": "Add weather_*_clean boolean flags. Cross-version pairs are OR-ed onto a shared vocabulary; later-only categories are carried as their own flags.",
+      "input_columns": [
+        "Weather - Clear",
+        "Weather - Cloudy",
+        "Weather - Partly Cloudy",
+        "Weather - Fog/Smoke",
+        "Weather - Fog/Smoke/Haze",
+        "Weather - Unknown",
+        "Weather - Unk - See Narrative"
+      ],
+      "output_columns": [
+        "weather_clear_clean",
+        "weather_snow_clean",
+        "weather_cloudy_clean",
+        "weather_fog_smoke_clean",
+        "weather_rain_clean",
+        "weather_severe_wind_clean",
+        "weather_unknown_clean",
+        "weather_dust_storm_clean",
+        "weather_severe_hurricane_clean",
+        "weather_structure_indoor_clean"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 3116
+    },
+    {
+      "step": "harmonize_roadway",
+      "description": "Harmonize roadway condition flags across schema versions.",
+      "rule_summary": "Add roadway_*_clean boolean condition flags. Early text columns ('Roadway Surface' / 'Roadway Description') are matched against the later schema's 'Roadway-*' boolean flags where they correspond. 'Roadway Type' is shared and kept as-is (no harmonized column).",
+      "input_columns": [
+        "Roadway Surface",
+        "Roadway Description",
+        "Roadway-Wet Surface Condition",
+        "Roadway-Work Zone",
+        "Roadway-Missing/Degraded Marking",
+        "Roadway-Traffic Incident"
+      ],
+      "output_columns": [
+        "roadway_wet_surface_clean",
+        "roadway_work_zone_clean",
+        "roadway_degraded_marking_clean",
+        "roadway_traffic_incident_clean"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 211
+    },
+    {
+      "step": "harmonize_lighting",
+      "description": "Carry the early-only Lighting column to lighting_clean.",
+      "rule_summary": "Add lighting_clean from the early-only 'Lighting' column. Later-schema rows (no source column) get NULL (see LIGHTING_CAVEAT).",
+      "input_columns": [
+        "Lighting"
+      ],
+      "output_columns": [
+        "lighting_clean"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 2292,
+      "caveat": "Lighting is present only in the early schema; later-schema rows have no source column and receive NULL for lighting_clean."
+    },
+    {
+      "step": "targets",
+      "description": "Append the 7 candidate target columns.",
+      "rule_summary": "Append every candidate target to *df* and return the result.",
+      "input_columns": [
+        "Highest Injury Severity Alleged",
+        "Crash With",
+        "SV Precrash Speed (MPH)",
+        "Any Air Bags Deployed?",
+        "CP Any Air Bags Deployed?",
+        "SV Any Air Bags Deployed?",
+        "Was Any Vehicle Towed?",
+        "CP Was Vehicle Towed?",
+        "SV Was Vehicle Towed?"
+      ],
+      "output_columns": [
+        "No Injury Reported",
+        "Injury Reported",
+        "Multi Class Injury",
+        "Binary Airbag Deployed",
+        "Binary Vehicle Towed",
+        "SV Speed >= 10",
+        "Potential Non-Trivial Accident"
+      ],
+      "rows_in": 3120,
+      "rows_affected": 3091
+    }
+  ]
+}

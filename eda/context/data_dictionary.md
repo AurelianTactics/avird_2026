@@ -1,0 +1,854 @@
+# SGO 2021-01 Data Element Definitions
+
+## Page 1
+
+Standing General Order (SGO)
+2021-01 Data Dictionary
+April 15, 2026
+Prepared by:
+U.S. Department of Transportation
+National Highway Traffic Safety Administration
+Office of Defects Investigation
+1200 New Jersey Avenue, S.E.
+Washington, D.C. 20590
+
+## Page 2
+
+Table of Contents
+1 Standing General Order 2021-01 Incident Report ............................................................................... 4
+2 Change Log ........................................................................................................................................... 4
+3 Data Dictionary ..................................................................................................................................... 5
+3.1 General Information Section ....................................................................................................... 5
+3.2 Basic Incident Information Section .............................................................................................. 6
+3.3 Surface Conditions Section ........................................................................................................ 15
+3.4 Crash Scene Section ................................................................................................................... 20
+3.5 Incident Data Section ................................................................................................................. 29
+Page 2 of 32
+
+## Page 3
+
+Table of Figures
+Table 1: Change Log ...................................................................................................................................... 4
+Table 2: General Information Section Field Definitions ................................................................................ 5
+Table 3 Basic Incident Information Section Field Definitions ........................................................................ 6
+Table 4: Surface Conditions Section Field Definitions ................................................................................. 15
+Table 5: Crash Scene Section Field Definitions ............................................................................................ 20
+Table 6: Incident Data Section Field Definitions .......................................................................................... 29
+Page 3 of 32
+
+## Page 4
+
+1 Standing General Order 2021-01 Incident Report
+You can download Standing General Order (SGO) 2021-01 incident reports in CSV format from the NHTSA
+public website. This file contains the third amendment change log to the CSV files and the definitions for
+each data field.
+It is crucial to understand the terms and requirements of the General Order, the data it aims to obtain,
+and the limitations of the data for accurate interpretation and analysis. The following should be
+considered when reviewing data and other information. See the Standing General Order on Crash
+Reporting page on NHTSA.gov for more details.
+ Reporting requirements are different for Automated Driving Systems (ADS) and Level 2 Advanced
+Driver Assistance System (ADAS).
+ Access to crash data may affect crash reporting.
+ Incident report data may be incomplete or unverified.
+ Indicated Confidential Business Information (CBI) and Personally Identifiable Information (PII) are
+redacted. Redactions within the data are noted as “[REDACTED, MAY CONTAIN CONFIDENTIAL
+BUSINESS INFORMATION],” “[MAY CONTAIN PERSONALLY IDENTIFIABLE INFORMATION],” or
+“[XXX],” depending on the nature of the material redacted.
+ The same crash may have multiple reports.
+ Summary incident report data are not normalized.
+2 Change Log
+Table 1: Change Log
+Date Revision
+8/15/25 Initial release of third amendment reports received from June 16th through July 15,
+2025. This release also includes the first publication of the third amended datasets and
+updates from previously released reports. Former data publications are saved in the
+archive section along with prior versions of the SGO.
+9/15/2025 Data release of reports received through August 15, 2025.
+10/15/2025 Data release of reports received through September 15, 2025.
+11/17/2025 Data release of reports received through October 15, 2025, now includes City and State.
+12/15/2025 Data release of reports received through November 17, 2025.
+01/15/2026 Data release of reports received through December 15, 2025.
+02/17/2026 Data release of reports received through January 15, 2026.
+03/16/2026 Data release of reports received through February 17, 2026.
+04/15/2026 Data release of reports received through March 16, 2026.
+Page 4 of 32
+
+## Page 5
+
+3 Data Dictionary
+The following data elements are the definitions for the SGO 2021-01 CSV files.
+3.1 General Information Section
+Table 2: General Information Section Field Definitions
+Field # Name Description
+1 Report ID A unique report number generated by NHTSA. This unique number is used to track initial and updated reports for a
+given incident.
+2 Report Version The Incident Report version. When a Reporting Entity updates a previously filed report, a new version is created and
+sequentially numbered by the portal.
+3 Reporting Entity The full name of the Reporting Entity filing the report. The full name of the Reporting Entity should match the name of
+the company as it is identified in the SGO.
+4 Report Type The Incident Report type, as selected by the Reporting Entity.
+Drop-down values:
+• 5-Day
+• Monthly
+• Update
+5 Report Month The reporting month, as entered by the Reporting Entity. The month should be recorded as its two-digit numeric value
+(i.e., 01 to 12). For monthly reports filed under Request Nos. 2 of the SGO, the report month is the month when the
+Reporting Entity filed a report of an incident.
+6 Report Year The reporting year, as entered by the Reporting Entity. The year should be recorded as its 4 digits numeric value (e.g.,
+2025). For monthly reports filed under Request Nos. 2 of the SGO, the report year is the year of the month when the
+Reporting Entity filed a report of an incident.
+7 Report The month and year in which the incident report was submitted by the Reporting Entity [MON-YYYY format]. This is
+Submission Date captured by the NHTSA portal at submission time and is not entered by the Reporting Entity.
+Page 5 of 32
+
+## Page 6
+
+3.2 Basic Incident Information Section
+Table 3 Basic Incident Information Section Field Definitions
+Field # Name Description
+8 VIN The Vehicle Identification Number (VIN) for the subject vehicle, as reported by the Reporting Entity. The entry includes
+only the first 11 characters of the VIN and excludes the last 6 characters of the VIN. This exclusion is based on NHTSA’s
+conclusion that the last 6 characters of a VIN is information that may lead to the identification of individuals involved in
+a crash. This field uses NHTSA Product Information Catalog and Vehicle Listing (vPIC) to automatically display Make,
+Model, and Model Year.
+Below are the following possible scenarios based on the entered VIN:
+• If VIN is entered and decoded correctly:
+The portal will populate Field 11 (Make), Field 13 (Model), and Field 15 (Model Year).
+o
+The portal will grey out and disable Field 10 (Serial Number).
+o
+• If VIN is not decoded correctly:
+The portal will enable Field 11 (Make), Field 13 (Model), and Field 15 (Model Year).
+o
+The Reporting Entity must fill out Field 11 (Make), Field 13 (Model), and Field 15 (Model Year) or select
+o
+UNK for any fields for which they do not have the data element.
+Field 10 (Serial Number) will already be enabled by default.
+o
+• If VIN or serial number are not available, the Reporting Entity should type “unknown” in VIN as instructed in
+user guide and acknowledge the portal pop-up message at form validation.
+9 VIN Decoded The entry reflects whether the Reporting Entity VIN information as entered could be decoded. An un-decoded VIN
+could be an erroneous VIN entry or a vPIC decoding issue (e.g., connection timeout error, etc.).
+This field will include a “Y” if the Reporting Entity VIN information could not be decoded and will be blank if the
+Reporting Entity VIN information, as entered, is correctly decoded.
+10 Serial Number The serial number, if any, for the subject vehicle, as entered by the Reporting Entity.
+A blank entry typically means that the Reporting Entity entered a valid VIN in response to Field 8 rather than a serial
+number in response to Field 10. If VIN or serial number are not available, Reporting Entity should type “unknown” in
+VIN as instructed in user guide and acknowledge the portal pop-up message at form validation. A blank entry may also
+mean that the Reporting Entity reported that the serial number was unavailable.
+Page 6 of 32
+
+## Page 7
+
+Field # Name Description
+11 Make The make of the subject vehicle as branded, as reported by vPIC or the Reporting Entity.
+12 Make - The entry reflects whether the Reporting Entity reported a valid VIN that can be decoded through vPIC.
+Unknown
+A blank entry typically means that the Reporting Entity entered a valid VIN or manually entered the data element. This
+field will include a “Y” if the entity marked the vehicle make as unknown.
+13 Model The model of the subject vehicle as branded, as reported by vPIC or the Reporting Entity.
+14 Model - The entry reflects whether the Reporting Entity reported a valid VIN that can be decoded through vPIC.
+Unknown
+A blank entry typically means that the Reporting Entity entered a valid VIN or manually entered the data element. This
+field will include a “Y” if the entity marked the vehicle model as unknown.
+15 Model Year The model year of the subject vehicle, as reported by the vPIC or the Reporting Entity.
+16 Model Year - The entry reflects whether the Reporting Entity reported a valid VIN that can be decoded through vPIC.
+Unknown
+A blank entry typically means that the Reporting Entity entered a valid VIN or manually entered the data element. This
+field will include a “Y” if the entity marked the vehicle model year as unknown.
+17 Same Vehicle ID A unique identifier generated by NHTSA for the subject vehicle. This field was created because NHTSA is not making
+public the entire VIN for a subject vehicle and creates a unique identifier that permits data users to determine whether
+a subject vehicle was involved in other reported incidents
+Page 7 of 32
+
+## Page 8
+
+Field # Name Description
+18 Driver / The Reporting Entity’s report of the individual responsible for the operation, fallback operation, or any part of the
+Operator Type dynamic driving task (DDT) for the subject vehicle at the time of the incident.
+Drop-down values:
+• Consumer: Any individual who is operating a commercially available Level 2 ADAS / ADS and is not engaged in
+any activity on behalf of a motor vehicle or motor vehicle equipment manufacturer at the time of the incident.
+• In-Vehicle (Commercial / Test): An individual, other than a consumer, located within the subject vehicle.
+• Remote (Commercial / Test): An individual, other than a consumer, not located within the subject vehicle who
+is capable of providing remote driving, fallback, and/or assistance.
+• In-Vehicle and Remote (Commercial / Test): A combination of both In-Vehicle (Commercial / Test) and Remote
+(Commercial / Test) individuals.
+• None: No individual is responsible for any part of the DDT at the time of the incident.
+• Other, see Narrative
+• Unknown
+19 Automation The Reporting Entity’s report of the system or automation feature version of the ADAS or ADS in use on the subject
+Feature Version vehicle at the time of the incident.
+If the entry states “[REDACTED, MAY CONTAIN CONFIDENTIAL BUSINESS INFORMATION],” this indicates that the
+Reporting Entity has made and submitted a claim that this information is confidential business information that is
+protected from public disclosure. This entry does not indicate that NHTSA has adjudicated any such claim.
+20 Automation The entry reflects whether the Reporting Entity made a claim that the information it submitted in response to
+Feature Version Automation Feature Version constitutes CBI that is protected from disclosure.
+CBI
+A “Y” in Field 20 indicates that the Reporting Entity claimed that the information it submitted in response to Field 19
+constitutes CBI. A blank entry in Field 20 indicates that the Reporting Entity made no such claim.
+21 Automation The Reporting Entity’s report of whether the subject incident vehicle was in partial automation (ADAS), ADS, or
+System unknown at the time of the crash.
+Engaged?
+Drop-down values:
+• ADAS
+• ADS
+• Unknown, see Narrative
+Page 8 of 32
+
+## Page 9
+
+Field # Name Description
+22 Engagement The Reporting Entity’s report of the highest-level driving automation system engagement status at any time during the
+Status period 30 seconds immediately prior to the commencement of the crash through the conclusion of the crash.
+Drop-down values:
+• Verified Engaged
+• Alleged Engaged
+• Verified Not Engaged
+• Unknown, see Narrative
+23 Operating Entity The Reporting Entity’s identification of the entity constituting the “operator” of the subject vehicle at the time of the
+incident. The term “operator” is defined in the SGO. In certain cases, the operator may be a different entity than the
+Reporting Entity.
+This field only displays when users select “In-Vehicle (Commercial / Test)” from the Driver / Operator Type drop-down
+field. This will allow the users to manually enter the name of the operating entity.
+Markings of “[XXX]” indicates some of the information reported by the Reporting Entity has been redacted by NHTSA
+because NHTSA has concluded that it may constitute (or lead to the disclosure of) PII that is protected from disclosure,
+pursuant to the Freedom of Information Act (FOIA), 5 U.S.C.552(B)(6).
+24 Operating Entity The entry reflects whether the Reporting Entity reported that the information requested in Field 23 (Operating Entity)
+– Unknown was unknown.
+25 – 35 Source The entries for Fields 25 – 35 reflect the Reporting Entity’s report of the source from which it received “notice” of the
+incident. “Notice” is a defined term in the SGO.
+This field is a multi-select picklist to account for multiple notices from different entity sources. An entry of “Y” in
+response to any of Fields 25 – 35 indicates the source from which the Reporting Entity received notice, as reported by
+the Reporting Entity.
+Page 9 of 32
+
+## Page 10
+
+Field # Name Description
+25 Source – The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a
+Complaint/Claim communication of any kind addressed to the Reporting Entity and made by a consumer or other individual or a written
+request or written demand for relief.
+A “Y” in Field 25 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 25 reflects the lack of any such report by the Reporting Entity.
+26 Source – The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a
+Telematics communication in the form of electronic data transmitted from the subject vehicle to the Reporting Entity.
+A “Y” in Field 26 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 26 reflects the lack of any such report by the Reporting Entity.
+27 Source – Law The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a
+Enforcement communication in writing, including communications in electronic form, from a law enforcement agency.
+A “Y” in Field 27 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 27 reflects the lack of any such report by the Reporting Entity.
+28 Source – Field The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a
+Report communication in writing, including communications in electronic form, from an employee or representative of a
+Reporting Entity.
+A “Y” in Field 28 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 28 reflects the lack of any such report by the Reporting Entity.
+29 Source – Testing The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a
+communication, including communications in electronic form, regarding a subject vehicle that is undergoing evaluation,
+development, or validation testing when the incident occurs.
+A “Y” in Field 29 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 29 reflects the lack of any such report by the Reporting Entity.
+Page 10 of 32
+
+## Page 11
+
+Field # Name Description
+30 Source – Media The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a media
+organization, either through specific inquiries to the Reporting Entity or through a reported account of an incident.
+A “Y” in Field 30 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 30 reflects the lack of any such report by the Reporting Entity.
+31 Source Other – The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a source
+See Narrative other than those identified in Fields 25 – 35.
+A “Y” in Field 31 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 31 reflects the lack of any such report by the Reporting Entity.
+32 Source – The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from an internal
+Internal Process entity process such as an engineering review or data quality review.
+Review
+A “Y” in Field 32 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 32 reflects the lack of any such report by the Reporting Entity.
+33 Source – NHTSA The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a posted
+VOQ Vehicle Owner’s Questionnaire (VOQ).
+A “Y” in Field 33 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 33 reflects the lack of any such report by the Reporting Entity.
+34 Source – Other The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from another
+Entity entity (e.g., operators).
+A “Y” in Field 34 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 34 reflects the lack of any such report by the Reporting Entity.
+Page 11 of 32
+
+## Page 12
+
+Field # Name Description
+35 Source – State The entry reflects whether the Reporting Entity reported that it received notice regarding the incident from a State or
+or Other Agency Other Federal Agency (e.g., a local jurisdiction).
+A “Y” in Field 35 reflects the Reporting Entity’s report that this was the source of its notice of the incident, and a blank
+entry in Field 35 reflects the lack of any such report by the Reporting Entity.
+36 Incident Date The Reporting Entity’s report of the month and year the incident occurred [MMM-YY format].
+37 Incident Date – The entry reflects whether the Reporting Entity reported that the information requested in Field 36 (Incident Date)
+Unknown was unknown.
+A “Y” in Field 37 reflects the Reporting Entity’s report that this information was unknown, and a blank entry in Field 37
+reflects the lack of any such report by the Reporting Entity.
+38 Incident Time The Reporting Entity’s report of the local time at which the incident occurred [24-hour format].
+(24:00)
+39 Incident Time – The entry reflects whether the Reporting Entity reported that the information requested in Field 38 (Incident Time)
+Unknown was unknown.
+A “Y” in Field 39 reflects the Reporting Entity’s report that this information was unknown, and a blank entry in Field 39
+reflects the lack of any such report by the Reporting Entity.
+40 Same Incident A unique identifier, generated by NHTSA based on information in the report, for the incident that is the subject of the
+ID report. This unique identifier permits data users to determine whether other reports regarding the same incident were
+filed by another Reporting Entity.
+41 Latitude The Reporting Entity’s report of the latitude of the incident location in decimal degrees.
+If the entry states “[MAY CONTAIN PERSONALLY IDENTIFIABLE INFORMATION],” the information reported by the
+Reporting Entity has been redacted by NHTSA because NHTSA has concluded that it may constitute (or lead to the
+disclosure of) PII that is protected from disclosure.
+If Field 41 has unknown latitude or “0,” a location address/description box and zip code box will appear for the
+Reporting Entity to describe crash location (e.g. nearest intersection).
+Page 12 of 32
+
+## Page 13
+
+Field # Name Description
+42 Latitude – The entry reflects whether the Reporting Entity reported that the information requested in Field 41 (Latitude) was
+Unknown unknown.
+A “Y” in Field 42 reflects the Reporting Entity’s report that this information was unknown, and a blank entry in Field 42
+reflects the lack of any such report by the Reporting Entity.
+43 Longitude The Reporting Entity’s report of the longitude of the incident location in decimal degrees.
+If the entry states “[MAY CONTAIN PERSONALLY IDENTIFIABLE INFORMATION],” the information reported by the
+Reporting Entity has been redacted by NHTSA because NHTSA has concluded that it may constitute (or lead to the
+disclosure of) PII that is protected from disclosure.
+If Field 43 has unknown Longitude or “0,” a location address/ description box and zip code box will appear for Reporting
+Entity to describe crash location (e.g. nearest intersection).
+44 Longitude – The entry reflects whether the Reporting Entity reported that the information requested in Field 43 (Longitude) was
+Unknown unknown.
+A “Y” in Field 44 reflects the Reporting Entity’s report that this information was unknown, and a blank entry in Field 44
+reflects the lack of any such report by the Reporting Entity.
+45 Address The street address or the roadway location where the incident occurred, as reported by the Reporting Entity.
+If the entry states “[MAY CONTAIN PERSONALLY IDENTIFIABLE INFORMATION],” the information reported by the
+Reporting Entity has been redacted by NHTSA because NHTSA has concluded that it may constitute (or lead to the
+disclosure of) PII that is protected from disclosure.
+46 Address – The entry reflects whether the Reporting Entity reported that the information requested in Field 45 (Address) was
+Unknown unknown.
+A “Y” in Field 46 reflects the Reporting Entity’s report that this information was unknown, and a blank entry in Field 46
+reflects the lack of any such report by the Reporting Entity.
+47 City The city where the incident occurred, as reported by the Reporting Entity.
+Page 13 of 32
+
+## Page 14
+
+Field # Name Description
+48 City – Unknown The entry reflects whether the Reporting Entity reported that the information requested in Field 47 (City) was
+unknown.
+A “Y” in Field 48 reflects the Reporting Entity’s report that this information was unknown, and a blank entry in Field 48
+reflects the lack of any such report by the Reporting Entity.
+49 State The state or territory where the incident occurred, as reported by the Reporting Entity.
+50 Zip Code The 5-digit ZIP code where the incident occurred, as reported by the Reporting Entity.
+If the entry states “[MAY CONTAIN PERSONALLY IDENTIFIABLE INFORMATION],” the information reported by the
+Reporting Entity has been redacted by NHTSA because NHTSA has concluded that it may constitute (or lead to the
+disclosure of) PII that is protected from disclosure.
+51 Zip Code – The entry reflects whether the Reporting Entity reported that the information requested in Field 50 (Zip Code) was
+Unknown unknown.
+A “Y” in Field 51 reflects the Reporting Entity’s report that this information was unknown, and a blank entry in Field 51
+reflects the lack of any such report by the Reporting Entity.
+Page 14 of 32
+
+## Page 15
+
+3.3 Surface Conditions Section
+Table 4: Surface Conditions Section Field Definitions
+Field # Name Description
+52 Roadway Type The type of road on which the subject vehicle was operating at the time of the incident, as reported by the Reporting
+Entity.
+Drop-down values:
+• Highway / Freeway: A divided arterial highway with full control of access.
+• Street: Local city or residential road not at an intersection; does not include unpaved or rural roads.
+• Intersection: An area where two or more roadways join or cross.
+• Parking Lot: Dedicated area intended for parking vehicles, including a publicly accessible road within a dedicated
+parking area and on-street parking.
+• Traffic Circle: A circular intersection, rotary, roundabout, or similar junction in which road traffic is permitted to
+flow in one direction.
+• Rural Road: Local road outside densely populated areas; does not include unpaved roads or a highway/freeway.
+• Parking Garage: A building, often of several stories, that provides parking space.
+• Unpaved Road: A roadway where the surface is not concrete or asphalt.
+• Unknown
+53 - 60 Roadway The entries for Fields 53 – 60 reflect the Reporting Entity’s report of the roadway description.
+Description
+This field is a multi-select picklist to account for multiple roadway descriptions. An entry of “Y” in response to any of
+Fields 53 – 60 indicates the roadway description was applicable at the time of the incident, as reported by the Reporting
+Entity.
+53 Roadway – The entry reflects whether the Reporting Entity reported that the roadway had visible signs of damage and deterioration
+Degraded Surface at the time of the incident. Examples include, but are not limited to, potholes, cracks, and unevenness.
+A “Y” in Field 53 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 53
+reflects the lack of any such report by the Reporting Entity.
+Page 15 of 32
+
+## Page 16
+
+Field # Name Description
+54 Roadway – The entry reflects whether the Reporting Entity reported that the roadway had missing, degraded, or otherwise altered
+Missing/Degraded lane markings that were not in conjunction with a work zone at the time of the incident.
+Markings
+A “Y” in Field 54 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 54
+reflects the lack of any such report by the Reporting Entity.
+55 Roadway – No The entry reflects whether the Reporting Entity reported that the roadway did not contain any unusual anomalies or
+Unusual imperfections at the time of the incident.
+Conditions
+A “Y” in Field 55 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 55
+reflects the lack of any such report by the Reporting Entity.
+56 Roadway – Other- The entry reflects whether the Reporting Entity reported other conditions in the roadway at the time of the incident.
+See Narrative
+A “Y” in Field 56 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 56
+reflects the lack of any such report by the Reporting Entity.
+57 Roadway – Traffic The entry reflects whether the Reporting Entity reported that the roadway had a prior traffic event that adversely
+Incident affected normal traffic operations separate from the reported incident at the time of the incident. Examples include,
+but are not limited to, first responder activity, traffic crashes, disabled vehicles, and spilled cargo.
+A “Y” in Field 57 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 57
+reflects the lack of any such report by the Reporting Entity.
+58 Roadway – The entry reflects whether the Reporting Entity reported that the roadway conditions were unknown at the time of the
+Unknown incident.
+A “Y” in Field 58 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 58
+reflects the lack of any such report by the Reporting Entity.
+59 Roadway – Wet The entry reflects whether the Reporting Entity reported that the roadway had a wet surface that reduced traction,
+Surface Condition increased stopping distances, or could lead to hydroplaning at the time of the incident.
+A “Y” in Field 59 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 59
+reflects the lack of any such report by the Reporting Entity.
+Page 16 of 32
+
+## Page 17
+
+Field # Name Description
+60 Roadway – Work The entry reflects whether the Reporting Entity reported that the roadway was an area where construction,
+Zone maintenance, or utility work activities were identified by warning signs, signals, or other indicators at the time of the
+incident.
+A “Y” in Field 60 reflects the Reporting Entity’s report that this information was recorded, and a blank entry in Field 60
+reflects the lack of any such report by the Reporting Entity.
+61 - 71 Weather The entries for Fields 61 – 71 reflect the Reporting Entity’s report of the weather or environmental conditions at the
+time and location of the incident.
+This field is a multi-select picklist to account for multiple weather conditions were reported for a single incident. An
+entry of “Y” in response to any of Fields 61 – 71 indicates the weather was present at the time of the incident, as
+reported by the Reporting Entity.
+61 Weather – Clear The entry reflects whether the Reporting Entity reported that there were no adverse weather conditions at the time
+and place of the incident.
+A “Y” in Field 61 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 61
+reflects the lack of any such report.
+62 Weather – Snow The entry for reflects whether the Reporting Entity reported that it was snowing at the time and place of the incident.
+A “Y” in Field 62 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 62
+reflects the lack of any such report.
+63 Weather – Cloudy The entry reflects whether the Reporting Entity reported cloudy conditions at the time and place of the incident.
+A “Y” in Field 63 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 63
+reflects the lack of any such report.
+64 Weather – The entry reflects whether the Reporting Entity reported that there were low visibility conditions, including fog, smoke,
+Fog/Smoke/ Haze or haze at the time and place of the incident.
+A “Y” in Field 64 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 64
+reflects the lack of any such report.
+Page 17 of 32
+
+## Page 18
+
+Field # Name Description
+65 Weather – Rain The entry reflects whether the Reporting Entity reported that it was raining at the time and place of the incident.
+A “Y” in Field 65 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 65
+reflects the lack of any such report.
+66 Weather – Severe The entry reflects whether the Reporting Entity reported that there were severe winds at the time and place of the
+Wind incident.
+A “Y” in Field 66 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 66
+reflects the lack of any such report.
+67 Weather – Partly The entry reflects whether the Reporting Entity reported that there were partly cloudy conditions at the time and place
+Cloudy of the incident.
+A “Y” in Field 67 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 67
+reflects the lack of any such report.
+68 Weather – The entry reflects whether the Reporting Entity reported that the incident took place within a building or under-cover.
+Structure-Indoor
+A “Y” in Field 68 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 68
+reflects the lack of any such report.
+69 Weather – Dust The entry reflects whether the Reporting Entity reported that there was a dust storm at the time and place of the
+Storm incident.
+A “Y” in Field 69 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 69
+reflects the lack of any such report.
+70 Weather – Severe The entry reflects whether the Reporting Entity reported that there were severe hurricane conditions at the time and
+Hurricane place of the incident.
+A “Y” in Field 70 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 70
+reflects the lack of any such report.
+Page 18 of 32
+
+## Page 19
+
+Field # Name Description
+71 Weather – Unk- The entry reflects whether the Reporting Entity reported that there were unknown weather conditions at the time and
+See Narrative place of the incident.
+A “Y” in Field 71 reflects the Reporting Entity’s report that these conditions were present, and a blank entry in Field 71
+reflects the lack of any such report.
+Page 19 of 32
+
+## Page 20
+
+3.4 Crash Scene Section
+Table 5: Crash Scene Section Field Definitions
+Field # Name Description
+72 Crash With The Reporting Entity’s categorical description of any vehicle, non-motorist, animal, or object with which the subject
+vehicle came into contact during the incident.
+Drop-down values:
+• Passenger Car
+• SUV
+• Van
+• Pickup Truck
+• Motorcycle
+• Bus
+• Heavy Truck
+• First Responder Vehicle
+• Non-Motorist: Pedestrian
+• Non-Motorist: Cyclist
+• Non-Motorist: Scooter – Skateboard
+• Non- Motorist: Other
+• Pole / Tree
+• Other Fixed Object
+• Animal
+• Other, see Narrative
+• Unknown
+Page 20 of 32
+
+## Page 21
+
+Field # Name Description
+73 Highest Injury The Reporting Entity’s report of the highest confirmed or alleged crash injury severity level resulting from the incident.
+Severity Alleged
+Drop-down values:
+• Fatality: Confirmed or alleged incident where an involved party was fatally injured.
+• Serious With Hospitalization: Confirmed or alleged incident where an involved party sustained serious injuries
+that required hospitalization or emergency treatment.
+• Serious Without Hospitalization: Confirmed or alleged incident where an involved party sustained serious
+injuries excluding hospitalization or emergency treatment.
+• Moderate With Hospitalization: Confirmed or alleged incident where an involved party sustained injuries and
+sought medical treatment that required hospitalization or emergency treatment.
+• Moderate Without Hospitalization: Confirmed or alleged incident where an involved party sustained injuries
+excluding hospitalization or emergency treatment.
+• Minor With Hospitalization: Confirmed or alleged incident where an involved party sustained possible injuries
+and sought medical treatment that required hospitalization or emergency treatment.
+• Minor Without Hospitalization: Confirmed or alleged incident where an involved party sustained possible
+injuries excluding hospitalization or emergency treatment.
+• No Injuries Reported: No injuries were reported or alleged from the incident.
+• Property Damage, No Injury: The incident resulted in property damage only with no injuries.
+• Unknown
+Page 21 of 32
+
+## Page 22
+
+Field # Name Description
+74 CP Pre-Crash The Reporting Entity’s report of the pre-crash movement of any crash partner/other vehicle or non-motorist (NM) prior
+Movement to the incident. Field 74 will be blank if the Reporting Entity does not report any crash partner, other vehicle, or non-
+motorist.
+Drop-down values:
+• Stopped: Vehicle was stopped and not moving.
+• Proceeding Straight: Vehicle was moving uniformly in one direction only.
+• Lane / Road Departure: Vehicle left the original lane of travel.
+• Making Right Turn: Vehicle was turning right. Making Left Turn: Vehicle was turning left.
+• Making U-Turn: Vehicle was making a U- Turn.
+• Backing: Vehicle was backing in reverse. Passing: Vehicle was passing another vehicle. Changing Lanes: Vehicle
+was in the process of changing lanes within the same direction of travel.
+• Parking Maneuver: Vehicle was parking into a space including forward, reverse, or parallel.
+• Entering Traffic: Vehicle was entering onto a roadway from a non-roadway – e.g., parking lot, driveway.
+Crossing into Opposing Lane: Vehicle traveled into the opposing lane intentionally to maneuver around a
+vehicle, object, or other obstruction.
+• Parked: Vehicle was parked at the time of the incident.
+• Merging: Vehicle was merging onto a roadway from another roadway.
+• Traveling Wrong Way: Vehicle was traveling on the roadway in the wrong direction of the intended traffic flow.
+• NM Crossing Roadway: Non-motorist moving across the roadway.
+• NM Waiting to Cross Roadway: Non-motorist waiting to attempt to cross the roadway.
+• NM Moving Alongside Roadway: Non- motorist walking or cycling along the side of a roadway (not on a
+sidewalk) with or against the flow of traffic.
+• NM Moving on Sidewalk: Non-motorist walking or cycling on a sidewalk alongside a roadway with or against
+the flow of traffic.
+• NM in Roadway - Other: Non-motorist moving in the roadway with or against the flow of traffic.
+• Other, see Narrative. Unknown
+Page 22 of 32
+
+## Page 23
+
+Field # Name Description
+75 - 91 CP Contact Area The entry reflects the location of any crash contact or damage resulting from the crash on the crash partner or other
+vehicle.
+This field is a multi-select picklist. An entry of “Y” in response to any of Fields 75 – 91 reflects the Reporting Entity’s
+report of crash contact or damage at the specified location. Fields 75 – 91 will be blank if the Reporting Entity does not
+report any crash partner, other vehicle, or non-motorist. One or more of Fields 75 – 91 will be blank if the Reporting
+Entity does not report any contact or damage at the location described for that field. Possible selections include a
+combination of contact areas related to the subject crash.
+75 CP Contact Area - The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+Rear Left identified location on the crash partner or other vehicle.
+A “Y” in Field 75 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 75 reflects the lack of any such report.
+76 CP Contact Area - The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+Left identified location on the crash partner or other vehicle.
+A “Y” in Field 76 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 76 reflects the lack of any such report.
+77 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Front Left identified location on the crash partner or other vehicle.
+A “Y” in Field 77 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 77 reflects the lack of any such report.
+78 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Rear identified location on the crash partner or other vehicle.
+A “Y” in Field 78 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 78 reflects the lack of any such report.
+Page 23 of 32
+
+## Page 24
+
+Field # Name Description
+79 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Top identified location on the crash partner or other vehicle.
+A “Y” in Field 79 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 79 reflects the lack of any such report.
+80 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Front identified location on the crash partner or other vehicle.
+A “Y” in Field 80 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 80 reflects the lack of any such report.
+81 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Rear Right identified location on the crash partner or other vehicle.
+A “Y” in Field 81 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 81 reflects the lack of any such report.
+82 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Right identified location on the crash partner or other vehicle.
+A “Y” in Field 82 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 82 reflects the lack of any such report.
+83 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Front Right identified location on the crash partner or other vehicle.
+A “Y” in Field 83 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 83 reflects the lack of any such report.
+84 CP Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Bottom identified location on the crash partner or other vehicle.
+A “Y” in Field 84 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 84 reflects the lack of any such report.
+Page 24 of 32
+
+## Page 25
+
+Field # Name Description
+85 CP Contact Area The entry indicates whether the Reporting Entity reported that the location of any crash contact or damage resulting
+– Unknown from the crash on the crash partner or other vehicle was unknown.
+A “Y” in Field 85 reflects that the Reporting Entity reported that the location of any crash contact or damage resulting
+from the crash on the crash partner or other vehicle was unknown, and a blank entry in Field 85 reflects the lack of any
+such report.
+86 SV Pre-Crash The Reporting Entity’s report of the pre- crash movement of the subject vehicle prior to the incident.
+Movement
+Drop-down values:
+• Stopped: Vehicle was stopped and not moving.
+• Proceeding Straight: Vehicle was moving uniformly in one direction only.
+• Lane / Road Departure: Vehicle left the original lane of travel.
+• Making Right Turn: Vehicle was turning right.
+• Making Left Turn: Vehicle was turning left.
+• Making U-Turn: Vehicle was making a U- Turn.
+• Backing: Vehicle was backing in reverse.
+• Passing: Vehicle was passing another vehicle.
+• Changing Lanes: Vehicle was in the process of changing lanes within the same direction of travel.
+• Parking Maneuver: Vehicle was parking into a space including forward, reverse, or parallel.
+• Entering Traffic: Vehicle was entering onto a roadway from a non-roadway (e.g., parking lot, driveway, etc.).
+• Crossing into Opposing Lane: Vehicle traveled into the opposing lane intentionally to maneuver around a
+vehicle, object, or other obstruction.
+• Parked: Vehicle was parked at the time of the incident.
+• Merging: Vehicle was merging onto a roadway from another roadway.
+• Traveling Wrong Way: Vehicle was traveling on the roadway in the wrong direction of the intended traffic flow.
+• Other, see Narrative
+• Unknown
+Page 25 of 32
+
+## Page 26
+
+Field # Name Description
+87 Any Air Bags The Reporting Entity’s report of whether any air bag in the subject vehicle or crash partner deployed.
+Deployed?
+Drop-down values:
+• Yes Subject Vehicle, No Crash Partner
+• Yes Subject Vehicle, Yes Crash Partner
+• Yes Subject Vehicle, Unknown Crash Partner
+• No Subject Vehicle, No Crash Partner
+• No Subject Vehicle, Unknown Crash Partner
+• Yes Crash Partner, No Subject Vehicle
+• Yes Crash Partner, Unknown Subject Vehicle
+• No Crash Partner, Unknown Subject Vehicle
+• Not Applicable
+• Unknown
+88 Was Vehicle The Reporting Entity’s report of whether the subject vehicle or crash partner were towed from the scene.
+Towed?
+Drop-down values:
+• Yes Subject Vehicle, No Crash Partner
+• Yes Subject Vehicle, Yes Crash Partner
+• Yes Subject Vehicle, Unknown Crash Partner
+• No Subject Vehicle, No Crash Partner
+• No Subject Vehicle, Unknown Crash Partner
+• Yes Crash Partner, No Subject Vehicle
+• Yes Crash Partner, Unknown Subject Vehicle
+• No Crash Partner, Unknown Subject Vehicle
+• Unknown
+Page 26 of 32
+
+## Page 27
+
+Field # Name Description
+89 Were All The Reporting Entity’s report of whether all passengers in the subject vehicle were wearing seat belts at the time of the
+Passengers incident.
+Belted?
+Drop-down values:
+• Subject Vehicle – All Belted
+• Subject Vehicle – Not Belted – see Narrative
+• Subject Vehicle – No Passenger In Vehicle
+• Unknown
+90 SV Precrash The Reporting Entity’s report of the speed of the subject vehicle at the time of the incident in miles per hour.
+Speed (MPH)
+91 SV Pre-crash The entry reflects whether the Reporting Entity reported that the pre-crash speed of the subject vehicle was unknown.
+Speed –
+Unknown A “Y” in Field 91 reflects the Reporting Entity’s report that this information was unknown. A blank entry in Field 91
+reflects the lack of any report by the Reporting Entity that the pre-crash speed of the subject vehicle was unknown.
+92 - 102 SV Contact Area The entry reflects the location of any crash contact or damage resulting from the crash on the subject vehicle.
+This field is a multi-select picklist. An entry of “Y” in response to any of Fields 92 – 102 reflects the Reporting Entity’s
+report of crash contact or damage at the specified location. One or more of Fields 92 – 102 will be blank if the Reporting
+Entity does not report any contact or damage on the subject vehicle at the location described for that field. Possible
+selections include a combination of contact areas related to the subject crash.
+92 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Rear Left identified location on the subject vehicle.
+A “Y” in Field 92 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 92 reflects the lack of any such report.
+93 SV Contact Area - The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+Left identified location on the subject vehicle.
+A “Y” in Field 93 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 93 reflects the lack of any such report.
+Page 27 of 32
+
+## Page 28
+
+Field # Name Description
+94 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Front Left identified location on the subject vehicle.
+A “Y” in Field 94 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 94 reflects the lack of any such report.
+95 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Rear identified location on the subject vehicle.
+A “Y” in Field 95 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 95 reflects the lack of any such report.
+96 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Top identified location on the subject vehicle.
+A “Y” in Field 96 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 96 reflects the lack of any such report.
+97 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Front identified location on the subject vehicle.
+A “Y” in Field 97 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 97 reflects the lack of any such report.
+98 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Rear Right identified location on the subject vehicle.
+A “Y” in Field 98 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 98 reflects the lack of any such report.
+99 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Right identified location on the subject vehicle.
+A “Y” in Field 99 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 99 reflects the lack of any such report.
+Page 28 of 32
+
+## Page 29
+
+Field # Name Description
+100 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Front Right identified location on the subject vehicle.
+A “Y” in Field 100 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 100 reflects the lack of any such report.
+101 SV Contact Area The entry indicates whether the Reporting Entity reported any crash contact or damage resulting from the crash at the
+– Bottom identified location on the subject vehicle.
+A “Y” in Field 101 reflects that the Reporting Entity reported crash contact or damage resulting from the crash at the
+identified location, and a blank entry in Field 101 reflects the lack of any such report.
+102 SV Contact Area - The entry indicates whether the Reporting Entity reported that the location of any crash contact or damage resulting
+Unknown from the crash on the subject vehicle was unknown.
+A “Y” in Field 102 reflects that the Reporting Entity reported that the location of any crash contact or damage resulting
+from the crash on the subject vehicle was unknown, and a blank entry in Field 102 reflects the lack of any such report.
+3.5 Incident Data Section
+Table 6: Incident Data Section Field Definitions
+Field # Name Description
+103 - 116 Data The entry reflects the Reporting Entity’s sources of available data or other information regarding the incident.
+Availability
+This field is a multi-select picklist. An entry of “Y” in response to any of Fields 103 – 116 reflects the Reporting Entity’s
+report that the data described in that field is available for the subject vehicle. A blank entry in Fields 103 – 116 reflects
+that the Reporting Entity has not reported that the data described in that field is available.
+103 Data The entry reflects the Reporting Entity’s report regarding the availability of Event Data Recorder (EDR) information from
+Availability – the subject vehicle.
+EDR
+A “Y” in Field 103 reflects the Reporting Entity’s report that this data is available, and a blank entry in Field 103 reflects
+the lack of any such report from the Reporting Entity.
+Page 29 of 32
+
+## Page 30
+
+Field # Name Description
+104 Data The entry reflects the Reporting Entity’s report regarding the availability of a police report, other governmental report,
+Availability – or investigative record regarding the incident.
+Police Rpt
+A “Y” in Field 104 reflects the Reporting Entity’s report that this data is available, and a blank entry in Field 104 reflects
+the lack of any such report from the Reporting Entity.
+105 Data The entry reflects the Reporting Entity’s report regarding the availability of data or other information regarding the
+Availability – incident transmitted via telematics (e.g., over-the-air automatic crash notifications) from the subject vehicle.
+Telematics
+A “Y” in Field 105 reflects the Reporting Entity’s report that this data is available, and a blank entry in Field 105 reflects
+the lack of any such report from the Reporting Entity.
+106 Data The entry reflects the Reporting Entity’s report regarding the availability of consumer complaints regarding the incident.
+Availability –
+Complaints A “Y” in Field 106 reflects the Reporting Entity’s report that this data is available, and a blank entry in Field 106 reflects
+the lack of any such report from the Reporting Entity.
+107 Data The entry reflects the Reporting Entity’s report regarding the availability of video information (from the subject vehicle
+Availability – or otherwise) relating to the incident.
+Video
+A “Y” in Field 107 reflects the Reporting Entity’s report that this data is available, and a blank entry in Field 107 reflects
+the lack of any such report from the Reporting Entity.
+108 Data The entry reflects the Reporting Entity’s report regarding the availability of information relating to the incident other
+Availability – than that the ones specified in the other data availability selections.
+Other
+A “Y” in Field 108 reflects the Reporting Entity’s report that this data is available, and a blank entry in Field 108 reflects
+the lack of any such report from the Reporting Entity.
+109 Data The entry reflects the Reporting Entity’s report regarding the lack of any available additional data regarding the incident.
+Availability –
+No Data A “Y” in Field 109 reflects the Reporting Entity’s report that there is no such data available, and a blank entry in Field
+109 reflects the lack of any such report from the Reporting Entity.
+Page 30 of 32
+
+## Page 31
+
+Field # Name Description
+110 Data The entry reflects the Reporting Entity’s report regarding the availability of additional data or information regarding the
+Availability – incident.
+Unknown
+A “Y” in Field 110 reflects the Reporting Entity’s report that the availability of any such additional data or information
+was unknown, and a blank entry in Field 110 reflects the lack of any such report by the Reporting Entity.
+111 Investigating The Reporting Entity’s report on the name of any law enforcement agency investigating the incident.
+Agency
+If the entry states “[MAY CONTAIN PERSONALLY IDENTIFIABLE INFORMATION],” the information reported by the
+Reporting Entity has been redacted by NHTSA because NHTSA has concluded that it may constitute (or lead to the
+disclosure of) PII that is protected from disclosure.
+112 Investigating The entry reflects whether the Reporting Entity reported the name of any law enforcement agency investigating the
+Agency - incident.
+Unknown
+A “Y” in Field 112 reflects the Reporting Entity’s report that this information was unknown.
+113 Within ODD? The Reporting Entity’s report on whether the subject vehicle was acting within its ODD during the period 30 seconds
+prior to the crash through the conclusion of the crash.
+Drop-down values:
+• Yes
+• No, see Narrative
+• Unknown, see Narrative
+• Exiting ODD
+If the entry states “[REDACTED, MAY CONTAIN CONFIDENTIAL BUSINESS INFORMATION],” this indicates that the
+Reporting Entity has made and submitted a claim that this information is CBI that is protected from public disclosure.
+114 Within ODD? – The entry reflects whether the Reporting Entity made a claim that the information it submitted in response to Field 113
+CBI (Within ODD?) constitutes CBI that is protected from disclosure.
+A “Y” in Field 114 indicates that the Reporting Entity claimed that the information it submitted in response to Field 113
+(Within ODD?) constitutes CBI. A blank entry in Field 114 indicates that the Reporting Entity made no such claim.
+Page 31 of 32
+
+## Page 32
+
+Field # Name Description
+115 Narrative The Reporting Entity’s written narrative of the pre-crash, crash, and post-crash details, and other information.
+If the entry states “[REDACTED, MAY CONTAIN CONFIDENTIAL BUSINESS INFORMATION],” this indicates that the
+Reporting Entity has made and submitted a claim that some or all this information is CBI and is protected from public
+disclosure. If the Reporting Entity has made such a claim, only those portions of the narrative for which a claim has been
+made are redacted. Markings of “[XXX]” indicates some of the information reported by the Reporting Entity has been
+redacted by NHTSA because NHTSA has concluded that it may constitute (or lead to the disclosure of) PII that is
+protected from disclosure, pursuant to the Freedom of Information Act (FOIA), 5 U.S.C. 552(B)(6).
+116 Narrative - CBI? The entry reflects whether the Reporting Entity made a claim that some or all the information it submitted in response
+to Field 115 (Narrative) constitutes CBI that is protected from disclosure.
+A “Y” in Field 116 indicates that the Reporting Entity claimed that some or all of the information it submitted in response
+to Field 115 (Narrative) constitutes CBI. A blank entry in Field 116 indicates that the Reporting Entity made no such
+claim.
+Page 32 of 32

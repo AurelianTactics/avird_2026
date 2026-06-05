@@ -1,0 +1,165 @@
+column,dtype,n_unique,n_missing
+Report ID,str,2709,0
+Report Version,int64,5,0
+Reporting Entity,str,48,0
+Report Type,str,6,0
+Report Month,float64,13,1460
+Report Year,float64,7,1460
+Report Submission Date,str,57,0
+VIN,str,294,14
+VIN Decoded,str,3,2295
+Serial Number,str,3,2565
+Make,str,54,3
+Make - Unknown,str,2,2295
+Model,str,77,4
+Model - Unknown,str,2,0
+Model Year,float64,12,15
+Model Year - Unknown,str,2,0
+Same Vehicle ID,str,1704,0
+Driver / Operator Type,str,7,1742
+Automation Feature Version,str,59,2295
+Automation Feature Version CBI,str,3,2295
+Automation System Engaged?,str,4,4
+Engagement Status,str,5,2295
+Operating Entity,str,79,17
+Operating Entity - Unknown,str,1,0
+Source - Complaint/Claim,str,2,0
+Source - Telematics,str,2,0
+Source - Law Enforcement,str,2,0
+Source - Field Report,str,2,0
+Source - Testing,str,2,0
+Source - Media,str,2,0
+Source - Internal Process Review,str,3,2295
+Source - NHTSA VOQ,str,2,2295
+Source - Other - See Narrative,str,2,2295
+Source - Other Entity,str,2,2295
+Source - State or Other Agency,str,2,2295
+Incident Date,str,58,4
+Incident Date - Unknown,str,2,0
+Incident Time (24:00),str,1149,11
+Incident Time - Unknown,str,2,0
+Same Incident ID,str,2330,0
+Latitude,str,2,94
+Latitude - Unknown,str,2,0
+Longitude,str,2,94
+Longitude - Unknown,str,2,0
+Address,str,2,208
+Address - Unknown,str,2,0
+City,str,134,8
+City - Unknown,str,2,0
+State,str,31,5
+Zip Code,str,2,242
+Zip Code - Unknown,str,2,0
+Roadway Type,str,8,3
+Roadway-Degraded Surface,str,3,2295
+Roadway-Missing/Degraded Marking,str,2,2295
+Roadway-No Unusual Conditions,str,3,2295
+Roadway-Other-See Narrative,str,3,2295
+Roadway-Traffic Incident,str,3,2295
+Roadway-Unknown,str,2,2295
+Roadway-Wet Surface Condition,str,3,2295
+Roadway-Work Zone,str,3,2295
+Weather - Clear,str,2,0
+Weather - Snow,str,2,0
+Weather - Cloudy,str,2,0
+Weather - Partly Cloudy,str,3,2295
+Weather - Fog/Smoke/Haze,str,2,2295
+Weather - Rain,str,2,0
+Weather - Severe Wind,str,2,0
+Weather - Dust Storm,str,2,2295
+Weather - Severe Hurricane,str,2,2295
+Weather - Structure-Indoor,str,3,2295
+Weather - Unk - See Narrative,str,2,2295
+Crash With,str,18,3
+Highest Injury Severity Alleged,str,13,3
+CP Pre-Crash Movement,str,23,121
+CP Contact Area - Rear Left,str,3,63
+CP Contact Area - Left,str,3,63
+CP Contact Area - Front Left,str,3,63
+CP Contact Area - Rear,str,3,63
+CP Contact Area - Top,str,3,63
+CP Contact Area - Front,str,3,63
+CP Contact Area - Rear Right,str,3,63
+CP Contact Area - Right,str,3,63
+CP Contact Area - Front Right,str,3,63
+CP Contact Area - Bottom,str,3,63
+CP Contact Area - Unknown,str,3,63
+SV Pre-Crash Movement,str,17,3
+Any Air Bags Deployed?,str,9,2295
+Was Any Vehicle Towed?,str,7,2295
+Were All Passengers Belted?,str,5,2295
+SV Precrash Speed (MPH),float64,65,37
+SV Pre-crash Speed - Unknown,str,2,0
+SV Contact Area - Rear Left,str,2,0
+SV Contact Area - Left,str,2,0
+SV Contact Area - Front Left,str,2,0
+SV Contact Area - Rear,str,2,0
+SV Contact Area - Top,str,2,0
+SV Contact Area - Front,str,2,0
+SV Contact Area - Rear Right,str,2,0
+SV Contact Area - Right,str,2,0
+SV Contact Area - Front Right,str,2,0
+SV Contact Area - Bottom,str,2,0
+SV Contact Area - Unknown,str,2,0
+Data Availability - EDR,str,2,0
+Data Availability - Police Rpt,str,2,0
+Data Availability - Telematics,str,2,0
+Data Availability - Complaints,str,2,0
+Data Availability - Video,str,2,0
+Data Availability - Other,str,2,0
+Data Availability - No Data,str,3,3
+Data Availability - Unknown,str,2,0
+Investigating Agency,str,120,2348
+Investigating Agency - Unknown,str,2,0
+Within ODD?,str,6,4
+Within ODD? - CBI,str,2,0
+Narrative,str,3033,2
+Narrative - CBI?,str,2,0
+VIN - Unknown,str,3,825
+Mileage,float64,1488,879
+Mileage - Unknown,str,3,825
+ADAS/ADS System Version,str,138,1114
+ADAS/ADS System Version - Unk,str,3,825
+ADAS/ADS System Version CBI,str,3,825
+ADAS/ADS Hardware Version,str,84,1677
+ADAS/ADS Hardware Version - Unk,str,3,825
+ADAS/ADS Hardware Version CBI,str,3,825
+ADAS/ADS Software Version,str,86,1677
+ADAS/ADS Software Version - Unk,str,3,825
+ADAS/ADS Software Version CBI,str,3,825
+Other Reporting Entities?,str,21,2658
+Other Reporting Entities? - Unk,str,3,826
+Other Reporting Entities? - NA,str,3,826
+Federal Regulatory Exemption?,str,5,3094
+Other Federal Reg. Exemption,str,5,3114
+Federal Reg. Exemption - Unk,str,3,826
+Federal Reg. Exemption - No,str,3,826
+State or Local Permit?,str,4,1505
+State or Local Permit,str,65,1733
+ADS Equipped?,str,2,829
+Source - Other,str,3,825
+Source - Other Text,str,22,3083
+Notice Received Date,str,49,828
+Roadway Surface,str,6,828
+Roadway Description,str,7,828
+Posted Speed Limit (MPH),float64,20,865
+Posted Speed Limit - Unknown,str,3,825
+Lighting,str,8,828
+Weather - Fog/Smoke,str,3,825
+Weather - Unknown,str,3,825
+Weather - Other,str,3,825
+Weather - Other Text,str,3,3114
+Property Damage?,str,4,828
+CP Any Air Bags Deployed?,str,5,1062
+CP Was Vehicle Towed?,str,5,1062
+SV Any Air Bags Deployed?,str,4,828
+SV Was Vehicle Towed?,str,4,828
+SV Were All Passengers Belted?,str,5,828
+Law Enforcement Investigating?,str,4,828
+Rep Ent Or Mfr Investigating?,str,4,828
+Investigating Officer Name,str,2,2635
+Inv. Officer Name - Unknown,str,3,825
+Investigating Officer Phone,str,2,2981
+Inv. Officer Phone - Unknown,str,3,825
+Investigating Officer Email,str,2,3074
+Inv. Officer Email - Unknown,str,3,825

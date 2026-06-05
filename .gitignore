@@ -1,5 +1,14 @@
 # Claude Code (user-local)
 .claude/settings.local.json
+private/*
+*.pyc
+__pycache__/
+.env
+.pytest_cache/
+data/embeddings/
+
+eda/ADS_to_2026_03_16/artifacts_spacy/*
+eda/ADS_to_2026_03_16/artifacts_target_injury/*
 .claude/scheduled_tasks.lock
 
 # Project-private notes
