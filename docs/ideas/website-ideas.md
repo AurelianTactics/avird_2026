@@ -16,3 +16,5 @@ Unsorted and rough items for potential future implementation
 * redacted narratives. seems like Tesla only one recent and active
     * show the percent and count by entity, maybe recently as well too
 * target against key columns as describe and value count. stretch: user can make the target witha  text description
+* data dictionary: for humans and agents. static for MVP.
+    * covers DB fields and the underlying source data

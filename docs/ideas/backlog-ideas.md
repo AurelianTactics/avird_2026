@@ -78,4 +78,12 @@ Unsorted, rough backlog items for potential future implementation
 * MCP, queryable findings with dynamic results
 * follow up: of the low speed / no speed how many were SV properly at low speed / no speed and how many may have caused the accident
 * better context curation
+    * incorporate ideas from the research into this
 * better at reading findings and iterating to next part of EDA
+* see what one shot agent can do
+* explanation of technical terms like ODD
+    Operational Design Domain (ODD) defines the specific operating conditions—such as weather, time of day, road types, and speed—under which an autonomous vehicle (AV) is designed to function safely
+* make the data dictionary more friendly and render for front end / RAG
+* comparison between the two data sets by grup yb /d escribe
+* on hover can get the data items into the data dictionary
+* db init set up and repo structure is too broad. If doing another DB then make it more clear
