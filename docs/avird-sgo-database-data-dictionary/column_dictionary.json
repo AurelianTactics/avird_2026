@@ -1,0 +1,1944 @@
+{
+  "generated_at": "2026-06-05T12:06:18.750067+00:00",
+  "source_batch_ids": [
+    "4dd7feb419024d45acb19cba8cf6d3f8",
+    "96895f7c5ddc40c586624e0f728cb9df"
+  ],
+  "built_at": "2026-06-05T12:06:12.157139+00:00",
+  "treated_table": "treated_incident_reports",
+  "columns": [
+    {
+      "name": "Report ID",
+      "source_type": "raw",
+      "derived_from": [
+        "Report ID"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Report Version",
+      "source_type": "raw",
+      "derived_from": [
+        "Report Version"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Reporting Entity",
+      "source_type": "raw",
+      "derived_from": [
+        "Reporting Entity"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Report Type",
+      "source_type": "raw",
+      "derived_from": [
+        "Report Type"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Report Month",
+      "source_type": "raw",
+      "derived_from": [
+        "Report Month"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Report Year",
+      "source_type": "raw",
+      "derived_from": [
+        "Report Year"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Report Submission Date",
+      "source_type": "raw",
+      "derived_from": [
+        "Report Submission Date"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "VIN",
+      "source_type": "raw",
+      "derived_from": [
+        "VIN"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "VIN - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "VIN - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Serial Number",
+      "source_type": "raw",
+      "derived_from": [
+        "Serial Number"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Make",
+      "source_type": "raw",
+      "derived_from": [
+        "Make"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Model",
+      "source_type": "raw",
+      "derived_from": [
+        "Model"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Model - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Model - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Model Year",
+      "source_type": "raw",
+      "derived_from": [
+        "Model Year"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Model Year - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Model Year - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Same Vehicle ID",
+      "source_type": "raw",
+      "derived_from": [
+        "Same Vehicle ID"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Mileage",
+      "source_type": "raw",
+      "derived_from": [
+        "Mileage"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Mileage - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Mileage - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Driver / Operator Type",
+      "source_type": "raw",
+      "derived_from": [
+        "Driver / Operator Type"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS System Version",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS System Version"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS System Version - Unk",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS System Version - Unk"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS System Version CBI",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS System Version CBI"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS Hardware Version",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS Hardware Version"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS Hardware Version - Unk",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS Hardware Version - Unk"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS Hardware Version CBI",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS Hardware Version CBI"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS Software Version",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS Software Version"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS Software Version - Unk",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS Software Version - Unk"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADAS/ADS Software Version CBI",
+      "source_type": "raw",
+      "derived_from": [
+        "ADAS/ADS Software Version CBI"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Other Reporting Entities?",
+      "source_type": "raw",
+      "derived_from": [
+        "Other Reporting Entities?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Other Reporting Entities? - Unk",
+      "source_type": "raw",
+      "derived_from": [
+        "Other Reporting Entities? - Unk"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Other Reporting Entities? - NA",
+      "source_type": "raw",
+      "derived_from": [
+        "Other Reporting Entities? - NA"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Federal Regulatory Exemption?",
+      "source_type": "raw",
+      "derived_from": [
+        "Federal Regulatory Exemption?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Other Federal Reg. Exemption",
+      "source_type": "raw",
+      "derived_from": [
+        "Other Federal Reg. Exemption"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Federal Reg. Exemption - Unk",
+      "source_type": "raw",
+      "derived_from": [
+        "Federal Reg. Exemption - Unk"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Federal Reg. Exemption - No",
+      "source_type": "raw",
+      "derived_from": [
+        "Federal Reg. Exemption - No"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "State or Local Permit?",
+      "source_type": "raw",
+      "derived_from": [
+        "State or Local Permit?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "State or Local Permit",
+      "source_type": "raw",
+      "derived_from": [
+        "State or Local Permit"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ADS Equipped?",
+      "source_type": "raw",
+      "derived_from": [
+        "ADS Equipped?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Automation System Engaged?",
+      "source_type": "raw",
+      "derived_from": [
+        "Automation System Engaged?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Operating Entity",
+      "source_type": "raw",
+      "derived_from": [
+        "Operating Entity"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Operating Entity - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Operating Entity - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Complaint/Claim",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Complaint/Claim"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Telematics",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Telematics"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Law Enforcement",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Law Enforcement"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Field Report",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Field Report"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Testing",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Testing"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Media",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Media"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Other",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Other"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Other Text",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Other Text"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Incident Date",
+      "source_type": "raw",
+      "derived_from": [
+        "Incident Date"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Incident Date - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Incident Date - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Notice Received Date",
+      "source_type": "raw",
+      "derived_from": [
+        "Notice Received Date"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Incident Time (24:00)",
+      "source_type": "raw",
+      "derived_from": [
+        "Incident Time (24:00)"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Incident Time - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Incident Time - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Same Incident ID",
+      "source_type": "raw",
+      "derived_from": [
+        "Same Incident ID"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Latitude",
+      "source_type": "raw",
+      "derived_from": [
+        "Latitude"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Latitude - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Latitude - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Longitude",
+      "source_type": "raw",
+      "derived_from": [
+        "Longitude"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Longitude - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Longitude - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Address",
+      "source_type": "raw",
+      "derived_from": [
+        "Address"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Address - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Address - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "City",
+      "source_type": "raw",
+      "derived_from": [
+        "City"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "City - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "City - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "State",
+      "source_type": "raw",
+      "derived_from": [
+        "State"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Zip Code",
+      "source_type": "raw",
+      "derived_from": [
+        "Zip Code"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Zip Code - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Zip Code - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway Type",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway Type"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway Surface",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway Surface"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway Description",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway Description"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Posted Speed Limit (MPH)",
+      "source_type": "raw",
+      "derived_from": [
+        "Posted Speed Limit (MPH)"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Posted Speed Limit - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Posted Speed Limit - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Lighting",
+      "source_type": "raw",
+      "derived_from": [
+        "Lighting"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Clear",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Clear"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Snow",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Snow"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Cloudy",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Cloudy"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Fog/Smoke",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Fog/Smoke"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Rain",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Rain"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Severe Wind",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Severe Wind"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Other",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Other"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Other Text",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Other Text"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Crash With",
+      "source_type": "raw",
+      "derived_from": [
+        "Crash With"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Highest Injury Severity Alleged",
+      "source_type": "raw",
+      "derived_from": [
+        "Highest Injury Severity Alleged"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Property Damage?",
+      "source_type": "raw",
+      "derived_from": [
+        "Property Damage?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Pre-Crash Movement",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Pre-Crash Movement"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Any Air Bags Deployed?",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Any Air Bags Deployed?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Was Vehicle Towed?",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Was Vehicle Towed?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Rear Left",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Rear Left"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Left",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Left"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Front Left",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Front Left"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Rear",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Rear"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Top",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Top"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Front",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Front"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Rear Right",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Rear Right"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Right",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Right"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Front Right",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Front Right"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Bottom",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Bottom"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "CP Contact Area - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "CP Contact Area - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Pre-Crash Movement",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Pre-Crash Movement"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Any Air Bags Deployed?",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Any Air Bags Deployed?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Was Vehicle Towed?",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Was Vehicle Towed?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Were All Passengers Belted?",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Were All Passengers Belted?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Precrash Speed (MPH)",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Precrash Speed (MPH)"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Pre-crash Speed - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Pre-crash Speed - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Rear Left",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Rear Left"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Left",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Left"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Front Left",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Front Left"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Rear",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Rear"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Top",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Top"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Front",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Front"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Rear Right",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Rear Right"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Right",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Right"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Front Right",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Front Right"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Bottom",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Bottom"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "SV Contact Area - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "SV Contact Area - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - EDR",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - EDR"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - Police Rpt",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - Police Rpt"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - Telematics",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - Telematics"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - Complaints",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - Complaints"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - Video",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - Video"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - Other",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - Other"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - No Data",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - No Data"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Data Availability - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Data Availability - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Law Enforcement Investigating?",
+      "source_type": "raw",
+      "derived_from": [
+        "Law Enforcement Investigating?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Investigating Agency",
+      "source_type": "raw",
+      "derived_from": [
+        "Investigating Agency"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Investigating Agency - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Investigating Agency - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Rep Ent Or Mfr Investigating?",
+      "source_type": "raw",
+      "derived_from": [
+        "Rep Ent Or Mfr Investigating?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Investigating Officer Name",
+      "source_type": "raw",
+      "derived_from": [
+        "Investigating Officer Name"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Inv. Officer Name - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Inv. Officer Name - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Investigating Officer Phone",
+      "source_type": "raw",
+      "derived_from": [
+        "Investigating Officer Phone"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Inv. Officer Phone - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Inv. Officer Phone - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Investigating Officer Email",
+      "source_type": "raw",
+      "derived_from": [
+        "Investigating Officer Email"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Inv. Officer Email - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Inv. Officer Email - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Within ODD?",
+      "source_type": "raw",
+      "derived_from": [
+        "Within ODD?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Within ODD? - CBI",
+      "source_type": "raw",
+      "derived_from": [
+        "Within ODD? - CBI"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Narrative",
+      "source_type": "raw",
+      "derived_from": [
+        "Narrative"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Narrative - CBI?",
+      "source_type": "raw",
+      "derived_from": [
+        "Narrative - CBI?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "VIN Decoded",
+      "source_type": "raw",
+      "derived_from": [
+        "VIN Decoded"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Make - Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Make - Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Automation Feature Version",
+      "source_type": "raw",
+      "derived_from": [
+        "Automation Feature Version"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Automation Feature Version CBI",
+      "source_type": "raw",
+      "derived_from": [
+        "Automation Feature Version CBI"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Engagement Status",
+      "source_type": "raw",
+      "derived_from": [
+        "Engagement Status"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Internal Process Review",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Internal Process Review"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - NHTSA VOQ",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - NHTSA VOQ"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Other - See Narrative",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Other - See Narrative"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - Other Entity",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - Other Entity"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Source - State or Other Agency",
+      "source_type": "raw",
+      "derived_from": [
+        "Source - State or Other Agency"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-Degraded Surface",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-Degraded Surface"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-Missing/Degraded Marking",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-Missing/Degraded Marking"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-No Unusual Conditions",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-No Unusual Conditions"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-Other-See Narrative",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-Other-See Narrative"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-Traffic Incident",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-Traffic Incident"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-Unknown",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-Unknown"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-Wet Surface Condition",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-Wet Surface Condition"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Roadway-Work Zone",
+      "source_type": "raw",
+      "derived_from": [
+        "Roadway-Work Zone"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Partly Cloudy",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Partly Cloudy"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Fog/Smoke/Haze",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Fog/Smoke/Haze"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Dust Storm",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Dust Storm"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Severe Hurricane",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Severe Hurricane"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Structure-Indoor",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Structure-Indoor"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Weather - Unk - See Narrative",
+      "source_type": "raw",
+      "derived_from": [
+        "Weather - Unk - See Narrative"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Any Air Bags Deployed?",
+      "source_type": "raw",
+      "derived_from": [
+        "Any Air Bags Deployed?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Was Any Vehicle Towed?",
+      "source_type": "raw",
+      "derived_from": [
+        "Was Any Vehicle Towed?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Were All Passengers Belted?",
+      "source_type": "raw",
+      "derived_from": [
+        "Were All Passengers Belted?"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ingest_batch_id",
+      "source_type": "raw",
+      "derived_from": [
+        "ingest_batch_id"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "source_file",
+      "source_type": "raw",
+      "derived_from": [
+        "source_file"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "schema_version",
+      "source_type": "raw",
+      "derived_from": [
+        "schema_version"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "ingested_at",
+      "source_type": "raw",
+      "derived_from": [
+        "ingested_at"
+      ],
+      "description": "Raw passthrough from SGO source CSV (stored as TEXT in the raw layer).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "incident_date",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Incident Date"
+      ],
+      "description": "pd.to_datetime(Incident Date).",
+      "sql_type": "DATE"
+    },
+    {
+      "name": "lat_numeric",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Latitude"
+      ],
+      "description": "pd.to_numeric(Latitude).",
+      "sql_type": "NUMERIC"
+    },
+    {
+      "name": "lon_numeric",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Longitude"
+      ],
+      "description": "pd.to_numeric(Longitude).",
+      "sql_type": "NUMERIC"
+    },
+    {
+      "name": "sv_precrash_speed_mph",
+      "source_type": "cleaned",
+      "derived_from": [
+        "SV Precrash Speed (MPH)"
+      ],
+      "description": "pd.to_numeric(SV Precrash Speed (MPH)).",
+      "sql_type": "NUMERIC"
+    },
+    {
+      "name": "has_multiple_reports",
+      "source_type": "flag",
+      "derived_from": [
+        "Same Incident ID",
+        "Reporting Entity",
+        "Incident Date",
+        "Incident Time (24:00)",
+        "VIN"
+      ],
+      "description": "True when the incident has more than one report.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "is_latest_of_multiple_report",
+      "source_type": "flag",
+      "derived_from": [
+        "Same Incident ID",
+        "Reporting Entity",
+        "Incident Date",
+        "Incident Time (24:00)",
+        "VIN",
+        "Report Submission Date",
+        "Report Version",
+        "Report ID"
+      ],
+      "description": "True for the canonical row of each incident: the most recent report of a multi-report group, and every single-report incident.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "Narrative - Same Incident ID",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Narrative"
+      ],
+      "description": "All unique narratives for the incident, latest first, attached to the canonical row only.",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Operating Entity Clean",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Operating Entity"
+      ],
+      "description": "Normalized 'Operating Entity' (lowercased, trimmed, legal suffixes dropped).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Reporting Entity Clean",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Reporting Entity"
+      ],
+      "description": "Normalized 'Reporting Entity' (lowercased, trimmed, legal suffixes dropped).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Investigating Agency Clean",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Investigating Agency"
+      ],
+      "description": "Normalized 'Investigating Agency' (lowercased, trimmed, legal suffixes dropped).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "State or Local Permit Clean",
+      "source_type": "cleaned",
+      "derived_from": [
+        "State or Local Permit"
+      ],
+      "description": "Normalized 'State or Local Permit' (lowercased, trimmed, legal suffixes dropped).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Make Clean",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Make"
+      ],
+      "description": "Normalized 'Make' (lowercased, trimmed, legal suffixes dropped).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Model Clean",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Model"
+      ],
+      "description": "Normalized 'Model' (lowercased, trimmed, legal suffixes dropped).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "State Clean",
+      "source_type": "cleaned",
+      "derived_from": [
+        "State"
+      ],
+      "description": "Normalized 'State' (lowercased, trimmed, legal suffixes dropped).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "master_entity",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Operating Entity",
+        "Reporting Entity"
+      ],
+      "description": "Canonical entity display name (drops legal suffixes, collapses dotted acronyms, fuzzy-clusters near-duplicates).",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "Make Model",
+      "source_type": "cleaned",
+      "derived_from": [
+        "Make",
+        "Model"
+      ],
+      "description": "Normalized \"<Make> | <Model>\" combination string.",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "automation_engaged_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Engagement Status",
+        "Automation System Engaged?"
+      ],
+      "description": "Engagement state {Engaged, Not Engaged, Unknown}.",
+      "sql_type": "TEXT",
+      "caveat": "Semantic mismatch across versions: the early schema's 'Automation System Engaged?' encodes which system was involved (ADS/ADAS), while the later schema's 'Engagement Status' encodes the engagement state (Verified Engaged / Not Engaged). automation_engaged_clean folds both into an engagement state and is additive -- the raw columns are retained."
+    },
+    {
+      "name": "automation_system_type",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Automation System Engaged?"
+      ],
+      "description": "Automation system type {ADS, ADAS, Unknown}.",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "passengers_belted_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "SV Were All Passengers Belted?",
+        "Were All Passengers Belted?"
+      ],
+      "description": "Belt status {All Belted, No Passengers, Not Belted, Unknown}.",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "weather_clear_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Clear"
+      ],
+      "description": "Clear weather flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_snow_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Snow"
+      ],
+      "description": "Snow weather flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_cloudy_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Cloudy",
+        "Weather - Partly Cloudy"
+      ],
+      "description": "Cloudy (incl. Partly Cloudy) flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_fog_smoke_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Fog/Smoke",
+        "Weather - Fog/Smoke/Haze"
+      ],
+      "description": "Fog/Smoke(/Haze) flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_rain_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Rain"
+      ],
+      "description": "Rain weather flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_severe_wind_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Severe Wind"
+      ],
+      "description": "Severe wind flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_unknown_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Unknown",
+        "Weather - Unk - See Narrative"
+      ],
+      "description": "Unknown weather flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_dust_storm_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Dust Storm"
+      ],
+      "description": "Dust storm flag (later-only).",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_severe_hurricane_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Severe Hurricane"
+      ],
+      "description": "Severe hurricane flag (later-only).",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "weather_structure_indoor_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Weather - Structure-Indoor"
+      ],
+      "description": "Structure/indoor flag (later-only).",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "roadway_wet_surface_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Roadway Surface",
+        "Roadway-Wet Surface Condition"
+      ],
+      "description": "Wet surface condition flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "roadway_work_zone_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Roadway Description",
+        "Roadway-Work Zone"
+      ],
+      "description": "Work zone flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "roadway_degraded_marking_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Roadway Description",
+        "Roadway-Missing/Degraded Marking"
+      ],
+      "description": "Missing/degraded marking flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "roadway_traffic_incident_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Roadway Description",
+        "Roadway-Traffic Incident"
+      ],
+      "description": "Traffic incident flag.",
+      "sql_type": "BOOLEAN"
+    },
+    {
+      "name": "lighting_clean",
+      "source_type": "harmonized",
+      "derived_from": [
+        "Lighting"
+      ],
+      "description": "Lighting category (early-schema only).",
+      "sql_type": "TEXT",
+      "caveat": "Lighting is present only in the early schema; later-schema rows have no source column and receive NULL for lighting_clean."
+    },
+    {
+      "name": "No Injury Reported",
+      "source_type": "target",
+      "derived_from": [
+        "Highest Injury Severity Alleged"
+      ],
+      "description": "Binary 0/1: no injury / property-damage-only.",
+      "sql_type": "BIGINT"
+    },
+    {
+      "name": "Injury Reported",
+      "source_type": "target",
+      "derived_from": [
+        "Highest Injury Severity Alleged"
+      ],
+      "description": "Binary 0/1: any injury severity reported (Minor/Moderate/Serious/Fatality).",
+      "sql_type": "BIGINT"
+    },
+    {
+      "name": "Multi Class Injury",
+      "source_type": "target",
+      "derived_from": [
+        "Highest Injury Severity Alleged"
+      ],
+      "description": "Ordinal 0-4: 0=none/unknown, 1=Minor, 2=Moderate, 3=Serious, 4=Fatality.",
+      "sql_type": "BIGINT"
+    },
+    {
+      "name": "Binary Airbag Deployed",
+      "source_type": "target",
+      "derived_from": [
+        "Any Air Bags Deployed?",
+        "CP Any Air Bags Deployed?",
+        "SV Any Air Bags Deployed?"
+      ],
+      "description": "Binary 0/1: any airbag deployed (yes-substring across both schema variants).",
+      "sql_type": "BIGINT"
+    },
+    {
+      "name": "Binary Vehicle Towed",
+      "source_type": "target",
+      "derived_from": [
+        "Was Any Vehicle Towed?",
+        "CP Was Vehicle Towed?",
+        "SV Was Vehicle Towed?"
+      ],
+      "description": "Binary 0/1: any vehicle towed (yes-substring across both schema variants).",
+      "sql_type": "BIGINT"
+    },
+    {
+      "name": "SV Speed >= 10",
+      "source_type": "target",
+      "derived_from": [
+        "SV Precrash Speed (MPH)"
+      ],
+      "description": "Binary 0/1: SV pre-crash speed >= 10 MPH.",
+      "sql_type": "BIGINT"
+    },
+    {
+      "name": "Potential Non-Trivial Accident",
+      "source_type": "target",
+      "derived_from": [
+        "Highest Injury Severity Alleged",
+        "Any Air Bags Deployed?",
+        "CP Any Air Bags Deployed?",
+        "SV Any Air Bags Deployed?",
+        "Was Any Vehicle Towed?",
+        "CP Was Vehicle Towed?",
+        "SV Was Vehicle Towed?",
+        "SV Precrash Speed (MPH)",
+        "Crash With"
+      ],
+      "description": "Binary 0/1: OR of injury / airbag / towed / SV speed>=threshold / pedestrian crash.",
+      "sql_type": "BIGINT"
+    },
+    {
+      "name": "source_batch_ids",
+      "source_type": "provenance",
+      "derived_from": [
+        "ingest_batches.batch_id"
+      ],
+      "description": "Comma-separated list of ingest batches that fed the rows this treated build was derived from.",
+      "sql_type": "TEXT"
+    },
+    {
+      "name": "built_at",
+      "source_type": "provenance",
+      "derived_from": [],
+      "description": "UTC ISO-8601 timestamp of when this treated table was built.",
+      "sql_type": "TEXT"
+    }
+  ]
+}
