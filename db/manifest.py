@@ -1,6 +1,6 @@
 '''Emit machine-readable cleaning artifacts.
 
-Two JSON files are written under ``docs/data-dictionary/`` so the future
+Two JSON files are written under ``docs/avird-sgo-database-data-dictionary/`` so the future
 data-dictionary page has a single source of truth that stays in lock-step with
 the pipeline:
 
@@ -30,7 +30,7 @@ import eda_utils_targets           # noqa: E402
 import build_treated               # noqa: E402
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_OUT_DIR = _REPO_ROOT / 'docs' / 'data-dictionary'
+DEFAULT_OUT_DIR = _REPO_ROOT / 'docs' / 'avird-sgo-database-data-dictionary'
 
 # Per-step caveat overlays added on top of build_treated's recorded deltas.
 _STEP_CAVEATS = {

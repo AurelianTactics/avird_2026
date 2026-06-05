@@ -125,8 +125,8 @@ create: ok
 ingest [early] SGO-2021-01_Incident_Reports_ADS_to_2025_06_16.csv: +2295 rows
 ingest [later] SGO-2021-01_Incident_Reports_ADS_2025_06_16_to_2026_03_16.csv: +825 rows
 build : 3120 treated rows (2344 canonical), 2 source batch(es)
-manifest: docs/data-dictionary/cleaning_manifest.json
-columns : docs/data-dictionary/column_dictionary.json
+manifest: docs/avird-sgo-database-data-dictionary/cleaning_manifest.json
+columns : docs/avird-sgo-database-data-dictionary/column_dictionary.json
 ```
 
 This takes ~30–60s the first time (CSV read + pipeline + Postgres write).
@@ -155,10 +155,10 @@ If any of those don't match, **stop** and tell me — something's off.
 
 ## 8. Verify the manifest files
 
-Two JSON files are written to `docs/data-dictionary/`:
+Two JSON files are written to `docs/avird-sgo-database-data-dictionary/`:
 
 ```bash
-ls docs/data-dictionary/
+ls docs/avird-sgo-database-data-dictionary/
 # cleaning_manifest.json   column_dictionary.json
 ```
 
@@ -187,7 +187,7 @@ Each month NHTSA publishes a new SGO CSV. The workflow:
 3. The sha256 guard skips files already ingested; the new one appends as a
    new batch. The `raw_incident_reports_latest` view automatically exposes
    the newest rows to the site. The treated table and manifest are rebuilt.
-4. Commit the regenerated `docs/data-dictionary/*.json` if any column changed.
+4. Commit the regenerated `docs/avird-sgo-database-data-dictionary/*.json` if any column changed.
 
 ---
 

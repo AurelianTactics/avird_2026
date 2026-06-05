@@ -12,7 +12,7 @@ data/nhtsa/*.csv ─► ingest_raw.py ─► raw_incident_reports  ─► raw_in
                                             │
                        build_treated.py ────┴─► treated_incident_reports
                                                         │
-                                          manifest.py ──┴─► docs/data-dictionary/*.json
+                                          manifest.py ──┴─► docs/avird-sgo-database-data-dictionary/*.json
 ```
 
 Orchestrated end-to-end by `run_pipeline.py`. Each stage is independently
@@ -83,6 +83,6 @@ across sqlite + Postgres.
 
 ## Cleaning artifacts
 
-`docs/data-dictionary/cleaning_manifest.json` and `column_dictionary.json` are
+`docs/avird-sgo-database-data-dictionary/cleaning_manifest.json` and `column_dictionary.json` are
 generated on every full run (or via `--emit-only`). They are the single source
 of truth for the future data-dictionary page on the site.

@@ -11,15 +11,19 @@ high-value raw columns to real types, then runs the treatment pipeline:
 
 Per-step row/column deltas are captured for the cleaning manifest (U7). The
 full frame (all rows, flag-distinguished -- never collapsed) is written to
-``treated_incident_reports`` via to_sql(if_exists='replace'); pandas dtypes
-drive the column types, so the promoted columns land typed. Provenance
-(``source_batch_ids``, ``built_at``) is stamped on every row.
+``treated_incident_reports`` via to_sql(if_exists='replace'). The promoted +
+flag columns get explicit SQL types (see ``TREATED_COLUMN_TYPES``) so the table
+honors the ``003_treated_incident_reports.sql`` DATE/NUMERIC/BOOLEAN contract
+instead of whatever pandas would infer; the remaining columns fall back to
+pandas-inferred TEXT. Provenance (``source_batch_ids``, ``built_at``) is stamped
+on every row.
 '''
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
+from sqlalchemy import Boolean, Date, Numeric
 
 _EDA_DIR = Path(__file__).resolve().parents[1] / 'eda'
 if str(_EDA_DIR) not in sys.path:
@@ -44,6 +48,20 @@ _PROMOTED = {
     'Latitude': 'lat_numeric',
     'Longitude': 'lon_numeric',
     'SV Precrash Speed (MPH)': 'sv_precrash_speed_mph',
+}
+
+# Explicit SQL types for the promoted + flag columns, applied via
+# to_sql(dtype=...) on every rebuild. Without this, to_sql(if_exists='replace')
+# lets pandas infer types (TIMESTAMP / FLOAT / INTEGER), silently diverging from
+# the 003_treated_incident_reports.sql contract and from the sql_type reported
+# by the column dictionary. Keep the column->type pairs in sync with 003.
+TREATED_COLUMN_TYPES = {
+    'incident_date': Date(),
+    'lat_numeric': Numeric(),
+    'lon_numeric': Numeric(),
+    'sv_precrash_speed_mph': Numeric(),
+    'is_latest_of_multiple_report': Boolean(),
+    'has_multiple_reports': Boolean(),
 }
 
 
@@ -198,7 +216,10 @@ def build_treated(engine):
         source_batch_ids=','.join(source_batch_ids) if source_batch_ids else None,
         built_at=built_at,
     )
-    out.to_sql(TREATED_TABLE, engine, if_exists='replace', index=False)
+    out.to_sql(
+        TREATED_TABLE, engine, if_exists='replace', index=False,
+        dtype={c: t for c, t in TREATED_COLUMN_TYPES.items() if c in out.columns},
+    )
 
     canonical_rows = int(treated_df['is_latest_of_multiple_report'].sum())
     print(f'[build_treated] wrote {len(out)} rows to {TREATED_TABLE} '
