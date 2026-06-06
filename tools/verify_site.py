@@ -2,10 +2,11 @@
 
 Three checks against the deployed public web origin:
 
-  1. status        — GET / and GET /about both return 200
+  1. status        — GET /, /about, and /groupings all return 200
   2. internal links — all same-origin <a href> values from those pages return 200
-  3. expected text  — the index renders "API: ok" (degraded states are failures);
-                      About renders "About this project"
+                      (incl. the per-incident detail links the list renders)
+  3. expected text  — each page renders its stable needle; a page that loads but
+                      shows a data-failure notice ("Could not load ...") fails
 
 Output is a punch list, one line per check, prefixed [ok] or [fail], plus a
 final summary count. Non-zero exit on any failure.
@@ -29,18 +30,27 @@ from bs4 import BeautifulSoup
 
 # === Assertion config — edit when site content changes ===
 
-# Required substrings per page. Extend by adding pages or strings.
+# Required substrings per page. Extend by adding pages or strings. Each needle
+# is a stable fragment the page always renders regardless of data state (prose
+# intro, not table contents) so the gate is robust to an empty result set.
 EXPECTED_TEXT: dict[str, list[str]] = {
-    "/": ["API: ok"],
+    "/": ["Raw NHTSA SGO crash reports"],
     "/about": ["About this project"],
+    "/groupings": ["Canonical (deduplicated) crash counts"],
 }
 
 # Pages whose status code is asserted, and whose internal links are crawled.
+# Detail pages need no needle here — the list renders real <a href> detail
+# links, so the internal-link crawler reaches and 200-checks them.
 PAGES_TO_CHECK: list[str] = list(EXPECTED_TEXT.keys())
 
-# Strings that, if present on the index, are explicit failures — the API is alive
-# in some sense ("down" / "unreachable") but the deploy is not green.
-DEGRADED_INDEX_STATES: list[str] = ["API: down", "API: unreachable"]
+# Per-page strings that mean the page rendered (200) but its data layer failed —
+# explicit failures even though the page itself loaded. Replaces the old
+# index-only "API: down/unreachable" check now that / is the data-backed list.
+DEGRADED_TEXT: dict[str, list[str]] = {
+    "/": ["Could not load incidents"],
+    "/groupings": ["Could not load groupings"],
+}
 
 # === / ===
 
@@ -131,16 +141,15 @@ def verify(base_url: str, *, client: httpx.Client) -> list[Result]:
         for needle in needles:
             ok = needle in text
             results.append(Result(f"text {path} '{needle}'", ok, "" if ok else "missing"))
-        if path == "/":
-            for degraded in DEGRADED_INDEX_STATES:
-                if degraded in text:
-                    results.append(
-                        Result(
-                            f"text {path} not-degraded '{degraded}'",
-                            False,
-                            "found degraded state",
-                        )
+        for degraded in DEGRADED_TEXT.get(path, []):
+            if degraded in text:
+                results.append(
+                    Result(
+                        f"text {path} not-degraded '{degraded}'",
+                        False,
+                        "found degraded state",
                     )
+                )
 
     return results
 
