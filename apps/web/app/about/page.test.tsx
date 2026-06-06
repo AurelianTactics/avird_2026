@@ -8,9 +8,9 @@ describe('AboutPage', () => {
     expect(container.textContent).toContain('About this project');
   });
 
-  it('links back to home', () => {
+  it('links to the GitHub repo', () => {
     const { container } = render(<AboutPage />);
-    const homeLink = container.querySelector('a[href="/"]');
-    expect(homeLink).not.toBeNull();
+    const repoLink = container.querySelector('a[href*="github.com/AurelianTactics/avird_2026"]');
+    expect(repoLink).not.toBeNull();
   });
 });

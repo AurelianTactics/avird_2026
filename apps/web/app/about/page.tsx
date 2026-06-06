@@ -1,4 +1,4 @@
-import Link from 'next/link';
+const REPO_URL = 'https://github.com/AurelianTactics/avird_2026';
 
 export default function AboutPage() {
   return (
@@ -16,9 +16,12 @@ export default function AboutPage() {
         is part of what&apos;s being learned.
       </p>
       <p>Per-phase writeups land under <code>docs/writeups/</code> in the repo.</p>
-      <nav>
-        <Link href="/">Home</Link>
-      </nav>
+      <p>
+        Source code:{' '}
+        <a href={REPO_URL} target="_blank" rel="noreferrer">
+          github.com/AurelianTactics/avird_2026
+        </a>
+      </p>
     </main>
   );
 }
