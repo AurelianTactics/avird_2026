@@ -9,9 +9,25 @@ The compound-engineering substrate: slash commands, hooks, and commit convention
 | Command | Runs | When to use |
 |---------|------|-------------|
 | `/ship` | `ruff check` and `ruff format --check` over `apps/api` + `tools`, `npm run lint` in `apps/web`, then `pytest` in both Python projects and `npm test` in web. | Before committing — gates on lint + format + tests. Reports pass/fail; you commit manually after green. Tolerates empty test suites. Assumes the shared uv env (see [stack.md](stack.md#local-dev-env)) is on PATH. |
-| `/verify-site` | `python tools/verify_site.py --base-url $WEB_URL` (the deployed Next.js URL). | After deploy. Asserts the public site responds 200, internal links resolve, and the placeholder index + About pages render expected text. Non-zero exit on any failure. |
+| `/verify-site` | `python tools/verify_site.py --base-url $WEB_URL` (the deployed Next.js URL). | After deploy. Asserts the public site responds 200, internal links resolve, and the index + About + Groupings pages render expected text. Non-zero exit on any failure. |
+| `/verify-page` | Drives one page through the `playwright` plugin's MCP browser tools (navigate → a11y snapshot → screenshot → console check), compares it to stated intent, and reports a punch list. | While building a visual page. Proves it *looks/behaves* right, iterating until the punch list is clean. Needs a running dev server (or `WEB_URL`) and browser binaries (`npx playwright install`). |
 
 To add a new slash command: drop a `.md` file under `.claude/commands/`, document it here, link it from the root [CLAUDE.md](../../CLAUDE.md) if it's a top-level affordance.
+
+## Two-layer page verification
+
+Pages ship behind two complementary checks (R20 + R21):
+
+| Layer | Command | Question it answers | Cost |
+|-------|---------|---------------------|------|
+| **Deterministic gate** | `/verify-site` | Is the page reachable, are its links live, does the expected text render? | Token-free; runs in CI / post-deploy; the hard pass/fail. |
+| **Agent perception loop** | `/verify-page` | Does the page actually *look and behave* right — layout intact, console clean, structure matches intent? | Tokens + a real browser; the build loop, iterated until clean. |
+
+The gate proves reachability; the loop proves it looks right. Build a visual
+page with the `frontend-design` skill, close the loop with `/verify-page`, then
+let `/verify-site` gate the deploy. Token-efficiency evolution (Playwright CLI +
+Skills on-disk snapshots) and Chrome DevTools MCP (perf/CWV, W5/W7) are noted in
+`.claude/commands/verify-page.md`.
 
 ## Hooks
 
