@@ -34,6 +34,17 @@ async def _ensure_pool() -> asyncpg.Pool:
     return _pool
 
 
+async def get_pool() -> asyncpg.Pool:
+    """Public accessor for the lazy-initialized pool.
+
+    Wraps the private `_ensure_pool()` so data-access code (see `data.py`)
+    never reaches into module internals. Preserves the lazy-init and
+    sanitized-failure posture — a missing `DATABASE_URL` raises here, and
+    callers decide how to surface it.
+    """
+    return await _ensure_pool()
+
+
 async def _drop_pool() -> None:
     global _pool
     if _pool is None:
