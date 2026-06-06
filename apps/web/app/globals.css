@@ -126,8 +126,7 @@ h1 {
   white-space: nowrap;
 }
 
-.sort-link[aria-sort="ascending"],
-.sort-link[aria-sort="descending"] {
+.data-table th[aria-sort] .sort-link {
   color: var(--ink);
   font-weight: 700;
 }
