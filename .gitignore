@@ -1,5 +1,8 @@
 # Claude Code (user-local)
 .claude/settings.local.json
+
+# Local verification state (pending debt, evidence JSON, screenshots)
+.verify/
 private/*
 *.pyc
 __pycache__/

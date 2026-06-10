@@ -12,6 +12,7 @@
       "Bash(pytest:*)",
       "Bash(python -m pytest:*)",
       "Bash(python tools/verify_site.py:*)",
+      "Bash(python tools/verify_evidence.py:*)",
       "Bash(python ${CLAUDE_PROJECT_DIR}/.claude/hooks/format_on_edit.py:*)"
     ]
   },
