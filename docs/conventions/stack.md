@@ -59,6 +59,18 @@ Each project's `pyproject.toml` is the source of truth for **what Railway instal
 
 Repo Python version: `3.14` (pinned via `.python-version` at the repo root, picked up by `uv` and by Railway's Python builder).
 
+## Local database (seeded, native Postgres — no Docker)
+
+Local verification runs against a real `avird_dev` database on the **native Windows PostgreSQL 17** instance (`localhost:5432`; a PG 18 service also runs on `:5433` — don't target it by accident; `local_db_setup.py` prints the server version it connected to). Prod is PG 16; the API's SQL surface is version-insensitive, and `/verify-site` against prod remains the fidelity net.
+
+One-time setup:
+
+1. Copy `.env.example` → `.env` at the repo root and put the real local postgres password in `DATABASE_URL`. Mirror the same value into `apps/api/.env` (copy from `apps/api/.env.example`). Both files are gitignored.
+2. `python tools/local_db_setup.py` — creates the `avird_dev` database if absent (idempotent; re-run reports "exists").
+3. `python db/run_pipeline.py` — seeds it with the committed NHTSA CSVs (~5 MB), building the same `treated_incident_reports` prod gets. Idempotent (sha256 ingest guard); re-run any time to re-seed.
+
+The db pipeline's deps (`sqlalchemy`, `psycopg`, `pandas`, `numpy`, `python-dotenv`, `matplotlib`) live in the shared app venv's `requirements.txt` so the seed runs from the same env as everything else.
+
 ## Ports
 
 | Service | Local dev | Railway |
