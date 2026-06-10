@@ -16,7 +16,9 @@
       "Bash(python tools/dev_stack.py:*)",
       "Bash(python tools/local_db_setup.py:*)",
       "Bash(python db/run_pipeline.py:*)",
-      "Bash(python ${CLAUDE_PROJECT_DIR}/.claude/hooks/format_on_edit.py:*)"
+      "Bash(python ${CLAUDE_PROJECT_DIR}/.claude/hooks/format_on_edit.py:*)",
+      "Bash(python ${CLAUDE_PROJECT_DIR}/.claude/hooks/mark_web_pending.py:*)",
+      "Bash(python ${CLAUDE_PROJECT_DIR}/.claude/hooks/verify_gate.py:*)"
     ]
   },
   "hooks": {
@@ -27,6 +29,25 @@
           {
             "type": "command",
             "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/format_on_edit.py\""
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/mark_web_pending.py\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify_gate.py\""
           }
         ]
       }
