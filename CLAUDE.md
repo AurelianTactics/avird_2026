@@ -20,7 +20,8 @@ NHTSA AV crash data portfolio site. A self-directed learning project: re-exercis
 - Slash commands, hooks, commit style → [docs/conventions/workflow.md](docs/conventions/workflow.md)
 - Per-phase writeups → [docs/writeups/](docs/writeups/)
 - Institutional learnings → [docs/solutions/](docs/solutions/)
-- Active plan → [docs/plans/2026-04-28-001-feat-phase-0-scaffold-plan.md](docs/plans/2026-04-28-001-feat-phase-0-scaffold-plan.md)
+- Active plan → [docs/plans/2026-06-09-001-feat-local-verification-pipeline-plan.md](docs/plans/2026-06-09-001-feat-local-verification-pipeline-plan.md)
+- Local verification loop (seeded stack, `/verify-local`, Stop gate) → [docs/conventions/workflow.md](docs/conventions/workflow.md)
 - Origin brainstorm → [docs/brainstorms/nhtsa-crash-portfolio-requirements.md](docs/brainstorms/nhtsa-crash-portfolio-requirements.md)
 - Service-local guidance: [apps/web/CLAUDE.md](apps/web/CLAUDE.md), [apps/api/CLAUDE.md](apps/api/CLAUDE.md)
 

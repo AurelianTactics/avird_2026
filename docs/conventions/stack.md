@@ -71,6 +71,18 @@ One-time setup:
 
 The db pipeline's deps (`sqlalchemy`, `psycopg`, `pandas`, `numpy`, `python-dotenv`, `matplotlib`) live in the shared app venv's `requirements.txt` so the seed runs from the same env as everything else.
 
+## Local stack (api + web)
+
+`tools/dev_stack.py` orchestrates both services against the seeded local DB with the prod env contract (`DATABASE_URL` from `apps/api/.env`, `API_URL` defaulting to `http://localhost:8000`):
+
+```
+python tools/dev_stack.py up        # spawn api (:8000) + web (:3000), poll until healthy
+python tools/dev_stack.py status    # one [ok]/[fail] line per service; api line shows db state
+python tools/dev_stack.py down      # taskkill the recorded process trees, clear pidfile
+```
+
+`up` is idempotent — already-healthy services are reported, never double-spawned. PIDs land in `.verify/pids.json`, service logs in `.verify/logs/` (both gitignored). The api spawns via `python -m uvicorn` (console scripts are unreliable on PATH — see the Railway-gotchas learning). The `status` line separates "api down" from "api up, db down" so a data-layer blocker is never mistaken for a dead service. Note `next dev` skips prod-build failure classes (prerender errors); Railway's build + `/verify-site` cover those.
+
 ## Ports
 
 | Service | Local dev | Railway |

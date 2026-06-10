@@ -11,22 +11,28 @@ The compound-engineering substrate: slash commands, hooks, and commit convention
 | `/ship` | `ruff check` and `ruff format --check` over `apps/api` + `tools`, `npm run lint` in `apps/web`, then `pytest` in both Python projects and `npm test` in web. | Before committing — gates on lint + format + tests. Reports pass/fail; you commit manually after green. Tolerates empty test suites. Assumes the shared uv env (see [stack.md](stack.md#local-dev-env)) is on PATH. |
 | `/verify-site` | `python tools/verify_site.py --base-url $WEB_URL` (the deployed Next.js URL). | After deploy. Asserts the public site responds 200, internal links resolve, and the index + About + Groupings pages render expected text. Non-zero exit on any failure. |
 | `/verify-page` | Drives one page through the `playwright` plugin's MCP browser tools (navigate → a11y snapshot → screenshot → console check), compares it to stated intent, and reports a punch list. | While building a visual page. Proves it *looks/behaves* right, iterating until the punch list is clean. Needs a running dev server (or `WEB_URL`) and browser binaries (`npx playwright install`). |
+| `/verify-local` | Brings up the seeded local stack (`tools/dev_stack.py up`), drives each changed route through the `/verify-page` perception loop, records evidence (`tools/verify_evidence.py record`) into `.verify/`, then runs `verify_site.py --base-url http://localhost:3000`. | Before ending any turn that touched web pages — it produces the evidence the Stop gate checks. Also any time mid-turn to reproduce a bug or validate a fix against real local data. |
 
 To add a new slash command: drop a `.md` file under `.claude/commands/`, document it here, link it from the root [CLAUDE.md](../../CLAUDE.md) if it's a top-level affordance.
 
-## Two-layer page verification
+## Three-surface page verification
 
-Pages ship behind two complementary checks (R20 + R21):
+Pages ship behind three complementary surfaces. The design principle:
+**instructions steer, hooks enforce** — anything truly required lives in
+deterministic code, not markdown.
 
-| Layer | Command | Question it answers | Cost |
-|-------|---------|---------------------|------|
-| **Deterministic gate** | `/verify-site` | Is the page reachable, are its links live, does the expected text render? | Token-free; runs in CI / post-deploy; the hard pass/fail. |
-| **Agent perception loop** | `/verify-page` | Does the page actually *look and behave* right — layout intact, console clean, structure matches intent? | Tokens + a real browser; the build loop, iterated until clean. |
+| Surface | Command / mechanism | Question it answers | Cost |
+|---------|--------------------|---------------------|------|
+| **Local build loop** | `/verify-local` (wraps `/verify-page` per route + `verify_site.py` on `localhost:3000`) | Does each changed route *render and behave* right against real local data — layout intact, console clean? Leaves checkable evidence in `.verify/`. | Tokens + a real browser; hot-reload speed; iterate until clean. |
+| **Stop-gate enforcement** | `verify_gate.py` Stop hook + `mark_web_pending.py` marker (both thin wrappers over `tools/verify_evidence.py`) | Did the loop actually run? Every page-affecting edit becomes pending debt; ending the turn is blocked until each affected route has fresh passing evidence (content hashes match, screenshot exists). Debt **persists across sessions** until verified or explicitly written off by the user (`pending-clear`). | Token-free, deterministic, unskippable. |
+| **Post-deploy gate** | `/verify-site` against the deployed URL | Is the *deployed* site reachable, links live, expected text rendering? The env-fidelity net (prod build, prod data, PG 16). | Token-free; CI-shaped; post-deploy. |
 
-The gate proves reachability; the loop proves it looks right. Build a visual
-page with the `frontend-design` skill, close the loop with `/verify-page`, then
-let `/verify-site` gate the deploy. Token-efficiency evolution (Playwright CLI +
-Skills on-disk snapshots) and Chrome DevTools MCP (perf/CWV, W5/W7) are noted in
+Build a visual page with the `frontend-design` skill, close the loop with
+`/verify-local`, let the Stop gate confirm the evidence, then `/verify-site`
+gates the deploy. Why this exists: see the incident learning
+[agent-shipped-website-without-running-verification-loop](../solutions/workflow-issues/agent-shipped-website-without-running-verification-loop.md).
+Token-efficiency evolution (Playwright CLI + Skills on-disk snapshots) and
+Chrome DevTools MCP (perf/CWV, W5/W7) are noted in
 `.claude/commands/verify-page.md`.
 
 ## Hooks
@@ -35,10 +41,12 @@ Skills on-disk snapshots) and Chrome DevTools MCP (perf/CWV, W5/W7) are noted in
 |-------|---------|--------|
 | `PostToolUse` (Edit, Write) | `apps/api/**/*.py` | `ruff format` on the touched file. |
 | `PostToolUse` (Edit, Write) | `apps/web/**/*.{ts,tsx}` | `prettier --write` on the touched file. |
+| `PostToolUse` (Edit, Write) | page-affecting `apps/web/app/**` files (filter lives in `verify_evidence.pending_add`) | `mark_web_pending.py` appends the file to `.verify/pending.json` — verification debt for the Stop gate. Silent, never blocks, fails open. |
+| `Stop` | — (always fires) | `verify_gate.py` runs `verify_evidence.check`: blocks end-of-turn with the exact `/verify-local <route>` commands while any pending route lacks fresh passing evidence; clears satisfied debt on pass. Respects `stop_hook_active` (no block loops); fails open on infrastructure errors, closed on missing evidence. |
 
-Scoped narrowly by path glob to keep the feedback loop tight — `docs/**` edits don't trigger anything.
+Scoped narrowly to keep the feedback loop tight — `docs/**` edits don't trigger anything and never trip the gate.
 
-To add a new hook: extend `.claude/settings.json`. Prefer `PostToolUse` with a tight `matcher` for file-at-a-time edits over a broad `Stop` hook. Document the new entry in the table above.
+To add a new hook: extend `.claude/settings.json`. Prefer `PostToolUse` with a tight `matcher` for file-at-a-time edits; a `Stop` hook is reserved for true end-of-turn gates like verification debt. Document the new entry in the table above.
 
 ## Commit style
 
