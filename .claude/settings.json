@@ -13,6 +13,9 @@
       "Bash(python -m pytest:*)",
       "Bash(python tools/verify_site.py:*)",
       "Bash(python tools/verify_evidence.py:*)",
+      "Bash(python tools/dev_stack.py:*)",
+      "Bash(python tools/local_db_setup.py:*)",
+      "Bash(python db/run_pipeline.py:*)",
       "Bash(python ${CLAUDE_PROJECT_DIR}/.claude/hooks/format_on_edit.py:*)"
     ]
   },
