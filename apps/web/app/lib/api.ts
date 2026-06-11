@@ -6,7 +6,9 @@
 // so pages degrade gracefully instead of throwing — mirrors the ok/error
 // idiom the P0 placeholder index used.
 
-const API_URL = process.env.API_URL ?? "http://localhost:8000";
+// 127.0.0.1, not localhost: Node's fetch resolves localhost to ::1 first on
+// Windows, and uvicorn binds IPv4 only — localhost silently ECONNREFUSEDs.
+const API_URL = process.env.API_URL ?? "http://127.0.0.1:8000";
 
 export type IncidentListItem = {
   report_id: string;

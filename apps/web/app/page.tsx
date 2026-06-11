@@ -98,8 +98,10 @@ export default async function IncidentsPage({
               </tr>
             </thead>
             <tbody>
-              {result.data.items.map((row) => (
-                <tr key={row.report_id}>
+              {result.data.items.map((row, i) => (
+                // report_id alone is not unique — the raw list shows every
+                // reported row, and resubmissions share a report_id.
+                <tr key={`${row.report_id}-${i}`}>
                   <td>{row.reporting_entity ?? "—"}</td>
                   <td>
                     <Link
