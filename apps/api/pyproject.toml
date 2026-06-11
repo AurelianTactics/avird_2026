@@ -1,7 +1,7 @@
 [project]
 name = "avird-api"
 version = "0.0.0"
-description = "FastAPI service for avird-2026 (NHTSA AV crash data portfolio)"
+description = "FastAPI service for avird-2026 (NHTSA AV crash data)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]>=0.115",

@@ -4,7 +4,7 @@ import Nav from './components/Nav';
 
 export const metadata = {
   title: 'avird-2026',
-  description: 'NHTSA AV crash data portfolio',
+  description: 'NHTSA AV crash data website',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

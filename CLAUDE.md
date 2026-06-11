@@ -1,6 +1,6 @@
 # avird-2026
 
-NHTSA AV crash data portfolio site. A self-directed learning project: re-exercise data engineering / EDA / ML on a real public dataset, and learn agentic + RAG patterns by building them. The build *workflow* (slash commands, hooks, evals) is itself part of the learning artifact.
+NHTSA AV crash data site. A self-directed learning project: re-exercise data engineering / EDA / ML on a real public dataset, and learn agentic + RAG patterns by building them. The build *workflow* (slash commands, hooks, evals) is itself part of the learning artifact.
 
 **Stack:** Next.js (App Router, TypeScript) + FastAPI + Postgres 16, all on Railway.
 
@@ -22,7 +22,7 @@ NHTSA AV crash data portfolio site. A self-directed learning project: re-exercis
 - Institutional learnings → [docs/solutions/](docs/solutions/)
 - Active plan → [docs/plans/2026-06-09-001-feat-local-verification-pipeline-plan.md](docs/plans/2026-06-09-001-feat-local-verification-pipeline-plan.md)
 - Local verification loop (seeded stack, `/verify-local`, Stop gate) → [docs/conventions/workflow.md](docs/conventions/workflow.md)
-- Origin brainstorm → [docs/brainstorms/nhtsa-crash-portfolio-requirements.md](docs/brainstorms/nhtsa-crash-portfolio-requirements.md)
+- Origin brainstorm → [docs/brainstorms/nhtsa-crash-project-requirements.md](docs/brainstorms/nhtsa-crash-project-requirements.md)
 - Service-local guidance: [apps/web/CLAUDE.md](apps/web/CLAUDE.md), [apps/api/CLAUDE.md](apps/api/CLAUDE.md)
 
 ## Conventions
