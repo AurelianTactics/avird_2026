@@ -202,8 +202,10 @@ def pending_routes(repo_root: Path) -> list[str]:
 
 
 def _evidence_name(route: str) -> str:
-    """Filesystem-safe evidence/screenshot stem for a route template."""
-    return route.strip("/").replace("/", "__") or "root"
+    """Filesystem-safe evidence/screenshot stem for a route template.
+    The root route gets a sentinel no real segment can produce, so a future
+    /root route cannot collide with it."""
+    return route.strip("/").replace("/", "__") or "__root__"
 
 
 def evidence_path(route: str, repo_root: Path) -> Path:
@@ -415,8 +417,12 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
-        # "." is the root-route alias (a bare "/" gets mangled by Git Bash too)
-        args.route = "/" + args.route.lstrip("/.") if args.route not in (".", "/", "") else "/"
+        # "." is the root-route alias (a bare "/" gets mangled by Git Bash too).
+        # Strip only the leading slash — a dotted segment (.well-known) is legal.
+        if args.route in (".", "/", ""):
+            args.route = "/"
+        elif not args.route.startswith("/"):
+            args.route = "/" + args.route
         try:
             out = record_evidence(
                 args.route,
