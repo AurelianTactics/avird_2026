@@ -3,7 +3,7 @@ import './globals.css';
 import Nav from './components/Nav';
 
 export const metadata = {
-  title: 'avird-2026',
+  title: 'AVIRD',
   description: 'NHTSA AV crash data website',
 };
 

@@ -1,3 +1,21 @@
+# to fix
+* DONE change the about page
+* DONE change the avird-2026 title page
+Let's make some fixes
+Add a MIT license to the repo and copywrite the webpage.
+Is this really designed by the claude code plugin frontend design?
+The incident date is not sorted correctly. Showing Sept 2025 instead of March2026 as teh latest incident
+The group by query is wrong. There are no property damage incidents despite there being some in the data. Look at the value counts for the raw data and make sure you are capturing the correct values under "Highest Injury Severity Alleged".
+Let's add the report ID to the main landing table and have that be the link to the incidents.
+On the incident pages let's link to the same incidents but other reports. Move the narrative to the top as well
+* add a license MIT License
+* this really the claude front end
+* incident date not sorted correctly, have some sort of id
+* really no property damage incidents
+* backlog: search box,
+
+
+
 # Post MVP Ideas
 - replan on what you want to accomplish here and re-prioritize
 - review old brainstorm, backlog, and other ideas
@@ -17,6 +35,7 @@
 ## Rough working 6/10/26
 * verification loop work
     * verify the outputs
+        * DONE verify the webpages
     * review the commits
     * review the skills
     * can it actuall run the loop and hooks without my approval?

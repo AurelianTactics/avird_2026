@@ -17,10 +17,12 @@ uv pip install --python ~/claude_code_repos/my-uv-envs/avird-2026-app/.venv \
 Then activate before working:
 
 ```bash
-source ~/claude_code_repos/my-uv-envs/avird-2026-app/.venv/Scripts/activate    # Windows
+..\my-uv-envs\avird-2026-app\.venv\Scripts\Activate.ps1 # Powershell
+# source ~/claude_code_repos/my-uv-envs/avird-2026-app/.venv/Scripts/activate    # Windows
 # or: source ~/claude_code_repos/my-uv-envs/avird-2026-app/.venv/bin/activate
+
 cp .env.example .env                                  # then edit DATABASE_URL
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --port 8000 --env-file .env
 ```
 
 The project's `pyproject.toml` is the source of truth for what Railway installs in production. The shared env's `requirements.txt` mirrors those deps (plus the `tools/` harness deps) for local dev.
