@@ -151,3 +151,25 @@ unit tests.
   have blocked "done," not been filed under deferred)
 - Command: `.claude/commands/verify-page.md` (the loop that needs a running stack)
 - Convention: `docs/conventions/workflow.md` ("Two-layer page verification")
+
+## Resolution (2026-06-10)
+
+Implemented by
+[2026-06-09-001-feat-local-verification-pipeline-plan.md](../../plans/2026-06-09-001-feat-local-verification-pipeline-plan.md),
+which built all five guidance items (swapping docker-compose for the native
+Windows Postgres, deliberately): a seeded local stack
+(`tools/local_db_setup.py` + the existing `db/run_pipeline.py` +
+`tools/dev_stack.py`), the `/verify-local` one-action loop, hash-fresh
+evidence artifacts in `.verify/` (`tools/verify_evidence.py`), a committed
+allowlist, and a deterministic Stop-hook gate that blocks end-of-turn while
+page-affecting changes lack fresh passing evidence.
+
+The acceptance drill replayed this incident against the gate and was blocked
+as designed — and the first real run of the loop found **five live bugs the
+71-green-test suite could not see** (favicon 404 console error, React
+duplicate-key on real data, a silent localhost/IPv6 fetch failure that broke
+all local data rendering, interpreter drift, Git-Bash argument mangling).
+Details: [docs/writeups/local-verification-pipeline.md](../../writeups/local-verification-pipeline.md).
+The convention doc's verification model is now three surfaces
+("Three-surface page verification" in workflow.md); the web definition of
+done lives in `apps/web/CLAUDE.md`.

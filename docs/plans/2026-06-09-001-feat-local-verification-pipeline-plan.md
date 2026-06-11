@@ -1,7 +1,7 @@
 ---
 date: 2026-06-09
 type: feat
-status: active
+status: completed
 origin: docs/solutions/workflow-issues/agent-shipped-website-without-running-verification-loop.md
 ---
 
