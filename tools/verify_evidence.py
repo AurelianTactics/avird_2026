@@ -339,6 +339,12 @@ def block_message(results: list[RouteCheck]) -> str:
     return "\n".join(lines)
 
 
+def _looks_filesystem_mangled(route: str) -> bool:
+    """True when a route value is clearly a Windows filesystem path — the
+    signature of MSYS/Git-Bash argument conversion, never a real route."""
+    return len(route) >= 3 and route[0].isalpha() and route[1] == ":" and route[2] in "/\\"
+
+
 # --- CLI ----------------------------------------------------------------------
 
 
@@ -398,6 +404,19 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.cmd == "record":
+        # Git Bash (MSYS) rewrites leading-slash args into filesystem paths
+        # ("/about" -> "C:/Program Files/Git/about"). Reject the mangled form
+        # loudly and accept the slash-less form as the documented shape.
+        if _looks_filesystem_mangled(args.route):
+            print(
+                f"[fail] route '{args.route}' looks like a shell-mangled filesystem path "
+                f"(Git Bash converts leading-slash arguments). Pass the route without the "
+                f"leading slash, e.g. --route about",
+                file=sys.stderr,
+            )
+            return 2
+        # "." is the root-route alias (a bare "/" gets mangled by Git Bash too)
+        args.route = "/" + args.route.lstrip("/.") if args.route not in (".", "/", "") else "/"
         try:
             out = record_evidence(
                 args.route,
@@ -410,8 +429,9 @@ def main(argv: list[str] | None = None) -> int:
         except FileNotFoundError as exc:
             print(f"[fail] {exc}", file=sys.stderr)
             return 2
+        # ASCII arrow: Windows consoles default to cp1252, which can't encode U+2192
         print(
-            f"[ok] recorded {args.result} evidence for {args.route} → {out.relative_to(repo_root)}"
+            f"[ok] recorded {args.result} evidence for {args.route} -> {out.relative_to(repo_root)}"
         )
         return 0
 

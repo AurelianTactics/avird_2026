@@ -304,6 +304,66 @@ class TestCli:
         )
         assert rc == 2
 
+    def test_record_cli_normalizes_slashless_route(self, repo, capsys):
+        shot = make_screenshot(repo, "/about")
+        rc = ve.main(
+            [
+                "--repo-root",
+                str(repo),
+                "record",
+                "--route",
+                "about",  # documented slash-less shape (Git Bash mangles "/about")
+                "--screenshot",
+                str(shot),
+                "--console-errors",
+                "0",
+                "--result",
+                "pass",
+            ]
+        )
+        assert rc == 0
+        assert ve.evidence_path("/about", repo).exists()
+
+    def test_record_cli_dot_is_root_route_alias(self, repo):
+        shot = make_screenshot(repo, "/")
+        rc = ve.main(
+            [
+                "--repo-root",
+                str(repo),
+                "record",
+                "--route",
+                ".",
+                "--screenshot",
+                str(shot),
+                "--console-errors",
+                "0",
+                "--result",
+                "pass",
+            ]
+        )
+        assert rc == 0
+        assert ve.evidence_path("/", repo).exists()
+
+    def test_record_cli_rejects_shell_mangled_route(self, repo, capsys):
+        shot = make_screenshot(repo, "/about")
+        rc = ve.main(
+            [
+                "--repo-root",
+                str(repo),
+                "record",
+                "--route",
+                "C:/Program Files/Git/about",  # MSYS path-conversion artifact
+                "--screenshot",
+                str(shot),
+                "--console-errors",
+                "0",
+                "--result",
+                "pass",
+            ]
+        )
+        assert rc == 2
+        assert "without the leading slash" in capsys.readouterr().err
+
     def test_pending_clear_cli(self, repo, capsys):
         ve.pending_add("apps/web/app/about/page.tsx", repo)
         assert ve.main(["--repo-root", str(repo), "pending-clear"]) == 0

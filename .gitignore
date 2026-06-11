@@ -3,6 +3,12 @@
 
 # Local verification state (pending debt, evidence JSON, screenshots)
 .verify/
+
+# Playwright MCP session artifacts (snapshots, console logs)
+.playwright-mcp/
+
+# Git Bash crash dumps
+*.stackdump
 private/*
 *.pyc
 __pycache__/

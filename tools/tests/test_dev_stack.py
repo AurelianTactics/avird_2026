@@ -47,6 +47,19 @@ class TestParseEnvFile:
         assert merged["NEW"] == "x"
 
 
+class TestApiPython:
+    def test_env_var_wins_when_it_exists(self, tmp_path, monkeypatch):
+        fake = tmp_path / "python.exe"
+        fake.write_text("")
+        monkeypatch.setenv("AVIRD_APP_PYTHON", str(fake))
+        assert ds.api_python() == str(fake)
+
+    def test_nonexistent_env_var_is_skipped(self, monkeypatch):
+        monkeypatch.setenv("AVIRD_APP_PYTHON", r"C:\does\not\exist\python.exe")
+        result = ds.api_python()
+        assert result != r"C:\does\not\exist\python.exe"
+
+
 # --- health polling -----------------------------------------------------------
 
 

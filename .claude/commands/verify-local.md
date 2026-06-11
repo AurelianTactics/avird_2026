@@ -48,6 +48,10 @@ bare `/verify-local` to verify whatever the gate currently wants.
 
 4. **Record honest evidence per route** with
    `python tools/verify_evidence.py record --route <route> --screenshot <path> --console-errors <n> --result pass|fail [--sample-url <url>]`.
+   - Pass the route **without the leading slash** (`--route about`,
+     `--route incidents/[reportId]`, and `--route .` for the root route) —
+     Git Bash silently rewrites leading-slash arguments into filesystem
+     paths, and `record` rejects the mangled form.
    - **Findings exist → record `fail` first**, then fix, re-run step 3, and
      only record `pass` once the punch list is actually clean. The fail
      record is part of the history, not an embarrassment.

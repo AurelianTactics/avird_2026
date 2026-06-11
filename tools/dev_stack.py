@@ -171,6 +171,24 @@ def save_pids(repo_root: Path, pids: dict[str, int]) -> None:
     p.write_text(json.dumps(pids, indent=2), encoding="utf-8")
 
 
+def api_python() -> str:
+    """Interpreter for the api spawn. dev_stack may itself be run by any
+    Python (the agent's `python` is often the system one), but uvicorn +
+    asyncpg live in the shared app venv documented in stack.md — prefer it
+    explicitly over sys.executable.
+
+    Precedence: AVIRD_APP_PYTHON env var > the documented shared-venv path >
+    sys.executable (last resort: whoever ran us)."""
+    candidates = [
+        os.environ.get("AVIRD_APP_PYTHON"),
+        str(Path.home() / "claude_code_repos/my-uv-envs/avird-2026-app/.venv/Scripts/python.exe"),
+    ]
+    for c in candidates:
+        if c and Path(c).exists():
+            return c
+    return sys.executable
+
+
 def default_spawn(cmd: list[str], cwd: Path, env: dict[str, str], log_path: Path) -> int:
     """Spawn a detached child whose output goes to a log file; return its PID."""
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -224,7 +242,7 @@ def cmd_up(
     if not api_ok:
         env = merge_env(dict(os.environ), api_env)
         pids["api"] = spawn(
-            [sys.executable, "-m", "uvicorn", "app.main:app", "--reload", "--port", str(API_PORT)],
+            [api_python(), "-m", "uvicorn", "app.main:app", "--reload", "--port", str(API_PORT)],
             repo_root / "apps" / "api",
             env,
             logs_dir / "api.log",
@@ -233,7 +251,9 @@ def cmd_up(
 
     if not web_ok:
         env = merge_env(dict(os.environ), web_env)
-        env.setdefault("API_URL", f"http://localhost:{API_PORT}")
+        # 127.0.0.1, not localhost: Node fetch tries ::1 first on Windows and
+        # uvicorn binds IPv4 only — localhost ECONNREFUSEDs server-side.
+        env.setdefault("API_URL", f"http://127.0.0.1:{API_PORT}")
         npm = "npm.cmd" if os.name == "nt" else "npm"
         pids["web"] = spawn(
             [npm, "run", "dev"],
