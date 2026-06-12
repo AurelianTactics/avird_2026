@@ -154,13 +154,23 @@ def sample_narratives(docs, n=DEFAULT_SAMPLE_SIZE, seed=0):
     rng = random.Random(seed)
     quotas = {}
     remaining = n
-    for i, entity in enumerate(entities):
+    for entity in entities:
         share = max(1, round(n * len(by_entity[entity]) / len(eligible)))
         quota = min(share, len(by_entity[entity]), remaining)
         quotas[entity] = quota
         remaining -= quota
         if remaining <= 0:
             break
+    # Rounding can undershoot the target; hand the leftover to entities
+    # with spare docs.
+    for entity in entities:
+        if remaining <= 0:
+            break
+        spare = len(by_entity[entity]) - quotas.get(entity, 0)
+        if spare > 0:
+            extra = min(spare, remaining)
+            quotas[entity] = quotas.get(entity, 0) + extra
+            remaining -= extra
     sampled = []
     for entity, quota in quotas.items():
         sampled.extend(rng.sample(by_entity[entity], quota))

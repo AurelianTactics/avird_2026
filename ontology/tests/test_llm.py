@@ -128,3 +128,32 @@ def test_cache_file_records_model_and_key(tmp_path, stub_llm_factory):
 def test_max_attempts_below_one_rejected(tmp_path):
     with pytest.raises(ValueError):
         CachedLLM(cache_dir=tmp_path, max_attempts=0)
+
+
+def test_connection_errors_are_transient(tmp_path, stub_llm_factory):
+    # anthropic.APIConnectionError-shaped failures carry no status_code and
+    # no 'timeout' in the class name; long batch runs must retry through.
+    from llm import is_transient
+
+    class APIConnectionError(Exception):
+        pass
+
+    assert is_transient(APIConnectionError('reset by peer'))
+    assert is_transient(ConnectionError('builtin'))
+    assert is_transient(TimeoutError())
+    assert not is_transient(ValueError('permanent'))
+
+    client = stub_llm_factory(responses=[Toy(value='ok')])
+    original_invoke = client.invoke
+    calls = {'n': 0}
+
+    def flaky_invoke(prompt, schema):
+        calls['n'] += 1
+        if calls['n'] == 1:
+            raise APIConnectionError('connection reset')
+        return original_invoke(prompt, schema)
+
+    client.invoke = flaky_invoke
+    llm = make_llm(tmp_path, client, max_attempts=3)
+    assert llm.call('p', Toy).value == 'ok'
+    assert llm.stats['retries'] == 1

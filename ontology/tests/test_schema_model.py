@@ -109,6 +109,18 @@ def test_invalid_provenance_rejected():
         NodeType(label='X', provenance='vibes')
 
 
+def test_label_charset_enforced_at_schema_load():
+    # Labels are interpolated into Cypher DDL; a hand-edited label with a
+    # space must fail at schema load, before extraction money is spent.
+    for bad in ('Traffic Control', '1stParty', 'has-part', 'back`tick'):
+        with pytest.raises(ValidationError, match='label'):
+            NodeType(label=bad, provenance='column')
+        with pytest.raises(ValidationError, match='label'):
+            RelationshipType(label=bad, provenance='narrative')
+    assert NodeType(label='TrafficControl', provenance='column').label
+    assert RelationshipType(label='HAS_PART', provenance='narrative').label
+
+
 def test_load_frozen_schema_rejects_drafts_path(tmp_path):
     drafts = tmp_path / 'schema' / 'drafts'
     drafts.mkdir(parents=True)

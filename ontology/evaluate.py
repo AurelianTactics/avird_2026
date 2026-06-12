@@ -165,14 +165,24 @@ def evaluate_extraction(golden_records, artifact_records):
             counts[mode]['entities'][1] += len(pred_ents) - tp
             counts[mode]['entities'][2] += len(gold_ents) - tp
 
-            # Relationship matching rides on the entity key mapping.
+            # Relationship matching rides on the entity key mapping for
+            # narrative-entity endpoints. Endpoints at column-entity keys
+            # (e.g. the subject vehicle in a golden COLLIDED_WITH) are not
+            # part of entity matching, so they map by identity — golden
+            # records reuse extraction's key scheme.
             key_map = {gold_ents[gi]['key']: pred_ents[pi]['key']
                        for gi, pi in ent_pairs}
+            narrative_gold_keys = {e['key'] for e in gold_ents_all}
+
+            def map_key(key):
+                if key in narrative_gold_keys:
+                    return key_map.get(key)   # unmatched narrative -> None
+                return key                    # column key: identity
 
             def rel_match(g, p):
                 return (g['type'] == p['type']
-                        and key_map.get(g['source_key']) == p['source_key']
-                        and key_map.get(g['target_key']) == p['target_key'])
+                        and map_key(g['source_key']) == p['source_key']
+                        and map_key(g['target_key']) == p['target_key'])
 
             rel_pairs = greedy_match(gold_rels, pred_rels, rel_match)
             rtp = len(rel_pairs)

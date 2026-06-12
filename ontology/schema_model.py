@@ -9,12 +9,13 @@ Frozen schemas live at ``ontology/schema/vNNN.yaml`` and are never edited in
 place; drafts live under ``ontology/schema/drafts/``. Extraction must load via
 ``load_frozen_schema``, which refuses draft paths.
 '''
+import re
 import sys
 from pathlib import Path
 from typing import Literal
 
 import yaml
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 _HERE = Path(__file__).resolve().parent
 if str(_HERE) not in sys.path:
@@ -22,6 +23,19 @@ if str(_HERE) not in sys.path:
 
 PROPERTY_TYPES = ('STRING', 'INTEGER', 'FLOAT', 'BOOLEAN', 'DATE', 'DATETIME')
 Provenance = Literal['column', 'narrative']
+
+# Labels are interpolated into Cypher (backtick-quoted) and into unquoted
+# constraint names; restricting the charset at schema load makes a bad label
+# fail BEFORE extraction money is spent, not at graph-load time.
+_LABEL_RE = re.compile(r'^[A-Za-z][A-Za-z0-9_]*$')
+
+
+def _check_label(value):
+    if not _LABEL_RE.match(value):
+        raise ValueError(
+            f'label {value!r} must match [A-Za-z][A-Za-z0-9_]* - it is '
+            f'interpolated into Cypher DDL (no spaces, hyphens, or backticks)')
+    return value
 
 
 class PropertySpec(BaseModel):
@@ -41,6 +55,8 @@ class NodeType(BaseModel):
     provenance: Provenance
     properties: list[PropertySpec] = Field(default_factory=list)
 
+    _label_charset = field_validator('label')(_check_label)
+
 
 class RelationshipType(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -49,6 +65,8 @@ class RelationshipType(BaseModel):
     description: str = ''
     provenance: Provenance
     properties: list[PropertySpec] = Field(default_factory=list)
+
+    _label_charset = field_validator('label')(_check_label)
 
 
 class OntologySchema(BaseModel):

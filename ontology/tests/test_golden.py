@@ -49,6 +49,20 @@ def test_sampler_covers_strata():
     assert entities == {'waymo', 'cruise'}
 
 
+def test_sampler_returns_exactly_n_despite_rounding():
+    # Three equal strata with target 10: per-stratum round() quotas sum to
+    # 9; the redistribution pass must top the sample back up to 10.
+    docs = []
+    for entity in ('waymo', 'cruise', 'zoox'):
+        for i in range(20):
+            d = make_doc(f'{entity}-{i:02d}', f'{entity} narrative {i}. ' * 3)
+            d.row['master_entity'] = entity
+            d.row['automation_system_type'] = 'ADS'
+            docs.append(d)
+    sampled, _ = stratified_sample(docs, n=10, seed=5, include_redacted=0)
+    assert len(sampled) == 10
+
+
 def test_sampler_is_deterministic():
     a, _ = stratified_sample(corpus_docs(), n=12, seed=7)
     b, _ = stratified_sample(corpus_docs(), n=12, seed=7)

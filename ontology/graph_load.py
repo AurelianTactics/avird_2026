@@ -109,7 +109,8 @@ def collect_instances(records):
             seen.add(ident)
             rel_rows.append({'type': rel['type'],
                              'source_key': rel['source_key'],
-                             'target_key': rel['target_key']})
+                             'target_key': rel['target_key'],
+                             'props': rel.get('properties') or {}})
     return ({label: list(rows.values()) for label, rows in nodes_by_label.items()},
             rel_rows, key_to_label)
 
@@ -160,7 +161,8 @@ def plan_relationship_loads(rel_rows, key_to_label,
             skipped.append(row)
             continue
         grouped.setdefault((row['type'], src_label, dst_label), []).append(
-            {'source_key': row['source_key'], 'target_key': row['target_key']})
+            {'source_key': row['source_key'], 'target_key': row['target_key'],
+             'props': row.get('props') or {}})
 
     statements = []
     for (rel_type, src_label, dst_label) in sorted(grouped):
@@ -171,7 +173,8 @@ def plan_relationship_loads(rel_rows, key_to_label,
                 f'UNWIND $rows AS row '
                 f'MATCH (a:`{src_label}` {{key: row.source_key}}) '
                 f'MATCH (b:`{dst_label}` {{key: row.target_key}}) '
-                f'MERGE (a)-[r:`{rel_type}`]->(b)',
+                f'MERGE (a)-[r:`{rel_type}`]->(b) '
+                f'SET r += row.props',
                 {'rows': batch},
             ))
     return statements, skipped
@@ -222,12 +225,28 @@ def _confirm_reset(yes):
 
 
 def _latest_artifact():
+    '''Latest *completed* artifact: one whose run summary exists.
+
+    extract.py appends incrementally and writes <run_id>.summary.json only
+    after the full run finishes, so a crashed run's partial artifact never
+    silently becomes the default load/eval input. Explicit --artifact still
+    loads anything.
+    '''
+    from run_records import DEFAULT_RUNS_DIR
     candidates = sorted(EXTRACTIONS_DIR.glob('*.jsonl'))
     if not candidates:
         raise FileNotFoundError(
             f'no extraction artifacts under {EXTRACTIONS_DIR}; run '
             f'extract.py first')
-    return candidates[-1]
+    completed = [p for p in candidates
+                 if (DEFAULT_RUNS_DIR / f'{p.stem}.summary.json').exists()]
+    if not completed:
+        raise FileNotFoundError(
+            f'{len(candidates)} artifact(s) under {EXTRACTIONS_DIR} but none '
+            f'has a run summary - they look like crashed partial runs. '
+            f'Re-run extract.py (cache makes it cheap) or pass --artifact '
+            f'explicitly to load a partial one.')
+    return completed[-1]
 
 
 def main(argv=None):
@@ -250,17 +269,20 @@ def main(argv=None):
         if args.counts_only:
             print(f'counts: {graph_counts(driver)}')
             return 0
-        if args.reset:
-            if not _confirm_reset(args.yes):
-                return 2
-            print('[graph_load] reset: deleting all nodes + relationships')
-            driver.execute_query(RESET_STATEMENT[0])
 
+        # Resolve and plan the artifact BEFORE any reset: a missing or
+        # corrupt artifact must abort while the graph is still intact.
         artifact = Path(args.artifact) if args.artifact else _latest_artifact()
         records = read_artifact(artifact)
         statements, skipped = plan_load(records, batch_size=args.batch_size)
         print(f'[graph_load] {artifact.name}: {len(records)} docs, '
               f'{len(statements)} statements')
+
+        if args.reset:
+            if not _confirm_reset(args.yes):
+                return 2
+            print('[graph_load] reset: deleting all nodes + relationships')
+            driver.execute_query(RESET_STATEMENT[0])
         if skipped:
             print(f'[graph_load] WARNING: {len(skipped)} relationships '
                   f'reference keys absent from the artifact; skipped')

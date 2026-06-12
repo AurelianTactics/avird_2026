@@ -38,7 +38,9 @@ def git_sha(repo_root=None):
         )
         if out.returncode == 0:
             return out.stdout.strip()
-    except OSError:
+    except (OSError, subprocess.SubprocessError):
+        # TimeoutExpired is a SubprocessError, not an OSError - a hung git
+        # must degrade to 'unknown', not abort the run.
         pass
     return 'unknown'
 

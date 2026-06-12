@@ -139,6 +139,34 @@ def test_artifact_missing_golden_doc_raises():
         evaluate_extraction(toy_golden(), [])
 
 
+def test_golden_relationship_anchored_at_column_key_can_match():
+    # Guidelines allow golden relationships at the subject vehicle's column
+    # key (e.g. COLLIDED_WITH); those endpoints map by identity, not via
+    # narrative-entity matching.
+    golden = [{
+        'doc_key': 'INC-2', 'split': 'dev', 'guidelines_version': 'v0.1',
+        'text_sha256': 'h',
+        'entities': [
+            ent('VIN9', 'Vehicle', 'subject vehicle', '', provenance='column'),
+            ent('INC-2:Pedestrian:1', 'Pedestrian', 'pedestrian',
+                'struck a pedestrian'),
+        ],
+        'relationships': [rel('STRUCK', 'VIN9', 'INC-2:Pedestrian:1')],
+    }]
+    artifact = [{
+        'doc_key': 'INC-2', 'status': 'ok', 'counters': {},
+        'entities': [
+            ent('VIN9', 'Vehicle', 'subject vehicle', '', provenance='column'),
+            ent('INC-2:Pedestrian:1', 'Pedestrian', 'pedestrian',
+                'struck a pedestrian'),
+        ],
+        'relationships': [rel('STRUCK', 'VIN9', 'INC-2:Pedestrian:1')],
+    }]
+    metrics = evaluate_extraction(golden, artifact)
+    assert metrics['relationships']['strict']['tp'] == 1
+    assert metrics['relationships']['strict']['fn'] == 0
+
+
 # ---------------------------------------------------------------------------
 # Consolidation (R16)
 # ---------------------------------------------------------------------------

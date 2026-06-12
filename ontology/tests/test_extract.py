@@ -14,7 +14,7 @@ from extract import (
     run_extraction,
     select_docs,
 )
-from llm import CachedLLM, LLMCallError
+from llm import CachedLLM
 from run_records import RunRecorder
 from test_prune import narrative_schema
 
@@ -104,6 +104,7 @@ def test_column_instances_for_redacted_doc_no_llm_call(
 
 def test_column_instances_structure():
     doc = make_doc('INC-1', TEXT_1)
+    doc.row['sv_precrash_speed_mph'] = 25.0
     entities, relationships, _ = column_instances(doc)
     by_type = {}
     for e in entities:
@@ -119,6 +120,23 @@ def test_column_instances_structure():
     assert {'INVOLVES', 'OPERATED_BY', 'REPORTED_BY', 'OCCURRED_AT',
             'HAD_CONDITION', 'COLLIDED_WITH'} == rel_types
     assert all(r.provenance == 'column' for r in relationships)
+    # Per-incident vehicle facts live on INVOLVES, never on the VIN-keyed
+    # node (the same physical vehicle appears in many incidents).
+    assert 'precrash_speed_mph' not in subject.properties
+    sv_involves = next(r for r in relationships
+                       if r.type == 'INVOLVES' and r.target_key == subject.key)
+    assert sv_involves.properties['precrash_speed_mph'] == '25.0'
+
+
+def test_column_instances_minimal_row():
+    # Absent branches: no company, no location, no weather, no partner.
+    doc = make_doc('INC-9', TEXT_2, row={})
+    entities, relationships, _ = column_instances(doc)
+    types = {e.type for e in entities}
+    assert types == {'Incident', 'Vehicle'}   # only the always-present pair
+    assert [r.type for r in relationships] == ['INVOLVES']
+    subject = next(e for e in entities if e.type == 'Vehicle')
+    assert subject.key == 'INC-9:SV'          # no VIN -> :SV key
 
 
 def test_cache_hit_skips_stub_client(tmp_path, stub_llm_factory):
@@ -133,8 +151,11 @@ def test_cache_hit_skips_stub_client(tmp_path, stub_llm_factory):
     assert len(read_artifact(artifact)) == 1
 
 
-def test_interrupt_keeps_completed_docs_in_artifact(tmp_path, stub_llm_factory):
-    # Doc 3's call fails permanently; docs 1-2 must already be on disk.
+def test_one_docs_permanent_failure_does_not_abort_run(
+        tmp_path, stub_llm_factory):
+    # Doc 3's call fails permanently; the run completes, docs 1-2 carry
+    # full extractions, and doc 3 is recorded as failed with its column
+    # entities intact (the plan's failed_docs requirement).
     client = stub_llm_factory(response_factory=extraction_factory)
     docs = [make_doc('INC-1', TEXT_1), make_doc('INC-2', TEXT_2),
             make_doc('INC-3', 'A cyclist passed by.')]
@@ -145,11 +166,16 @@ def test_interrupt_keeps_completed_docs_in_artifact(tmp_path, stub_llm_factory):
         return extraction_factory(prompt, schema)
 
     client.response_factory = failing_factory
-    with pytest.raises(LLMCallError):
-        run(tmp_path, docs, client)
-    artifact = tmp_path / 'extractions' / 'run.jsonl'
-    keys = {r['doc_key'] for r in read_artifact(artifact)}
-    assert keys == {'INC-1', 'INC-2'}
+    _, artifact, state = run(tmp_path, docs, client)
+    records = {r['doc_key']: r for r in read_artifact(artifact)}
+    assert set(records) == {'INC-1', 'INC-2', 'INC-3'}
+    failed = records['INC-3']
+    assert failed['status'] == 'failed'
+    assert 'HTTP 400' in failed['error']
+    assert failed['entities']  # column entities still present
+    assert all(e['provenance'] == 'column' for e in failed['entities'])
+    statuses = {r['doc_key']: r['status'] for r in state['results']}
+    assert statuses == {'INC-1': 'ok', 'INC-2': 'ok', 'INC-3': 'failed'}
 
 
 def _bad_request():
@@ -171,8 +197,12 @@ def test_dry_run_zero_calls_zero_writes(tmp_path, stub_llm_factory):
 
 
 def test_run_record_contains_required_fields(tmp_path, stub_llm_factory):
+    from run_records import file_sha256
+    from schema_model import dump_schema
+    schema_path = dump_schema(narrative_schema(), tmp_path / 'v001-test.yaml')
     recorder = RunRecorder(
-        'extract', runs_dir=tmp_path / 'runs', schema_version='v001-test',
+        'extract', runs_dir=tmp_path / 'runs', schema_path=schema_path,
+        schema_version='v001-test',
         prompt_version='p001', model_id='test-model',
         data_snapshot={'built_at': '2026-03-16'})
     client = stub_llm_factory(response_factory=extraction_factory)
@@ -183,9 +213,12 @@ def test_run_record_contains_required_fields(tmp_path, stub_llm_factory):
 
     summary = json.loads(summary_path.read_text(encoding='utf-8'))
     for field in ('run_id', 'stage', 'git_sha', 'schema_version',
-                  'prompt_version', 'model_id', 'data_snapshot',
-                  'docs_recorded', 'elapsed_seconds', 'llm_stats'):
+                  'schema_sha256', 'prompt_version', 'model_id',
+                  'data_snapshot', 'docs_recorded', 'elapsed_seconds',
+                  'llm_stats'):
         assert field in summary, field
+    # the tamper check pins the schema file's actual content hash (R13)
+    assert summary['schema_sha256'] == file_sha256(schema_path)
     doc_records = [json.loads(line) for line in
                    (tmp_path / 'runs').glob('*.docs.jsonl').__next__()
                    .read_text(encoding='utf-8').splitlines()]

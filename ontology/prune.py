@@ -88,6 +88,7 @@ class PrunedRelationship:
     quote: str = ''
     direction_corrected: bool = False
     as_emitted: dict | None = None  # {'source_key','target_key'} pre-correction
+    properties: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -209,7 +210,8 @@ def prune_extraction(schema, raw, text, incident_key, keyer=None):
                 src, dst = dst, src
                 counters['direction_corrected'] += 1
                 dropped.append(f'direction_corrected: {rel.type} '
-                               f'{as_emitted["source_key"]} <-> {dst.key}')
+                               f'{as_emitted["source_key"]} <-> '
+                               f'{as_emitted["target_key"]}')
             else:
                 drop('pattern_violation',
                      f'({src.type}, {rel.type}, {dst.type}) matches no pattern '

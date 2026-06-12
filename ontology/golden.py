@@ -93,6 +93,16 @@ def stratified_sample(docs, n=DEFAULT_N, seed=0,
                                  / len(eligible)))
             quotas[key] = min(share, len(strata[key]), remaining)
             remaining -= quotas[key]
+        # Rounding can leave the quotas summing below the target;
+        # redistribute the leftover to strata with spare capacity.
+        for key in keys:
+            if remaining <= 0:
+                break
+            spare = len(strata[key]) - quotas.get(key, 0)
+            if spare > 0:
+                extra = min(spare, remaining)
+                quotas[key] = quotas.get(key, 0) + extra
+                remaining -= extra
         for key, quota in quotas.items():
             sampled.extend(rng.sample(strata[key], quota))
 
@@ -284,6 +294,7 @@ def main(argv=None):
 
     if args.command == 'check':
         docs_by_key = {d.doc_key: d for d in corpus.docs}
+        any_stale = False
         for name in ('dev.jsonl', 'heldout.jsonl'):
             path = GOLDEN_DIR / name
             if not path.exists():
@@ -295,9 +306,8 @@ def main(argv=None):
             print(f'{name}: {counts}')
             for doc_key, reason in stale:
                 print(f'  STALE {doc_key}: {reason}', file=sys.stderr)
-            if stale:
-                return 1
-        return 0
+            any_stale = any_stale or bool(stale)
+        return 1 if any_stale else 0
     return 2  # pragma: no cover
 
 

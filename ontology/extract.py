@@ -40,7 +40,7 @@ if str(_HERE) not in sys.path:
 
 import operator  # noqa: E402
 
-from llm import CachedLLM  # noqa: E402
+from llm import CachedLLM, LLMCallError  # noqa: E402
 from prune import (  # noqa: E402
     EntityKeyer,
     PrunedEntity,
@@ -138,10 +138,18 @@ LOCATION_COLUMNS = {
     'roadway_description': 'Roadway Description',
     'posted_speed_limit_mph': 'Posted Speed Limit (MPH)',
 }
+# Vehicle-intrinsic facts: safe on the VIN-keyed node, which is shared
+# across every incident the same physical vehicle appears in.
 VEHICLE_COLUMNS = {
     'vin': 'VIN', 'make': 'Make Clean', 'model': 'Model Clean',
-    'model_year': 'Model Year', 'mileage': 'Mileage',
+    'model_year': 'Model Year',
     'automation_system_type': 'automation_system_type',
+}
+# Per-incident vehicle facts: must NOT live on the VIN-keyed node (one
+# incident's pre-crash speed would silently overwrite another's). They ride
+# on the INVOLVES relationship, which is unique per (incident, vehicle).
+VEHICLE_INCIDENT_COLUMNS = {
+    'mileage': 'Mileage',
     'automation_engaged': 'automation_engaged_clean',
     'precrash_speed_mph': 'sv_precrash_speed_mph',
     'precrash_movement': 'SV Pre-Crash Movement',
@@ -175,10 +183,10 @@ def column_instances(doc):
         return {prop: str(row[col]) for prop, col in mapping.items()
                 if row.get(col) not in (None, '')}
 
-    def add_rel(rel_type, source_key, target_key):
+    def add_rel(rel_type, source_key, target_key, props=None):
         relationships.append(PrunedRelationship(
             type=rel_type, source_key=source_key, target_key=target_key,
-            provenance='column'))
+            provenance='column', properties=props or {}))
 
     incident = PrunedEntity(
         key=ik, type='Incident', name=ik, provenance='column',
@@ -192,7 +200,8 @@ def column_instances(doc):
     entities.append(PrunedEntity(
         key=sv_key, type='Vehicle', name='subject vehicle',
         provenance='column', properties=sv_props))
-    add_rel('INVOLVES', ik, sv_key)
+    add_rel('INVOLVES', ik, sv_key,
+            props=props_from(VEHICLE_INCIDENT_COLUMNS))
 
     company_name = row.get('master_entity')
     if company_name:
@@ -285,15 +294,26 @@ def build_graph(schema, llm, writer, recorder=None):
         doc = state['doc']
         t0 = time.perf_counter()
         counters = {}
+        error = None
         entities, relationships, keyer = column_instances(doc)
         status = 'ok'
 
         if doc.skip_reason:
             status = doc.skip_reason
         else:
-            raw = llm.call(extraction_prompt(schema, doc.text),
-                           doc_extraction_model)
-            if raw is None:
+            # One doc's permanent LLM failure must not abort the whole
+            # fan-out run: record it as failed (column entities still flow
+            # through) and keep going.
+            try:
+                raw = llm.call(extraction_prompt(schema, doc.text),
+                               doc_extraction_model)
+            except LLMCallError as e:
+                status = 'failed'
+                error = str(e)
+                raw = None
+            if status == 'failed':
+                pass
+            elif raw is None:
                 status = 'dry_run_miss'
             else:
                 pruned = prune_extraction(schema, raw, doc.text, doc.doc_key,
@@ -310,6 +330,7 @@ def build_graph(schema, llm, writer, recorder=None):
             writer.append({
                 'doc_key': doc.doc_key,
                 'status': status,
+                'error': error,
                 'text_sha256': doc.text_sha256,
                 'text': doc.text,
                 'flags': doc.flags,
@@ -319,8 +340,8 @@ def build_graph(schema, llm, writer, recorder=None):
             })
             if recorder is not None:
                 recorder.record_doc(
-                    doc.doc_key, status=status, counters=counters,
-                    n_entities=len(entities),
+                    doc.doc_key, status=status, error=error,
+                    counters=counters, n_entities=len(entities),
                     n_relationships=len(relationships),
                     latency_seconds=latency)
         return {'results': [{'doc_key': doc.doc_key, 'status': status,
@@ -414,6 +435,9 @@ def main(argv=None):
                            max_concurrency=args.max_concurrency)
     totals, statuses = aggregate_counters(state['results'])
     print(f'statuses: {statuses}')
+    if statuses.get('failed'):
+        print(f'WARNING: {statuses["failed"]} doc(s) failed extraction '
+              f'permanently - see run records', file=sys.stderr)
     print(f'drop/correction counters: {totals}')
     print(f'llm stats: {llm.stats}')
     if args.dry_run:

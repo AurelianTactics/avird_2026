@@ -96,7 +96,8 @@ def test_relationship_loads_match_both_endpoints_with_labels():
     for query, params in rel_loads:
         assert 'MATCH (a:' in query and 'MATCH (b:' in query
         assert 'MERGE (a)-[r:' in query
-        assert all(set(r) == {'source_key', 'target_key'}
+        assert 'SET r += row.props' in query
+        assert all(set(r) == {'source_key', 'target_key', 'props'}
                    for r in params['rows'])
     by_type = {q.split('MERGE (a)-[r:`')[1].split('`')[0] for q, _ in rel_loads}
     assert by_type == {'INVOLVES', 'OPERATED_BY', 'REPORTED_BY'}
@@ -170,6 +171,35 @@ def test_get_driver_requires_env(monkeypatch):
         monkeypatch.delenv(var, raising=False)
     with pytest.raises(RuntimeError, match='NEO4J_URI'):
         graph_load.get_driver()
+
+
+def test_relationship_properties_flow_into_set_clause():
+    records = fixture_records()
+    records[0]['relationships'][0]['properties'] = {
+        'precrash_speed_mph': '25.0'}
+    statements, _ = plan_load(records)
+    involves = next(p for q, p in statements if 'INVOLVES' in q)
+    assert involves['rows'][0]['props'] == {'precrash_speed_mph': '25.0'}
+
+
+def test_latest_artifact_ignores_runs_without_summary(tmp_path, monkeypatch):
+    import run_records
+    extractions = tmp_path / 'extractions'
+    runs = tmp_path / 'runs'
+    extractions.mkdir()
+    runs.mkdir()
+    monkeypatch.setattr(graph_load, 'EXTRACTIONS_DIR', extractions)
+    monkeypatch.setattr(run_records, 'DEFAULT_RUNS_DIR', runs)
+
+    (extractions / 'run-001.jsonl').write_text('{}\n', encoding='utf-8')
+    (extractions / 'run-002.jsonl').write_text('{}\n', encoding='utf-8')
+    # only run-001 completed (has a summary); run-002 is a crashed partial
+    (runs / 'run-001.summary.json').write_text('{}', encoding='utf-8')
+    assert graph_load._latest_artifact().name == 'run-001.jsonl'
+
+    (runs / 'run-001.summary.json').unlink()
+    with pytest.raises(FileNotFoundError, match='partial'):
+        graph_load._latest_artifact()
 
 
 def test_read_artifact_round_trip(tmp_path):

@@ -19,10 +19,11 @@ network until a real call is made.
 '''
 import hashlib
 import json
-import os
 import re
 import sys
+import threading
 import time
+import uuid
 from pathlib import Path
 
 _HERE = Path(__file__).resolve().parent
@@ -50,13 +51,20 @@ def _model_slug(model_id):
 
 
 def is_transient(exc):
-    '''Duck-typed transient check: status_code attr or timeout-ish class.'''
+    '''Duck-typed transient check: status_code, timeout-ish, or connection-ish.
+
+    Connection-level failures (anthropic.APIConnectionError, httpx
+    ConnectError, builtin ConnectionError) carry no status_code and no
+    "timeout" in their class name, but are exactly the blips a long batch
+    run must retry through.
+    '''
     status = getattr(exc, 'status_code', None)
     if status in TRANSIENT_STATUS:
         return True
-    if isinstance(exc, TimeoutError):
+    if isinstance(exc, (TimeoutError, ConnectionError)):
         return True
-    return 'timeout' in type(exc).__name__.lower()
+    name = type(exc).__name__.lower()
+    return 'timeout' in name or 'connect' in name
 
 
 class AnthropicStructuredClient:
@@ -106,8 +114,14 @@ class CachedLLM:
         self.dry_run = dry_run
         self._client = _client
         self._sleep = _sleep
+        # extract.py shares one CachedLLM across Send fan-out threads
+        self._lock = threading.Lock()
         self.stats = {'cache_hits': 0, 'llm_calls': 0, 'retries': 0,
                       'dry_run_misses': 0}
+
+    def _bump(self, stat):
+        with self._lock:
+            self.stats[stat] += 1
 
     def _cache_path(self, key):
         return self.cache_dir / _model_slug(self.model_id) / f'{key}.json'
@@ -117,12 +131,12 @@ class CachedLLM:
         key = cache_key(prompt, self.model_id)
         path = self._cache_path(key)
         if path.exists():
-            self.stats['cache_hits'] += 1
+            self._bump('cache_hits')
             payload = json.loads(path.read_text(encoding='utf-8'))
             return schema.model_validate(payload['result'])
 
         if self.dry_run:
-            self.stats['dry_run_misses'] += 1
+            self._bump('dry_run_misses')
             return None
 
         result = self._invoke_with_retry(prompt, schema)
@@ -134,7 +148,7 @@ class CachedLLM:
         for attempt in range(1, self.max_attempts + 1):
             try:
                 result = self._coerce(client.invoke(prompt, schema), schema)
-                self.stats['llm_calls'] += 1
+                self._bump('llm_calls')
                 return result
             except Exception as e:
                 if isinstance(e, LLMCallError):
@@ -144,7 +158,7 @@ class CachedLLM:
                         f'LLM call failed after {attempt} attempt(s) '
                         f'({type(e).__name__}: {e})'
                     ) from e
-                self.stats['retries'] += 1
+                self._bump('retries')
                 self._sleep(self.backoff_base ** (attempt - 1))
         raise AssertionError('unreachable')  # pragma: no cover
 
@@ -167,11 +181,14 @@ class CachedLLM:
             'schema': type(result).__name__,
             'result': result.model_dump(mode='json'),
         }
-        tmp = path.with_suffix(f'.tmp{os.getpid()}')
+        # uuid suffix: fan-out threads share a PID, and two docs with
+        # byte-identical text race on the same cache key's tmp file.
+        tmp = path.with_suffix(f'.tmp-{uuid.uuid4().hex}')
         tmp.write_text(json.dumps(payload, indent=1), encoding='utf-8')
         tmp.replace(path)
 
     def _ensure_client(self):
-        if self._client is None:
-            self._client = AnthropicStructuredClient(self.model_id)
-        return self._client
+        with self._lock:
+            if self._client is None:
+                self._client = AnthropicStructuredClient(self.model_id)
+            return self._client

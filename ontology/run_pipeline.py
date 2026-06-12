@@ -116,6 +116,10 @@ def run(argv=None):
             return rc
         ran.append('extract')
 
+    if args.dry_run and (stages['load'] or stages['eval']):
+        print('[run_pipeline] --dry-run: skipping load/eval stages '
+              '(they spend no LLM tokens; run them without --dry-run)')
+
     if stages['load'] and not args.dry_run:
         import graph_load
         print('=== stage: load ===')
