@@ -20,7 +20,9 @@ import pytest
 
 ONTOLOGY_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = ONTOLOGY_DIR.parent
-for _p in (ONTOLOGY_DIR, REPO_ROOT / 'db', REPO_ROOT / 'eda'):
+# Insert ontology/ LAST so it lands FIRST on sys.path — db/ also has a
+# run_pipeline.py and must not shadow ontology modules.
+for _p in (REPO_ROOT / 'eda', REPO_ROOT / 'db', ONTOLOGY_DIR):
     if str(_p) not in sys.path:
         sys.path.insert(0, str(_p))
 
