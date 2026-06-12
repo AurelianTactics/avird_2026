@@ -44,10 +44,16 @@ def normalize_for_quote(s):
     return _WS_RE.sub(' ', s).strip()
 
 
-def verify_quote(quote, text, threshold=QUOTE_MISMATCH_THRESHOLD):
-    '''Classify a supporting quote: ``ok`` | ``quote_mismatch`` | ``hallucination``.'''
+def verify_quote(quote, text, threshold=QUOTE_MISMATCH_THRESHOLD,
+                 _normalized_text=None):
+    '''Classify a supporting quote: ``ok`` | ``quote_mismatch`` | ``hallucination``.
+
+    ``_normalized_text`` lets a caller verifying many quotes against the same
+    document normalize it once instead of per quote.
+    '''
     nq = normalize_for_quote(quote or '')
-    nt = normalize_for_quote(text or '')
+    nt = (_normalized_text if _normalized_text is not None
+          else normalize_for_quote(text or ''))
     if not nq:
         return 'hallucination'
     if nq in nt:
@@ -143,6 +149,7 @@ def prune_extraction(schema, raw, text, incident_key, keyer=None):
     rel_labels = {r.label for r in schema.relationship_types}
     patterns = set(schema.patterns)
     keyer = keyer or EntityKeyer(incident_key)
+    normalized_text = normalize_for_quote(text or '')
 
     def drop(counter, detail):
         counters[counter] += 1
@@ -153,7 +160,8 @@ def prune_extraction(schema, raw, text, incident_key, keyer=None):
         if ent.type not in node_labels:
             drop('unknown_entity_label', f'entity {ent.type}/{ent.name}')
             continue
-        verdict = verify_quote(ent.supporting_quote, text)
+        verdict = verify_quote(ent.supporting_quote, text,
+                               _normalized_text=normalized_text)
         if verdict != 'ok':
             drop(verdict, f'entity {ent.type}/{ent.name} '
                           f'quote={ent.supporting_quote!r}')
@@ -179,7 +187,8 @@ def prune_extraction(schema, raw, text, incident_key, keyer=None):
         if rel.type not in rel_labels:
             drop('unknown_relationship_label', f'relationship {rel.type}')
             continue
-        verdict = verify_quote(rel.supporting_quote, text)
+        verdict = verify_quote(rel.supporting_quote, text,
+                               _normalized_text=normalized_text)
         if verdict != 'ok':
             drop(verdict, f'relationship {rel.type} '
                           f'quote={rel.supporting_quote!r}')

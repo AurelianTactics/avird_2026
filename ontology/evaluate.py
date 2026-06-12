@@ -34,6 +34,7 @@ if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
 from prune import normalize_name  # noqa: E402
+from run_records import load_jsonl  # noqa: E402
 
 GOLDEN_DIR = _HERE / 'golden'
 RESULTS_DIR = _HERE / 'results'
@@ -44,11 +45,6 @@ FUZZY_THRESHOLD = 0.5
 # ---------------------------------------------------------------------------
 # Loading
 # ---------------------------------------------------------------------------
-def load_jsonl(path):
-    return [json.loads(line) for line in
-            Path(path).read_text(encoding='utf-8').splitlines() if line.strip()]
-
-
 def golden_split_path(split, allow_heldout=False, golden_dir=GOLDEN_DIR):
     '''The held-out split is refused without the explicit flag (AE4).'''
     if split == 'heldout' and not allow_heldout:
@@ -190,7 +186,8 @@ def evaluate_extraction(golden_records, artifact_records):
             1 for gi, pi in det_pairs
             if gold_ents[gi]['type'] == pred_ents[pi]['type'])
 
-    total_gold_ents = sum(counts['strict']['entities'][0:3:2])  # tp + fn
+    ent_tp, _, ent_fn = counts['strict']['entities']
+    total_gold_ents = ent_tp + ent_fn
     halluc = counters_total.get('hallucination', 0)
     mismatch = counters_total.get('quote_mismatch', 0)
     attempted = (sum(len(narrative_only(preds_by_key[g['doc_key']]['entities']))

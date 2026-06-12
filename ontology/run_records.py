@@ -13,6 +13,7 @@ import hashlib
 import json
 import subprocess
 import sys
+import threading
 import time
 import uuid
 from pathlib import Path
@@ -46,6 +47,14 @@ def file_sha256(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def load_jsonl(path):
+    '''Parse a JSONL file, skipping blank lines. The shared reader for
+    artifacts, golden files, and merge-group files.'''
+    return [json.loads(line) for line in
+            Path(path).read_text(encoding='utf-8').splitlines()
+            if line.strip()]
+
+
 class RunRecorder:
     '''Incremental per-doc JSONL records + a run-level summary.'''
 
@@ -71,13 +80,17 @@ class RunRecorder:
             **(extra or {}),
         }
         self._doc_count = 0
+        # extract.py calls record_doc from concurrent fan-out threads
+        self._lock = threading.Lock()
 
     def record_doc(self, doc_key, **fields):
         record = {'run_id': self.run_id, 'doc_key': doc_key,
                   'ts': time.time(), **fields}
-        with self.docs_path.open('a', encoding='utf-8', newline='\n') as f:
-            f.write(json.dumps(record, default=str) + '\n')
-        self._doc_count += 1
+        line = json.dumps(record, default=str) + '\n'
+        with self._lock:
+            with self.docs_path.open('a', encoding='utf-8', newline='\n') as f:
+                f.write(line)
+            self._doc_count += 1
 
     def write_summary(self, **fields):
         summary = {

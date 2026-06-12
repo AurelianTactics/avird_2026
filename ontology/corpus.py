@@ -94,13 +94,6 @@ class Corpus:
     skip_counts: dict
 
 
-def _safe_col(df, col):
-    '''Column as Series, or an all-NaN Series when absent (schema drift).'''
-    if col in df.columns:
-        return df[col]
-    return pd.Series([None] * len(df), index=df.index, dtype=object)
-
-
 def _cell(value):
     '''NaN-tolerant cell read: stripped string or None.'''
     if value is None or (isinstance(value, float) and pd.isna(value)):
@@ -174,8 +167,9 @@ def corpus_from_frame(df, limit=None, doc_keys=None):
 
     keyed = {}
     for _, r in df.iterrows():
-        same_id = _cell(_safe_col(df, SAME_INCIDENT_COL).loc[r.name])
-        report_id = _cell(_safe_col(df, REPORT_ID_COL).loc[r.name])
+        # r.get is None-safe for absent columns (schema drift)
+        same_id = _cell(r.get(SAME_INCIDENT_COL))
+        report_id = _cell(r.get(REPORT_ID_COL))
         key = same_id or report_id
         if key is None:
             bump(SKIP_NO_KEY)

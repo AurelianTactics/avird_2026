@@ -264,14 +264,6 @@ class ArtifactWriter:
                 f.write(line + '\n')
 
 
-def _entity_record(e):
-    return asdict(e)
-
-
-def _relationship_record(r):
-    return asdict(r)
-
-
 # ---------------------------------------------------------------------------
 # Graph
 # ---------------------------------------------------------------------------
@@ -321,8 +313,8 @@ def build_graph(schema, llm, writer, recorder=None):
                 'text_sha256': doc.text_sha256,
                 'text': doc.text,
                 'flags': doc.flags,
-                'entities': [_entity_record(e) for e in entities],
-                'relationships': [_relationship_record(r) for r in relationships],
+                'entities': [asdict(e) for e in entities],
+                'relationships': [asdict(r) for r in relationships],
                 'counters': counters,
             })
             if recorder is not None:
@@ -361,13 +353,12 @@ def aggregate_counters(results):
 
 
 def golden_doc_keys(golden_dir=GOLDEN_DIR):
+    from run_records import load_jsonl
     keys = []
     for name in ('dev.jsonl', 'heldout.jsonl'):
         path = Path(golden_dir) / name
         if path.exists():
-            for line in path.read_text(encoding='utf-8').splitlines():
-                if line.strip():
-                    keys.append(json.loads(line)['doc_key'])
+            keys.extend(record['doc_key'] for record in load_jsonl(path))
     return keys
 
 

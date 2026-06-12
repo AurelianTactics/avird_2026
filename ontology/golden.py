@@ -199,9 +199,8 @@ def check_staleness(records, docs_by_key):
 
 
 def load_golden(path, schema=None):
-    records = [json.loads(line) for line in
-               Path(path).read_text(encoding='utf-8').splitlines()
-               if line.strip()]
+    from run_records import load_jsonl
+    records = load_jsonl(path)
     if schema is not None:
         for record in records:
             validate_golden_record(record, schema)

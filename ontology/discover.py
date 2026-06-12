@@ -167,6 +167,11 @@ def sample_narratives(docs, n=DEFAULT_SAMPLE_SIZE, seed=0):
     return sorted(sampled, key=lambda d: d.doc_key)
 
 
+def _new_concept_info():
+    return {'names': defaultdict(int), 'doc_keys': set(), 'descriptions': [],
+            'examples': [], 'endpoints': defaultdict(int)}
+
+
 def aggregate_concepts(per_doc):
     '''Merge per-doc candidates into {kind: {norm_key: info}} with counts.'''
     agg = {'node': {}, 'relationship': {}}
@@ -175,10 +180,7 @@ def aggregate_concepts(per_doc):
         key = _norm_key(name)
         if not key:
             return
-        info = agg[kind].setdefault(key, {
-            'names': defaultdict(int), 'doc_keys': set(), 'descriptions': [],
-            'examples': [], 'endpoints': defaultdict(int),
-        })
+        info = agg[kind].setdefault(key, _new_concept_info())
         info['names'][name.strip()] += 1
         info['doc_keys'].add(doc_key)
         if description:
@@ -226,11 +228,7 @@ def apply_merge_groups(agg, proposal):
         for key in sorted(agg[kind]):
             target_key = mapping[kind].get(key, key)
             info = agg[kind][key]
-            out = merged[kind].setdefault(target_key, {
-                'names': defaultdict(int), 'doc_keys': set(),
-                'descriptions': [], 'examples': [],
-                'endpoints': defaultdict(int),
-            })
+            out = merged[kind].setdefault(target_key, _new_concept_info())
             for name, count in info['names'].items():
                 out['names'][name] += count
             out['doc_keys'] |= info['doc_keys']

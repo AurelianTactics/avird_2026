@@ -23,7 +23,6 @@ Statement *planning* is pure (returns Cypher + params); tests assert on the
 plans with a stubbed driver and never need a live AuraDB.
 '''
 import argparse
-import json
 import os
 import sys
 from pathlib import Path
@@ -77,11 +76,8 @@ def preflight(driver):
 # Artifact reading
 # ---------------------------------------------------------------------------
 def read_artifact(path):
-    records = []
-    for line in Path(path).read_text(encoding='utf-8').splitlines():
-        if line.strip():
-            records.append(json.loads(line))
-    return records
+    from run_records import load_jsonl
+    return load_jsonl(path)
 
 
 def collect_instances(records):
