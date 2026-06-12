@@ -1,7 +1,7 @@
 ---
 title: "feat: End-to-end ontology pipeline over NHTSA SGO crash data"
 type: feat
-status: active
+status: completed
 date: 2026-06-11
 ---
 
