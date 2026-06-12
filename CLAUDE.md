@@ -10,6 +10,7 @@ NHTSA AV crash data portfolio site. A self-directed learning project: re-exercis
 
 - `apps/web/` — Next.js frontend (public origin)
 - `apps/api/` — FastAPI service (Railway-internal-only)
+- `ontology/` — property-graph ontology pipeline over SGO narratives (LangGraph + Neo4j)
 - `tools/` — repo-wide scripts (e.g. `verify_site.py`)
 - `.claude/` — slash commands and hooks
 - `docs/` — prose, plans, conventions, writeups, learnings
@@ -22,6 +23,7 @@ NHTSA AV crash data portfolio site. A self-directed learning project: re-exercis
 - Institutional learnings → [docs/solutions/](docs/solutions/)
 - Active plan → [docs/plans/2026-04-28-001-feat-phase-0-scaffold-plan.md](docs/plans/2026-04-28-001-feat-phase-0-scaffold-plan.md)
 - Origin brainstorm → [docs/brainstorms/nhtsa-crash-portfolio-requirements.md](docs/brainstorms/nhtsa-crash-portfolio-requirements.md)
+- Ontology pipeline (env, run order, sharp edges) → [ontology/CLAUDE.md](ontology/CLAUDE.md)
 - Service-local guidance: [apps/web/CLAUDE.md](apps/web/CLAUDE.md), [apps/api/CLAUDE.md](apps/api/CLAUDE.md)
 
 ## Conventions
