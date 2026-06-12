@@ -2,11 +2,9 @@
 import pandas as pd
 import pytest
 
-import corpus
 from corpus import (
     SKIP_EMPTY,
     SKIP_REDACTED,
-    Corpus,
     corpus_from_frame,
     preprocess_narrative,
 )

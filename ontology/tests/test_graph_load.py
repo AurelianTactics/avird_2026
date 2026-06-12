@@ -8,7 +8,6 @@ from graph_load import (
     apply_statements,
     collect_instances,
     graph_counts,
-    plan_constraints,
     plan_load,
     preflight,
 )

@@ -101,8 +101,8 @@ def test_draft_provenance_tags(tmp_path, stub_llm_factory):
 def test_merge_groups_emitted_in_scoreable_shape(tmp_path, stub_llm_factory):
     client = stub_llm_factory(response_factory=concept_factory)
     _, state = run(tmp_path, client)
-    lines = [json.loads(l) for l in
-             open(state['merge_groups_path'], encoding='utf-8')]
+    with open(state['merge_groups_path'], encoding='utf-8') as f:
+        lines = [json.loads(line) for line in f]
     assert lines  # one MergeGroup per line, the shape the consolidation eval scores
     group = MergeGroup.model_validate(lines[0])
     assert group.kind == 'node'

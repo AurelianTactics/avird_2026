@@ -45,7 +45,6 @@ from prune import (  # noqa: E402
     EntityKeyer,
     PrunedEntity,
     PrunedRelationship,
-    normalize_name,
     prune_extraction,
 )
 from run_records import RunRecorder, new_run_id  # noqa: E402
