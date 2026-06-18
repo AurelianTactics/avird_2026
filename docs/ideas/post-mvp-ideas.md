@@ -34,12 +34,14 @@ On the incident pages let's link to the same incidents but other reports. Move t
 
 ## Rough working 6/10/26
 * verification loop work
-    * verify the outputs
+    * DONE verify the outputs
         * DONE verify the webpages
-    * review the commits
-    * review the skills
-    * can it actuall run the loop and hooks without my approval?
+    * DONE review the commits
+    * DONE review the skills, hooks tools
+    * DONE can it actuall run the loop and hooks without my approval?
+* Ask
     * did the website really use the claude tool for frontend design?
+    * explain the interplay between the implemented hooks, tools, and skills
 * deploy phase 1 and 2 to prd
 * fix the about page wording
 * check where ruff linter hook is

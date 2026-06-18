@@ -22,10 +22,11 @@ from app.main import app
 
 
 class FakeData:
-    def __init__(self, *, items=None, total=0, detail=None):
+    def __init__(self, *, items=None, total=0, detail=None, others=None):
         self.items = items if items is not None else []
         self.total = total
         self.detail = detail
+        self.others = others if others is not None else []
         self.calls: dict[str, object] = {}
 
     async def fetch_incidents(self, *, limit, offset, order_column, direction):
@@ -44,6 +45,13 @@ class FakeData:
     async def fetch_incident(self, report_id):
         self.calls["fetch_incident"] = report_id
         return self.detail
+
+    async def fetch_other_reports(self, same_incident_id, report_id):
+        self.calls["fetch_other_reports"] = {
+            "same_incident_id": same_incident_id,
+            "report_id": report_id,
+        }
+        return self.others
 
 
 def _use(fake: FakeData):
@@ -77,7 +85,9 @@ def test_list_default_orders_by_incident_date_desc_page_one():
         assert body["page_size"] == 50
         assert body["total"] == 123
         call = fake.calls["fetch_incidents"]
-        assert call["order_column"] == '"Incident Date"'
+        # Typed DATE column — not the raw '"Incident Date"' text, which sorts
+        # 'SEP-2025' above 'MAR-2026' alphabetically.
+        assert call["order_column"] == "incident_date"
         assert call["direction"] == "DESC"
         assert call["offset"] == 0
         assert call["limit"] == 50
@@ -118,7 +128,7 @@ def test_list_out_of_set_sort_falls_back_to_default():
         call = fake.calls["fetch_incidents"]
         # Falls back to the default column + direction — the malicious string
         # never reaches ORDER BY.
-        assert call["order_column"] == '"Incident Date"'
+        assert call["order_column"] == "incident_date"
         assert call["direction"] == "DESC"
     finally:
         _clear()
@@ -193,6 +203,36 @@ def test_detail_returns_full_one_pager_with_collapsed_contact_areas():
         assert body["cp_contact_areas"] == ["Front"]
         assert body["sv_contact_areas"] == ["Left"]
         assert fake.calls["fetch_incident"] == "RPT-9"
+    finally:
+        _clear()
+
+
+def test_detail_with_same_incident_id_lists_other_reports():
+    row = dict(DETAIL_ROW, **{"Same Incident ID": "abc123"})
+    others = [{"Report ID": "RPT-10", "Reporting Entity": "Waymo LLC"}]
+    fake = FakeData(detail=row, others=others)
+    _use(fake)
+    try:
+        with TestClient(app) as client:
+            resp = client.get("/incidents/RPT-9")
+        body = resp.json()
+        assert body["other_reports"] == [{"report_id": "RPT-10", "reporting_entity": "Waymo LLC"}]
+        assert fake.calls["fetch_other_reports"] == {
+            "same_incident_id": "abc123",
+            "report_id": "RPT-9",
+        }
+    finally:
+        _clear()
+
+
+def test_detail_without_same_incident_id_skips_lookup_and_returns_empty():
+    fake = FakeData(detail=dict(DETAIL_ROW, **{"Same Incident ID": "  "}))
+    _use(fake)
+    try:
+        with TestClient(app) as client:
+            resp = client.get("/incidents/RPT-9")
+        assert resp.json()["other_reports"] == []
+        assert "fetch_other_reports" not in fake.calls
     finally:
         _clear()
 
@@ -273,12 +313,23 @@ async def test_list_query_has_no_canonical_clause_and_offsets(monkeypatch):
     conn = _FakeConn(fetch=[])
     _patch_pool(monkeypatch, conn)
     await IncidentData().fetch_incidents(
-        limit=50, offset=50, order_column='"Incident Date"', direction="DESC"
+        limit=50, offset=50, order_column="incident_date", direction="DESC"
     )
     query, args = conn.queries[0]
     assert data_module.CANONICAL_CLAUSE not in query
     assert "is_latest_of_multiple_report" not in query
+    assert "NULLS LAST" in query
     assert args == (50, 50)
+
+
+async def test_other_reports_query_parameterizes_and_excludes_self(monkeypatch):
+    conn = _FakeConn(fetch=[])
+    _patch_pool(monkeypatch, conn)
+    await IncidentData().fetch_other_reports("sid-1", "RPT-9")
+    query, args = conn.queries[0]
+    assert args == ("sid-1", "RPT-9")
+    assert '"Same Incident ID" = $1' in query
+    assert '"Report ID" <> $2' in query
 
 
 async def test_count_query_is_unfiltered(monkeypatch):

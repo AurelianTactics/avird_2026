@@ -35,7 +35,7 @@ from bs4 import BeautifulSoup
 # intro, not table contents) so the gate is robust to an empty result set.
 EXPECTED_TEXT: dict[str, list[str]] = {
     "/": ["Raw NHTSA SGO crash reports"],
-    "/about": ["About this project"],
+    "/about": ["autonomous-vehicle crash data"],
     "/groupings": ["Canonical (deduplicated) crash counts"],
 }
 

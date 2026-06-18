@@ -52,6 +52,8 @@ export type IncidentDetail = {
   cp_contact_areas: string[];
   sv_contact_areas: string[];
   narrative: string | null;
+  // Other reports of the same incident (shared raw "Same Incident ID").
+  other_reports: { report_id: string; reporting_entity: string | null }[];
 };
 
 export type EntitySeverityGroupings = {

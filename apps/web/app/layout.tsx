@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react';
-import './globals.css';
-import Nav from './components/Nav';
+import type { ReactNode } from "react";
+import "./globals.css";
+import Nav from "./components/Nav";
 
 export const metadata = {
-  title: 'AVIRD',
-  description: 'NHTSA AV crash data website',
+  title: "AVIRD",
+  description: "NHTSA AV crash data website",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -13,6 +13,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <Nav />
         {children}
+        <footer className="site-footer">
+          © 2026 · MIT License · Data: NHTSA Standing General
+          Order crash reports
+        </footer>
       </body>
     </html>
   );

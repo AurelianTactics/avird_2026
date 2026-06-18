@@ -60,6 +60,13 @@ def _shape_list_row(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _shape_other_report(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "report_id": row.get("Report ID"),
+        "reporting_entity": row.get("Reporting Entity"),
+    }
+
+
 def _shape_detail(row: dict[str, Any]) -> dict[str, Any]:
     return {
         "report_id": row.get("Report ID"),
@@ -123,4 +130,14 @@ async def get_incident(
     row = await data.fetch_incident(report_id)
     if row is None:
         raise HTTPException(status_code=404, detail="incident not found")
-    return _shape_detail(row)
+
+    # Other reports of the same incident, linked via the raw
+    # "Same Incident ID" column (blank for ~0.5% of rows -> no lookup).
+    same_incident_id = str(row.get("Same Incident ID") or "").strip()
+    others: list[dict[str, Any]] = []
+    if same_incident_id:
+        others = await data.fetch_other_reports(same_incident_id, report_id)
+
+    detail = _shape_detail(row)
+    detail["other_reports"] = [_shape_other_report(o) for o in others]
+    return detail

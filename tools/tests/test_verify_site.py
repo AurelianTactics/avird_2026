@@ -47,7 +47,9 @@ DETAIL_PAGE = """<!DOCTYPE html>
 ABOUT_PAGE = """<!DOCTYPE html>
 <html><body>
 <main>
-  <h1>About this project</h1>
+  <h1>About</h1>
+  <p>This website uses the autonomous-vehicle crash data provided by the
+    NHTSA's Standing General Order on Crash Reporting.</p>
   <p>Source code:
     <a href="https://github.com/AurelianTactics/avird_2026">repo</a>
   </p>
@@ -184,8 +186,13 @@ def test_external_links_not_fetched(healthy_routes):
 
 
 def test_about_heading_check(healthy_routes):
-    healthy_routes["/about"] = (200, ABOUT_PAGE.replace("About this project", "Untitled"))
+    healthy_routes["/about"] = (
+        200,
+        ABOUT_PAGE.replace("autonomous-vehicle crash data", "something else"),
+    )
     with _client(healthy_routes) as client:
         results = verify("http://test", client=client)
     failed = [r for r in results if not r.ok]
-    assert any("'About this project'" in r.name and r.detail == "missing" for r in failed)
+    assert any(
+        "'autonomous-vehicle crash data'" in r.name and r.detail == "missing" for r in failed
+    )

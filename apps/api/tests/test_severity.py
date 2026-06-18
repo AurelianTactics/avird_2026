@@ -17,10 +17,17 @@ from app.severity import BUCKET_ORDER, normalize
         ("Fatality", "Fatality"),
         ("Serious", "Serious"),
         ("Moderate", "Moderate"),
+        ("Moderate W/ Hospitalization", "Moderate"),
+        ("Moderate W/O Hospitalization", "Moderate"),
         ("Minor", "Minor"),
+        ("Minor W/ Hospitalization", "Minor"),
+        ("Minor W/O Hospitalization", "Minor"),
         ("No Apparent Injury", "No Injuries"),
         ("No Injuries Reported", "No Injuries"),
+        ("No Injured Reported", "No Injuries"),
         ("Property Damage", "Property"),
+        # The dominant raw property-damage spelling in the SGO CSVs.
+        ("Property Damage. No Injured Reported", "Property"),
         ("Unknown", "Unknown"),
     ],
 )

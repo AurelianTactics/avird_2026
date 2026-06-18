@@ -36,6 +36,7 @@ const DETAIL: IncidentDetail = {
   cp_contact_areas: ["Front"],
   sv_contact_areas: ["Left"],
   narrative: "The SV was struck while stopped at the light.",
+  other_reports: [{ report_id: "RPT-10", reporting_entity: "Waymo LLC" }],
 };
 
 function params(reportId = "RPT-9") {
@@ -87,6 +88,59 @@ describe("IncidentDetailPage", () => {
     );
     expect(container.querySelector(".narrative")?.textContent).toContain(
       "struck while stopped",
+    );
+  });
+
+  it("renders the narrative before the field groups", async () => {
+    mockFetch(
+      () =>
+        ({
+          ok: true,
+          status: 200,
+          json: async () => DETAIL,
+        }) as unknown as Response,
+    );
+    const { container } = render(
+      await IncidentDetailPage({ params: params() }),
+    );
+    const headings = Array.from(container.querySelectorAll("h2")).map(
+      (h) => h.textContent,
+    );
+    expect(headings[0]).toBe("Narrative");
+  });
+
+  it("links other reports of the same incident", async () => {
+    mockFetch(
+      () =>
+        ({
+          ok: true,
+          status: 200,
+          json: async () => DETAIL,
+        }) as unknown as Response,
+    );
+    const { container } = render(
+      await IncidentDetailPage({ params: params() }),
+    );
+    expect(
+      container.querySelector('a[href="/incidents/RPT-10"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain("Other reports of this incident");
+  });
+
+  it("omits the other-reports section when there are none", async () => {
+    mockFetch(
+      () =>
+        ({
+          ok: true,
+          status: 200,
+          json: async () => ({ ...DETAIL, other_reports: [] }),
+        }) as unknown as Response,
+    );
+    const { container } = render(
+      await IncidentDetailPage({ params: params() }),
+    );
+    expect(container.textContent).not.toContain(
+      "Other reports of this incident",
     );
   });
 

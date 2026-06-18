@@ -70,8 +70,7 @@ export default async function IncidentsPage({
       <h1>Incidents</h1>
       <p className="muted">
         Raw NHTSA SGO crash reports — every reported row, newest first. Sort by
-        clicking a column header. Dates are raw report text, so
-        &ldquo;recent-first&rdquo; is approximate.
+        clicking a column header. Click a report ID for the full report.
       </p>
 
       {!result.ok ? (
@@ -85,6 +84,7 @@ export default async function IncidentsPage({
           <table className="data-table">
             <thead>
               <tr>
+                <th>Report ID</th>
                 {COLUMNS.map((c) => (
                   <th key={c.key} aria-sort={ariaSort(c.key, current)}>
                     <Link className="sort-link" href={sortHref(c.key, current)}>
@@ -102,14 +102,15 @@ export default async function IncidentsPage({
                 // report_id alone is not unique — the raw list shows every
                 // reported row, and resubmissions share a report_id.
                 <tr key={`${row.report_id}-${i}`}>
-                  <td>{row.reporting_entity ?? "—"}</td>
                   <td>
                     <Link
                       href={`/incidents/${encodeURIComponent(row.report_id)}`}
                     >
-                      {row.incident_date ?? row.report_id}
+                      {row.report_id}
                     </Link>
                   </td>
+                  <td>{row.reporting_entity ?? "—"}</td>
+                  <td>{row.incident_date ?? "—"}</td>
                   <td>{row.severity ?? "—"}</td>
                   <td>{row.city ?? "—"}</td>
                   <td>{row.state ?? "—"}</td>

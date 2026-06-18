@@ -94,6 +94,27 @@ export default async function IncidentDetailPage({
       </h1>
       <p className="muted">Report {val(d.report_id)} — raw reported fields.</p>
 
+      <section>
+        <h2>Narrative</h2>
+        <div className="narrative">{val(d.narrative)}</div>
+      </section>
+
+      {d.other_reports.length > 0 && (
+        <section>
+          <h2>Other reports of this incident</h2>
+          <ul>
+            {d.other_reports.map((r) => (
+              <li key={r.report_id}>
+                <Link href={`/incidents/${encodeURIComponent(r.report_id)}`}>
+                  {r.report_id}
+                </Link>
+                {r.reporting_entity ? ` — ${r.reporting_entity}` : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {fieldGroups(d).map((group) => (
         <section key={group.title}>
           <h2>{group.title}</h2>
@@ -107,11 +128,6 @@ export default async function IncidentDetailPage({
           </dl>
         </section>
       ))}
-
-      <section>
-        <h2>Narrative</h2>
-        <div className="narrative">{val(d.narrative)}</div>
-      </section>
     </main>
   );
 }

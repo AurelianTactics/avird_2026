@@ -59,12 +59,12 @@ describe("IncidentsPage", () => {
     expect(container.textContent).not.toContain("No Injuries");
   });
 
-  it("links each row to its detail page", async () => {
+  it("links each row's report ID to its detail page", async () => {
     mockFetch(() => listResponse(SAMPLE));
     const { container } = render(await IncidentsPage({ searchParams: sp() }));
-    expect(
-      container.querySelector('a[href="/incidents/RPT-1"]'),
-    ).not.toBeNull();
+    const link = container.querySelector('a[href="/incidents/RPT-1"]');
+    expect(link).not.toBeNull();
+    expect(link?.textContent).toBe("RPT-1");
   });
 
   it("default view requests sort=date&dir=desc&page=1", async () => {
