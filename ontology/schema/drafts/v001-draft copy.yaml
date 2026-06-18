@@ -199,6 +199,11 @@ node_types:
     in 11 narratives; e.g. "a test driver was operating the Waymo AV in manual mode")
   provenance: narrative
   properties: []
+- label: Parkingspot
+  description: The state and location of a vehicle when parked (discovered in 8 narratives; e.g. "parked
+    at the curb facing west")
+  provenance: narrative
+  properties: []
 - label: Passenger
   description: A person traveling in a vehicle (discovered in 25 narratives; e.g. "a passenger in the
     Waymo AV opened the rear left door")
@@ -330,6 +335,11 @@ relationship_types:
     "operator disengaged the automated driving system 7.5 seconds prior")
   provenance: narrative
   properties: []
+- label: ENGAGED
+  description: A vehicle has an autonomous system activated (discovered in 74 narratives; e.g. "Level
+    4 ADS was engaged in autonomous mode")
+  provenance: narrative
+  properties: []
 - label: EQUIPPED_WITH
   description: A vehicle is equipped with an autonomous driving system (discovered in 23 narratives; e.g.
     "Waymo AVs Level 4 ADS was engaged")
@@ -343,6 +353,11 @@ relationship_types:
 - label: EXITED
   description: A person exited or departed from a vehicle (discovered in 9 narratives; e.g. "passenger
     exited the vehicle")
+  provenance: narrative
+  properties: []
+- label: HAS_COMPONENT
+  description: A vehicle has a specific component (discovered in 12 narratives; e.g. "front left fender
+    of the stopped Waymo AV")
   provenance: narrative
   properties: []
 - label: HAS_STATE
@@ -388,6 +403,11 @@ relationship_types:
 - label: OCCUPIES
   description: A person occupies a position in a vehicle (discovered in 23 narratives; e.g. "a test driver
     was present (in the driver's seating position)")
+  provenance: narrative
+  properties: []
+- label: OPERATED_IN_MODE
+  description: A vehicle was operating in a particular driving mode (discovered in 20 narratives; e.g.
+    "Waymo AV...was in autonomous mode")
   provenance: narrative
   properties: []
 - label: OPERATES_IN
@@ -450,9 +470,20 @@ relationship_types:
     e.g. "passenger of the Waymo AV alleged a minor injury")
   provenance: narrative
   properties: []
+- label: TRANSITIONED_TO
+  description: The vehicle changed operational modes during the incident (discovered in 9 narratives;
+    e.g. "transitioned into manual mode")
+  provenance: narrative
+  properties: []
 - label: TRAVELING_IN
   description: Indicates the direction a vehicle was traveling (discovered in 38 narratives; e.g. "traveling
     southeastbound")
+  provenance: narrative
+  properties: []
+- label: TRIGGERED_BY
+  description: The incident triggered a specific reporting requirement (discovered in 9 narratives; e.g.
+    "Waymo is reporting this crash under Request No. 1 of Standing General Order 2021-01 because a vehicle
+    involved was towed away")
   provenance: narrative
   properties: []
 - label: WAS_OPERATING_IN_MODE
@@ -491,6 +522,12 @@ patterns:
 - - Trafficcontrol
   - ACTIVATED
   - Incident
+- - Vehicle
+  - ACTIVATED
+  - Trafficsignal
+- - Vehicle
+  - ACTIVATED
+  - Vehiclecomponent
 - - Pedestrian
   - APPROACHED
   - Crosswalk
@@ -504,6 +541,12 @@ patterns:
   - APPROACHED
   - Vehicle
 - - Vehicle
+  - APPROACHED
+  - Vehiclerole
+- - Vehicle
+  - ATTEMPTED_MANEUVER
+  - Maneuvertype
+- - Vehicle
   - ATTEMPTED_MANEUVER
   - Pedestrian
 - - Vehicle
@@ -512,6 +555,9 @@ patterns:
 - - Incident
   - CAUSED
   - Damage
+- - Roadfeature
+  - CAUSED
+  - Vehiclecomponent
 - - Vehicle
   - CAUSED
   - Collisiontype
@@ -542,6 +588,12 @@ patterns:
 - - Vehicle
   - CONTACTED
   - Vehicle
+- - Vehicle
+  - CONTACTED
+  - Vehiclecomponent
+- - Vehiclecomponent
+  - CONTACTED
+  - Vehiclecomponent
 - - Incident
   - CONTROLLED_BY
   - Trafficcontrol
@@ -551,6 +603,12 @@ patterns:
 - - Vehicle
   - CONTROLLED_BY
   - Automateddrivingsystem
+- - Vehicle
+  - CONTROLLED_BY
+  - Automationsystem
+- - Vehicle
+  - CONTROLLED_BY
+  - Autonomoussystem
 - - Vehicle
   - CONTROLLED_BY
   - Trafficcontrol
@@ -571,16 +629,64 @@ patterns:
   - Trafficcontrol
 - - Operator
   - DISENGAGED
+  - Operationalmode
+- - Operator
+  - DISENGAGED
   - Vehicle
+- - Vehicle
+  - DISENGAGED
+  - Autonomoussystem
+- - Automationlevel
+  - ENGAGED
+  - Incident
+- - Automationlevel
+  - ENGAGED
+  - Vehicle
+- - Autonomoussystem
+  - ENGAGED
+  - Autonomoussystem
+- - Autonomoussystem
+  - ENGAGED
+  - Incident
+- - Autonomoussystem
+  - ENGAGED
+  - Vehiclestate
+- - Vehicle
+  - ENGAGED
+  - Automationlevel
+- - Vehicle
+  - ENGAGED
+  - Automationmode
+- - Vehicle
+  - ENGAGED
+  - Automationsystem
+- - Vehicle
+  - ENGAGED
+  - Autonomoussystem
 - - Vehicle
   - EQUIPPED_WITH
   - Automateddrivingsystem
 - - Vehicle
   - EQUIPPED_WITH
+  - Automationlevel
+- - Vehicle
+  - EQUIPPED_WITH
+  - Automationsystem
+- - Vehicle
+  - EQUIPPED_WITH
+  - Autonomoussystem
+- - Vehicle
+  - EQUIPPED_WITH
   - Safetyfeature
+- - Vehicle
+  - EQUIPPED_WITH
+  - Vehiclecomponent
 - - Vehicle
   - EXECUTED_MANEUVER
   - Maneuver
+- - Vehicle
+  - EXECUTED_MANEUVER
+  - Maneuvertype
 - - Passenger
   - EXITED
   - Vehicle
@@ -594,14 +700,26 @@ patterns:
   - EXITED
   - Roadfeature
 - - Vehicle
+  - HAS_COMPONENT
+  - Vehiclecomponent
+- - Vehicle
   - HAS_STATE
   - Vehiclestate
 - - Incident
   - IMPACTED_AT
   - Impactlocation
+- - Incident
+  - IMPACTED_AT
+  - Vehiclecomponent
 - - Vehicle
   - IMPACTED_AT
   - Vehicle
+- - Vehicle
+  - IMPACTED_AT
+  - Vehiclecomponent
+- - Vehicle
+  - IN_LANE
+  - Automationmode
 - - Vehicle
   - IN_LANE
   - Lane
@@ -611,6 +729,9 @@ patterns:
 - - Vehicle
   - INITIATED_MANEUVER
   - Incident
+- - Vehicle
+  - INITIATED_MANEUVER
+  - Maneuvertype
 - - Passenger
   - INVOLVED_IN
   - Incident
@@ -649,10 +770,19 @@ patterns:
   - Vehicle
 - - Vehicle
   - MADE_CONTACT_WITH
+  - Vehiclecomponent
+- - Vehicle
+  - MADE_CONTACT_WITH
   - Vehiclecontact
+- - Vehiclecomponent
+  - MADE_CONTACT_WITH
+  - Vehiclecomponent
 - - Vehicle
   - OBEY
   - Trafficcontrol
+- - Vehicle
+  - OBEY
+  - Trafficsignal
 - - Vehicle
   - OCCUPIED_BY
   - Lane
@@ -695,9 +825,18 @@ patterns:
 - - Incident
   - OCCURRED_AT
   - Trafficcontrol
+- - Incident
+  - OCCURRED_AT
+  - Trafficsignal
+- - Automationsystem
+  - OPERATED_BY
+  - Vehicle
 - - Vehicle
   - OPERATED_BY
   - Automateddrivingsystem
+- - Vehicle
+  - OPERATED_BY
+  - Autonomoussystem
 - - Vehicle
   - OPERATED_BY
   - Operator
@@ -707,6 +846,21 @@ patterns:
 - - Vehicle
   - OPERATED_BY
   - Testdriver
+- - Autonomoussystem
+  - OPERATED_IN_MODE
+  - Operationalmode
+- - Vehicle
+  - OPERATED_IN_MODE
+  - Automationlevel
+- - Vehicle
+  - OPERATED_IN_MODE
+  - Autonomoussystem
+- - Autonomoussystem
+  - OPERATES_IN
+  - Autonomoussystem
+- - Autonomoussystem
+  - OPERATES_IN
+  - Vehicle
 - - Company
   - OPERATES_IN
   - Vehicle
@@ -718,7 +872,28 @@ patterns:
   - Vehicle
 - - Vehicle
   - OPERATES_IN
+  - Automationlevel
+- - Vehicle
+  - OPERATES_IN
+  - Automationmode
+- - Vehicle
+  - OPERATES_IN
+  - Automationsystem
+- - Vehicle
+  - OPERATES_IN
+  - Autonomoussystem
+- - Vehicle
+  - OPERATES_IN
   - Vehiclestate
+- - Vehicle
+  - OPERATING_IN_MODE
+  - Automationlevel
+- - Vehicle
+  - OPERATING_IN_MODE
+  - Automationmode
+- - Vehicle
+  - OPERATING_IN_MODE
+  - Autonomoussystem
 - - Vehicle
   - OPERATING_IN_MODE
   - Location
@@ -726,8 +901,14 @@ patterns:
   - PERFORMED_MANEUVER
   - Maneuver
 - - Vehicle
+  - PERFORMED_MANEUVER
+  - Maneuvertype
+- - Vehicle
   - PERFORMS_MANEUVER
   - Maneuver
+- - Vehicle
+  - PERFORMS_MANEUVER
+  - Maneuvertype
 - - Vehicle
   - POSITIONED_AT
   - Direction
@@ -762,29 +943,56 @@ patterns:
   - RESPONDED_TO
   - Trafficcontrol
 - - Vehicle
+  - RESPONDED_TO
+  - Trafficsignal
+- - Vehicle
   - STOPPED_AT
   - Trafficcontrol
 - - Vehicle
+  - STOPPED_AT
+  - Trafficsignal
+- - Vehicle
   - STRUCK
   - Vehicle
+- - Vehicle
+  - STRUCK
+  - Vehiclecomponent
+- - Vehiclecomponent
+  - STRUCK
+  - Roadfeature
 - - Company
   - SUBJECT_TO
   - Regulatoryrequirement
+- - Company
+  - SUBJECT_TO
+  - Reportingrequirement
 - - Incident
   - SUBJECT_TO
   - Regulatoryreport
 - - Incident
   - SUBJECT_TO
   - Regulatoryrequirement
+- - Incident
+  - SUBJECT_TO
+  - Reportingrequirement
 - - Vehicle
   - SUBJECT_TO
   - Trafficcontrol
+- - Pedestrian
+  - SUSTAINED_DAMAGE
+  - Injury
 - - Pedestrian
   - SUSTAINED_DAMAGE
   - Injuryseverity
 - - Vehicle
   - SUSTAINED_DAMAGE
   - Damage
+- - Vehicle
+  - SUSTAINED_DAMAGE
+  - Damageassessment
+- - Vehicle
+  - SUSTAINED_DAMAGE
+  - Damagetype
 - - Vehicle
   - SUSTAINED_DAMAGE
   - Impactlocation
@@ -794,6 +1002,15 @@ patterns:
 - - Vehicle
   - SUSTAINED_DAMAGE
   - Vehicle
+- - Vehicle
+  - SUSTAINED_DAMAGE
+  - Vehiclecomponent
+- - Vehicle
+  - SUSTAINED_DAMAGE
+  - Vehicledamage
+- - Passenger
+  - SUSTAINED_INJURY
+  - Injury
 - - Passenger
   - SUSTAINED_INJURY
   - Injuryseverity
@@ -803,6 +1020,9 @@ patterns:
 - - Vehicle
   - SUSTAINED_INJURY
   - Damage
+- - Vehicle
+  - TRANSITIONED_TO
+  - Automationmode
 - - Vehicle
   - TRAVELING_IN
   - Direction
@@ -815,6 +1035,27 @@ patterns:
 - - Vehicle
   - TRAVELING_IN
   - Vehicle
+- - Incident
+  - TRIGGERED_BY
+  - Reportingrequirement
+- - Reportingrequirement
+  - TRIGGERED_BY
+  - Incident
+- - Automationmode
+  - WAS_OPERATING_IN_MODE
+  - Incident
+- - Vehicle
+  - WAS_OPERATING_IN_MODE
+  - Automationlevel
+- - Vehicle
+  - WAS_OPERATING_IN_MODE
+  - Automationsystem
+- - Vehicle
+  - WAS_OPERATING_IN_MODE
+  - Autonomoussystem
+- - Vehicle
+  - WAS_OPERATING_IN_MODE
+  - Operationalmode
 - - Vehicle
   - WAS_OPERATING_IN_MODE
   - Vehiclestate

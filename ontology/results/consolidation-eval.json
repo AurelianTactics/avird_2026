@@ -1,0 +1,19 @@
+{
+  "inputs": {
+    "golden": "consolidation.jsonl",
+    "proposed": "v001-draft-merge-groups.jsonl"
+  },
+  "metrics": {
+    "golden_groups": 73,
+    "pairwise": {
+      "f1": 0.9145,
+      "fn": 298,
+      "fp": 67,
+      "precision": 0.9668,
+      "recall": 0.8676,
+      "tp": 1953
+    },
+    "proposed_groups": 83
+  },
+  "name": "consolidation-eval"
+}
