@@ -87,3 +87,17 @@ Unsorted, rough backlog items for potential future implementation
 * comparison between the two data sets by grup yb /d escribe
 * on hover can get the data items into the data dictionary
 * db init set up and repo structure is too broad. If doing another DB then make it more clear
+* sankey diagram
+    * ideally with total miles driven
+* ontology
+    * have the AI draft more rather than a hard HITL
+        * schema, questions, golden data set
+        * skill the trim the relationshipo;s and the edges (though an LLM can really butcher this so make this an argument)
+    * have a LLM befor the first HITL on the merges rather than a straight deterministic merge
+        * optional. this can go poorly as well
+        * Allow --min-support from the pipeline
+    * more logging / open telemetry on this. is a light wait runrecrod that might be sufficient
+    * set the llm
+* search box
+* Agent native:
+    * user asks a question and page generates the query and design for it

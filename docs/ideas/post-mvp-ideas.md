@@ -8,16 +8,20 @@ The incident date is not sorted correctly. Showing Sept 2025 instead of March202
 The group by query is wrong. There are no property damage incidents despite there being some in the data. Look at the value counts for the raw data and make sure you are capturing the correct values under "Highest Injury Severity Alleged".
 Let's add the report ID to the main landing table and have that be the link to the incidents.
 On the incident pages let's link to the same incidents but other reports. Move the narrative to the top as well
-* add a license MIT License
-* this really the claude front end
-* incident date not sorted correctly, have some sort of id
-* really no property damage incidents
-* backlog: search box,
+* DONE add a license MIT License
+* DONE this really the claude front end
+* DONE incident date not sorted correctly, have some sort of id
+* DONE really no property damage incidents
+
 
 
 
 # Post MVP Ideas
 - replan on what you want to accomplish here and re-prioritize
+    * thinking W5 here
+        * see if can do a text box so can filter the data down in certain ways. shows query. probably preferable to the
+    * then W6
+    * then maybe a break
 - review old brainstorm, backlog, and other ideas
 
 ## More Website ideas
@@ -28,22 +32,22 @@ On the incident pages let's link to the same incidents but other reports. Move t
 
 ## other ideas
 - MCP
-- more eda / ontology
+- DONE more eda / ontology
     - maybe that ontology package
 - get more data
 
 ## Rough working 6/10/26
-* verification loop work
+* DONE verification loop work
     * DONE verify the outputs
         * DONE verify the webpages
     * DONE review the commits
     * DONE review the skills, hooks tools
     * DONE can it actuall run the loop and hooks without my approval?
-* Ask
+* DONE Ask
     * did the website really use the claude tool for frontend design?
     * explain the interplay between the implemented hooks, tools, and skills
-* deploy phase 1 and 2 to prd
-* fix the about page wording
+* DONE deploy phase 1 and 2 to prd
+* DONE fix the about page wording
 * check where ruff linter hook is
 * the other website MVP brainstorm ideas up to W6
 * likely then RAG / talk with data plan next
