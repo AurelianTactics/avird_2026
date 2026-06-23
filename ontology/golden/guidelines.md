@@ -1,8 +1,8 @@
 # Golden annotation guidelines
 
-**Version: v0.1** (pre-labeling draft — bump the version on any ruling change
-and record the change in the log below). Every golden record carries the
-`guidelines_version` it was annotated under.
+**Version: v0.2** (first hand-correction pass complete — bump the version on any
+ruling change and record the change in the log below). Every golden record
+carries the `guidelines_version` it was annotated under.
 
 ## Scope
 
@@ -57,9 +57,37 @@ and record the change in the log below). Every golden record carries the
 ## Ambiguous-case rulings
 
 > Record every judgment call made while correcting, so future re-annotation
-> is consistent. (To be filled during the labeling pass.)
+> is consistent.
 
-- *(none yet)*
+- **Column-scaffold concepts are not re-annotated from the narrative.** The
+  `Incident`, `Company`, `Location`, and `EnvironmentalCondition` nodes (and
+  their `INVOLVES` / `OPERATED_BY`→Company / `REPORTED_BY` / `OCCURRED_AT`→Location
+  / `HAD_CONDITION` edges) come from the structured columns. Narrative copies of
+  them were dropped, including narrative-only conditions (e.g. "exhaust fumes",
+  "heavy pedestrian traffic", "vegetation occlusion") and mis-typed timestamps
+  ("8:43 PM PT") the pre-labeler had filed under `EnvironmentalCondition`.
+- **Subject vehicle uses its column VIN key.** The reporting company's AV is
+  column-seeded; its narrative facts (`TRAVELING_IN`, `CONTROLLED_BY`,
+  `COLLIDED_WITH`, …) are attached to the VIN key, not to a narrative `:Vn`
+  partner key. `evaluate.py` identity-maps column keys, so this is required for
+  relationship scoring. Crash-partner vehicles keep `:Vn` keys (incl. a *second*
+  AV when one appears — e.g. doc `3f40494138fe83f`).
+- **Cyclists / e-scooter riders are `UNMAPPED`.** The schema has no node for a
+  cyclist or e-scooterist (a `Pedestrian` is on foot), so these vulnerable road
+  users get `type: UNMAPPED` with `candidate_type` `Cyclist` / `EScooterRider`
+  and, per the UNMAPPED rule, carry no relationships. This feeds the
+  schema-coverage metric and flags a v002 gap. On-foot pedestrians stay
+  `Pedestrian`. The pre-labeler's duplicate `Vehicle` "Cyclist Vehicle" /
+  "e-scooter" nodes were removed.
+- **Absence and disposition are not entities.** "No injuries", "passenger not
+  belted", "not transported from the scene" are not `Injuryseverity`
+  annotations; "towed away" is a post-incident disposition, not a
+  `Vehiclestate`; damage is annotated only when the narrative states damage was
+  sustained (so doc `01fe1096ad10e2c`'s low-speed curb touch carries no
+  `Damage`). "Cross-traffic" is not a `Trafficcontrol`.
+- **Self-referential and unsupported edges dropped**, e.g.
+  `ATTEMPTED_MANEUVER (subject → subject)` and a `STOPPED_AT` linking a trailing
+  vehicle to a stoplight it never stopped at.
 
 ## Intra-annotator agreement
 
@@ -70,3 +98,6 @@ and record the change in the log below). Every golden record carries the
 ## Change log
 
 - v0.1 (2026-06-12): initial draft written before labeling.
+- v0.2 (2026-06-18): first hand-correction pass over `dev.jsonl` (10 docs) and
+  `heldout.jsonl` (35 docs). Added the ambiguous-case rulings above; corrected
+  all 45 records accordingly. `golden.py check` passes.
