@@ -11,11 +11,15 @@ import logging
 
 from fastapi import Depends, FastAPI
 
+from . import groupings, incidents
 from .db import check_db
 
 logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(title="avird-2026 api", version="0.0.0")
+
+app.include_router(incidents.router)
+app.include_router(groupings.router)
 
 
 @app.get("/health")

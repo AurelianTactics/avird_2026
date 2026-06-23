@@ -66,6 +66,30 @@ Repo Python version: `3.14` (pinned via `.python-version` at the repo root, pick
 
 The ontology track runs in its own sidecar env, `~/claude_code_repos/my-uv-envs/avird-2026-ontology/` (**Python 3.12**, pinned LangGraph / langchain-anthropic / neo4j deps) — see [ontology/CLAUDE.md](../../ontology/CLAUDE.md).
 
+## Local database (seeded, native Postgres — no Docker)
+
+Local verification runs against a real `avird_dev` database on the **native Windows PostgreSQL 17** instance (`localhost:5432`; a PG 18 service also runs on `:5433` — don't target it by accident; `local_db_setup.py` prints the server version it connected to). Prod is PG 16; the API's SQL surface is version-insensitive, and `/verify-site` against prod remains the fidelity net.
+
+One-time setup:
+
+1. Copy `.env.example` → `.env` at the repo root and put the real local postgres password in `DATABASE_URL`. Mirror the same value into `apps/api/.env` (copy from `apps/api/.env.example`). Both files are gitignored.
+2. `python tools/local_db_setup.py` — creates the `avird_dev` database if absent (idempotent; re-run reports "exists").
+3. `python db/run_pipeline.py --manifest-out .verify/manifest` — seeds it with the committed NHTSA CSVs (~5 MB), building the same `treated_incident_reports` prod gets. Idempotent (sha256 ingest guard); re-run any time to re-seed. The `--manifest-out` keeps local batch IDs/timestamps from rewriting the committed manifests under `docs/avird-sgo-database-data-dictionary/` (those track the prod pipeline run).
+
+The db pipeline's deps (`sqlalchemy`, `psycopg`, `pandas`, `numpy`, `python-dotenv`, `matplotlib`) live in the shared app venv's `requirements.txt` so the seed runs from the same env as everything else.
+
+## Local stack (api + web)
+
+`tools/dev_stack.py` orchestrates both services against the seeded local DB with the prod env contract (`DATABASE_URL` from `apps/api/.env`, `API_URL` defaulting to `http://localhost:8000`):
+
+```
+python tools/dev_stack.py up        # spawn api (:8000) + web (:3000), poll until healthy
+python tools/dev_stack.py status    # one [ok]/[fail] line per service; api line shows db state
+python tools/dev_stack.py down      # taskkill the recorded process trees, clear pidfile
+```
+
+`up` is idempotent — already-healthy services are reported, never double-spawned. PIDs land in `.verify/pids.json`, service logs in `.verify/logs/` (both gitignored). The api spawns via `python -m uvicorn` (console scripts are unreliable on PATH — see the Railway-gotchas learning). The `status` line separates "api down" from "api up, db down" so a data-layer blocker is never mistaken for a dead service. Note `next dev` skips prod-build failure classes (prerender errors); Railway's build + `/verify-site` cover those.
+
 ## Ports
 
 | Service | Local dev | Railway |
