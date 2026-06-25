@@ -99,5 +99,6 @@ Unsorted, rough backlog items for potential future implementation
     * more logging / open telemetry on this. is a light wait runrecrod that might be sufficient
     * set the llm
 * search box
+    * find findings, current pages, data dictionaries etc
 * Agent native:
     * user asks a question and page generates the query and design for it
