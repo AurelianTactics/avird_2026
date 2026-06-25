@@ -10,6 +10,7 @@ NHTSA AV crash data site. A self-directed learning project: re-exercise data eng
 
 - `apps/web/` — Next.js frontend (public origin)
 - `apps/api/` — FastAPI service (Railway-internal-only)
+- `ontology/` — property-graph ontology pipeline over SGO narratives (LangGraph + Neo4j)
 - `tools/` — repo-wide scripts (e.g. `verify_site.py`)
 - `.claude/` — slash commands and hooks
 - `docs/` — prose, plans, conventions, writeups, learnings
@@ -23,6 +24,7 @@ NHTSA AV crash data site. A self-directed learning project: re-exercise data eng
 - Active plan → [docs/plans/2026-06-09-001-feat-local-verification-pipeline-plan.md](docs/plans/2026-06-09-001-feat-local-verification-pipeline-plan.md)
 - Local verification loop (seeded stack, `/verify-local`, Stop gate) → [docs/conventions/workflow.md](docs/conventions/workflow.md)
 - Origin brainstorm → [docs/brainstorms/nhtsa-crash-project-requirements.md](docs/brainstorms/nhtsa-crash-project-requirements.md)
+- Ontology pipeline (env, run order, sharp edges) → [ontology/CLAUDE.md](ontology/CLAUDE.md)
 - Service-local guidance: [apps/web/CLAUDE.md](apps/web/CLAUDE.md), [apps/api/CLAUDE.md](apps/api/CLAUDE.md)
 
 ## Conventions

@@ -23,6 +23,11 @@ If Railway's internal hostname doesn't resolve for some reason, the temporary fa
 | `DATABASE_URL` | Railway (Postgres reference variable) | `api` | Never committed. `.env.example` placeholder only. Sanitized in logs on failure. |
 | `API_URL`      | Railway (reference variable to `api` service's internal hostname) | `web` (server-side only) | **No `NEXT_PUBLIC_` prefix** — server components only. Never bundled into browser. |
 | `PORT`         | Railway (per-service) | `web`, `api` | FastAPI starts via `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. |
+| `ANTHROPIC_API_KEY` | local `.env` (gitignored) | `ontology/` scripts | Paid LLM calls (discovery, extraction, golden pre-label). Never committed; tests stub the client and need no key. |
+| `NEO4J_URI` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB Free `neo4j+s://...` connection URI from the Aura console. |
+| `NEO4J_USERNAME` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential (usually `neo4j`). |
+| `NEO4J_PASSWORD` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential, shown once at instance creation. |
+| `LANGSMITH_TRACING` / `LANGSMITH_API_KEY` | local `.env` (optional) | `ontology/` LangGraph runs | Optional run tracing; JSONL run records remain the durable system of record. |
 
 For local dev, both apps fall back to `.env.example` defaults (`http://localhost:8000` for `API_URL`, a local Postgres URL for `DATABASE_URL`).
 
@@ -58,6 +63,8 @@ Python deps for both `apps/api` and `tools/` live in a single shared `uv`-manage
 Each project's `pyproject.toml` is the source of truth for **what Railway installs in production**. The shared `requirements.txt` mirrors those deps plus the harness deps so both the user and any agent run tests in the same env. When a `pyproject.toml` dep changes, update `requirements.txt` and run `uv pip install --python ... -r ...` against the shared venv.
 
 Repo Python version: `3.14` (pinned via `.python-version` at the repo root, picked up by `uv` and by Railway's Python builder).
+
+The ontology track runs in its own sidecar env, `~/claude_code_repos/my-uv-envs/avird-2026-ontology/` (**Python 3.12**, pinned LangGraph / langchain-anthropic / neo4j deps) — see [ontology/CLAUDE.md](../../ontology/CLAUDE.md).
 
 ## Local database (seeded, native Postgres — no Docker)
 

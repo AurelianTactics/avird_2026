@@ -1,0 +1,77 @@
+{
+  "inputs": {
+    "artifact": "extract-20260618-154522-3ad34f17.jsonl",
+    "golden_docs": 10,
+    "split": "dev"
+  },
+  "metrics": {
+    "components": {
+      "detection_recall": 0.9206,
+      "typing_accuracy": 0.4138
+    },
+    "coverage": {
+      "coverage": 0.9921,
+      "mapped": 126,
+      "unmapped": 1
+    },
+    "docs_scored": 10,
+    "entities": {
+      "relaxed": {
+        "f1": 0.7127,
+        "fn": 28,
+        "fp": 51,
+        "precision": 0.6577,
+        "recall": 0.7778,
+        "tp": 98
+      },
+      "strict": {
+        "f1": 0.5745,
+        "fn": 47,
+        "fp": 70,
+        "precision": 0.5302,
+        "recall": 0.627,
+        "tp": 79
+      }
+    },
+    "rates": {
+      "direction_corrected_count": 1,
+      "direction_error_rate": 0.0061,
+      "hallucination_count": 3,
+      "hallucination_rate": 0.0095,
+      "omission_rate_strict": 0.373,
+      "omission_relaxed": 28,
+      "omission_strict": 47,
+      "quote_mismatch_count": 1,
+      "quote_mismatch_rate": 0.0032
+    },
+    "relationships": {
+      "relaxed": {
+        "f1": 0.2229,
+        "fn": 124,
+        "fp": 127,
+        "precision": 0.2209,
+        "recall": 0.225,
+        "tp": 36
+      },
+      "strict": {
+        "f1": 0.1858,
+        "fn": 130,
+        "fp": 133,
+        "precision": 0.184,
+        "recall": 0.1875,
+        "tp": 30
+      }
+    },
+    "validation_counters": {
+      "dangling_relationship": 1,
+      "direction_corrected": 1,
+      "duplicate_collapsed": 0,
+      "hallucination": 3,
+      "pattern_violation": 5,
+      "quote_mismatch": 1,
+      "unknown_entity_label": 0,
+      "unknown_relationship_label": 0
+    }
+  },
+  "name": "extraction-eval-dev"
+}
