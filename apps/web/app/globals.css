@@ -184,3 +184,302 @@ h1 {
   padding: 1rem 1.25rem;
   color: var(--muted);
 }
+
+/* --- Ontology page --- */
+
+.onto-lede {
+  max-width: 64ch;
+  color: var(--ink);
+}
+
+.onto-section {
+  margin-top: 2.5rem;
+}
+
+.onto-section h2 {
+  font-size: 1.2rem;
+  margin: 0 0 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--line);
+}
+
+/* Interactive graph */
+
+.onto-graph {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 1rem;
+  background: #fff;
+}
+
+.onto-graph__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg-soft);
+}
+
+.onto-graph__modes {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.onto-graph__modes button {
+  border: 0;
+  background: #fff;
+  color: var(--muted);
+  padding: 0.35rem 0.8rem;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.onto-graph__modes button + button {
+  border-left: 1px solid var(--line);
+}
+
+.onto-graph__modes button.is-active {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.onto-graph__pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.onto-graph__pick select {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.onto-graph__legend {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.onto-dot {
+  display: inline-block;
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  margin: 0 0.1rem 0 0.6rem;
+  vertical-align: middle;
+}
+
+.onto-dot--col {
+  background: #1f5fb0;
+}
+
+.onto-dot--nar {
+  background: #d98324;
+}
+
+.onto-graph__stage {
+  display: flex;
+}
+
+.onto-graph__canvas {
+  flex: 1;
+  min-width: 0;
+  height: 540px;
+  background:
+    radial-gradient(circle at 1px 1px, var(--line) 1px, transparent 0) 0 0 / 22px 22px,
+    #fff;
+}
+
+.onto-graph__panel {
+  width: 19rem;
+  flex-shrink: 0;
+  border-left: 1px solid var(--line);
+  padding: 1rem;
+  font-size: 0.9rem;
+  overflow-y: auto;
+  max-height: 540px;
+}
+
+.onto-graph__panel h3 {
+  margin: 0 0 0.4rem;
+  font-size: 1.05rem;
+}
+
+.onto-graph__panel h4 {
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+.onto-graph__panel ul {
+  margin: 0.3rem 0;
+  padding-left: 1.1rem;
+}
+
+.onto-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 99px;
+  margin-bottom: 0.6rem;
+}
+
+.onto-tag--column {
+  background: #e4eefb;
+  color: #15457f;
+}
+
+.onto-tag--narrative {
+  background: #fbeede;
+  color: #9c5210;
+}
+
+@media (max-width: 760px) {
+  .onto-graph__stage {
+    flex-direction: column;
+  }
+  .onto-graph__panel {
+    width: auto;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    max-height: none;
+  }
+}
+
+/* Process stepper */
+
+.onto-steps {
+  list-style: none;
+  counter-reset: step;
+  padding: 0;
+  margin: 1.25rem 0 0;
+}
+
+.onto-steps li {
+  counter-increment: step;
+  position: relative;
+  padding: 0 0 1.1rem 2.6rem;
+  margin-left: 0.9rem;
+  border-left: 2px solid var(--line);
+}
+
+.onto-steps li:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.onto-steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: -0.95rem;
+  top: -0.15rem;
+  width: 1.7rem;
+  height: 1.7rem;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.onto-steps li strong {
+  display: block;
+  margin-bottom: 0.15rem;
+}
+
+.onto-steps li span {
+  color: var(--muted);
+}
+
+/* Stats */
+
+.onto-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.onto-stat {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.8rem 0.9rem;
+  background: var(--bg-soft);
+}
+
+.onto-stat__n {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.onto-stat__k {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* Competency questions + takeaways */
+
+.onto-cqs {
+  columns: 2;
+  gap: 1.75rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 1rem;
+}
+
+.onto-cqs li {
+  margin-bottom: 0.45rem;
+  break-inside: avoid;
+}
+
+.onto-takeaways {
+  padding-left: 1.1rem;
+}
+
+.onto-takeaways li {
+  margin-bottom: 0.6rem;
+}
+
+.onto-draft-note {
+  display: inline-block;
+  font-size: 0.78rem;
+  color: #9c5210;
+  background: #fbeede;
+  border: 1px solid #f0d8b8;
+  border-radius: 6px;
+  padding: 0.3rem 0.7rem;
+  margin: 0 0 0.75rem;
+}
+
+.onto-provenance {
+  margin-top: 2.5rem;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 600px) {
+  .onto-cqs {
+    columns: 1;
+  }
+}
