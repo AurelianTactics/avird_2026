@@ -96,12 +96,14 @@ def create(engine, csv_paths=DEFAULT_CSV_PATHS):
     batches_ddl = (_SQL_DIR / '002_ingest_batches.sql').read_text()
     treated_ddl = (_SQL_DIR / '003_treated_incident_reports.sql').read_text()
     view_ddl = (_SQL_DIR / '004_raw_latest_view.sql').read_text()
+    fault_ddl = (_SQL_DIR / '005_fault_analysis.sql').read_text()
 
     with engine.begin() as conn:
         _run_script(conn, raw_ddl)
         _run_script(conn, batches_ddl)
         _run_script(conn, treated_ddl)
         _run_script(conn, view_ddl)
+        _run_script(conn, fault_ddl)
 
 
 def reset(engine, csv_paths=DEFAULT_CSV_PATHS):
