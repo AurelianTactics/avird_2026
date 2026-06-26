@@ -36,7 +36,15 @@ from bs4 import BeautifulSoup
 EXPECTED_TEXT: dict[str, list[str]] = {
     "/": ["Raw NHTSA SGO crash reports"],
     "/about": ["autonomous-vehicle crash data"],
-    "/groupings": ["Canonical (deduplicated) crash counts"],
+    # /groupings carries the entity x severity intro plus the W5 redaction-table
+    # section heading, so the static redaction table is gated too.
+    "/groupings": [
+        "Canonical (deduplicated) crash counts",
+        "Narrative redaction",
+    ],
+    # /heatmaps needle is the stable prose intro — always rendered regardless of
+    # data/filter state (not matrix contents).
+    "/heatmaps": ["Two derived views over the canonical"],
 }
 
 # Pages whose status code is asserted, and whose internal links are crawled.
@@ -50,6 +58,7 @@ PAGES_TO_CHECK: list[str] = list(EXPECTED_TEXT.keys())
 DEGRADED_TEXT: dict[str, list[str]] = {
     "/": ["Could not load incidents"],
     "/groupings": ["Could not load groupings"],
+    "/heatmaps": ["Could not load heatmaps"],
 }
 
 # === / ===

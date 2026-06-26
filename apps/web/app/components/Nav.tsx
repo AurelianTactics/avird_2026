@@ -1,11 +1,12 @@
-import Link from 'next/link';
+import Link from "next/link";
 
 // Top-nav shell. Adding a later page is a one-line edit to this array — no
 // routing framework, no active-state lib (YAGNI, plan R22). Server component.
 const LINKS: { label: string; href: string }[] = [
-  { label: 'Incidents', href: '/' },
-  { label: 'Groupings', href: '/groupings' },
-  { label: 'About', href: '/about' },
+  { label: "Incidents", href: "/" },
+  { label: "Groupings", href: "/groupings" },
+  { label: "Heatmaps", href: "/heatmaps" },
+  { label: "About", href: "/about" },
 ];
 
 export default function Nav() {

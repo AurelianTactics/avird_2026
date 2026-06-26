@@ -1,9 +1,11 @@
-import { fetchEntitySeverity } from "../lib/api";
+import { fetchEntitySeverity, fetchRedactionStats } from "../lib/api";
+import RedactionStats from "./RedactionStats";
 
 export const dynamic = "force-dynamic";
 
 export default async function GroupingsPage() {
   const result = await fetchEntitySeverity();
+  const redaction = await fetchRedactionStats();
 
   return (
     <main>
@@ -51,6 +53,8 @@ export default async function GroupingsPage() {
           </tbody>
         </table>
       )}
+
+      <RedactionStats result={redaction} />
     </main>
   );
 }

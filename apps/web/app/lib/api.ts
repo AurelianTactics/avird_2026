@@ -61,6 +61,43 @@ export type EntitySeverityGroupings = {
   rows: { entity: string; counts: Record<string, number>; total: number }[];
 };
 
+// Derived heatmap views (W5). A matrix carries its two ordered axes plus the
+// non-zero cells, so the client can render a grid and re-bucket cells (coarse
+// contact-area grouping) without a second round trip.
+export type HeatmapCell = { sv: string; cp: string; count: number };
+
+export type HeatmapMatrix = {
+  sv_axis: string[];
+  cp_axis: string[];
+  cells: HeatmapCell[];
+};
+
+// Resolved filter dimensions only (entity / state / severity), echoed back.
+export type DerivedFilter = Record<string, string>;
+
+export type Heatmaps = {
+  contact_areas: HeatmapMatrix;
+  pre_crash: HeatmapMatrix;
+  applied_filter: DerivedFilter;
+};
+
+// Same heatmap shape as the default plus the NL-agent metadata.
+export type HeatmapQueryResult = Heatmaps & {
+  fallback: boolean;
+  message: string;
+};
+
+export type RedactionRow = {
+  entity: string;
+  redacted: number;
+  total: number;
+  share: number;
+};
+
+export type RedactionStats = {
+  redaction: RedactionRow[];
+};
+
 export type ApiResult<T> =
   | { ok: true; data: T }
   | { ok: false; error: "unreachable" | "notfound" };
@@ -103,4 +140,14 @@ export function fetchEntitySeverity(): Promise<
   ApiResult<EntitySeverityGroupings>
 > {
   return getJson<EntitySeverityGroupings>("/groupings/entity-severity");
+}
+
+// Default (unfiltered) heatmaps for the /heatmaps server render.
+export function fetchHeatmaps(): Promise<ApiResult<Heatmaps>> {
+  return getJson<Heatmaps>("/derived/heatmaps");
+}
+
+// Static redaction breakdown for the /groupings table (unfiltered, KTD 9).
+export function fetchRedactionStats(): Promise<ApiResult<RedactionStats>> {
+  return getJson<RedactionStats>("/derived/redaction");
 }
