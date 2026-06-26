@@ -3,3 +3,5 @@
 # Root Directory deploys. Keep in sync when pyproject.toml changes.
 fastapi[standard]>=0.115
 asyncpg>=0.29
+langgraph>=0.2
+langchain-anthropic>=0.3
