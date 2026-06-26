@@ -1,11 +1,85 @@
 import Link from "next/link";
-import { fetchIncident, type IncidentDetail } from "../../lib/api";
+import {
+  fetchFault,
+  fetchIncident,
+  type ApiResult,
+  type FaultVerdict,
+  type IncidentDetail,
+} from "../../lib/api";
 
 export const dynamic = "force-dynamic";
+
+// Shown alongside both LLM features (R5a). The same real-world crash can get
+// different verdicts across its separate reporting rows — that's expected.
+export const FAULT_DISCLAIMER =
+  "This is an AI opinion generated for entertainment and learning — not a " +
+  "legal or factual determination. The same real-world crash can receive " +
+  "different verdicts across its separate reporting rows.";
 
 function val(v: string | null | undefined): string {
   const s = (v ?? "").trim();
   return s === "" ? "—" : s;
+}
+
+function FaultBlock({ fault }: { fault: ApiResult<FaultVerdict> }) {
+  return (
+    <section className="fault-verdict">
+      <h2>AI fault verdict</h2>
+      <FaultBody fault={fault} />
+      <p className="muted fault-disclaimer">{FAULT_DISCLAIMER}</p>
+    </section>
+  );
+}
+
+function FaultBody({ fault }: { fault: ApiResult<FaultVerdict> }) {
+  if (!fault.ok) {
+    // notfound = no verdict computed for this report yet (graceful empty state);
+    // unreachable = the data service is down. Neither is an error on the page.
+    return (
+      <p className="notice">
+        {fault.error === "notfound"
+          ? "No AI fault verdict has been computed for this report yet."
+          : "The fault verdict service is currently unavailable."}
+      </p>
+    );
+  }
+
+  const v = fault.data;
+  if (v.is_av_at_fault === null) {
+    // Parse-failure sentinel — never a guessed verdict.
+    return (
+      <p className="notice">
+        The AI could not produce a usable verdict for this report.
+      </p>
+    );
+  }
+
+  const pct =
+    v.av_fault_percentage === null
+      ? null
+      : Math.round(v.av_fault_percentage * 100);
+  return (
+    <>
+      <dl className="detail-grid">
+        <div>
+          <dt>AV at fault</dt>
+          <dd>{v.is_av_at_fault ? "Yes" : "No"}</dd>
+        </div>
+        {pct !== null && (
+          <div>
+            <dt>AV fault share</dt>
+            <dd>{pct}%</dd>
+          </div>
+        )}
+      </dl>
+      {v.short_explanation && (
+        <p className="fault-explanation">{v.short_explanation}</p>
+      )}
+      <p className="muted fault-footnote">
+        Model {val(v.model)} · version {val(v.fault_version)}
+      </p>
+    </>
+  );
 }
 
 function areas(list: string[]): string {
@@ -65,7 +139,12 @@ export default async function IncidentDetailPage({
   params: Promise<{ reportId: string }>;
 }) {
   const { reportId } = await params;
-  const result = await fetchIncident(reportId);
+  // Fault verdict loads in parallel; it's read-only and independent of the
+  // incident lookup, so a missing verdict never blocks the page.
+  const [result, faultResult] = await Promise.all([
+    fetchIncident(reportId),
+    fetchFault(reportId),
+  ]);
 
   if (!result.ok) {
     return (
@@ -98,6 +177,8 @@ export default async function IncidentDetailPage({
         <h2>Narrative</h2>
         <div className="narrative">{val(d.narrative)}</div>
       </section>
+
+      <FaultBlock fault={faultResult} />
 
       {d.other_reports.length > 0 && (
         <section>

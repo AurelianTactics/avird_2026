@@ -56,6 +56,18 @@ export type IncidentDetail = {
   other_reports: { report_id: string; reporting_entity: string | null }[];
 };
 
+// Precomputed LLM "insurance adjuster" verdict for one report. A parse-failure
+// sentinel row carries null verdict + null percentage + an error explanation.
+export type FaultVerdict = {
+  report_id: string | null;
+  fault_version: string | null;
+  is_av_at_fault: boolean | null;
+  av_fault_percentage: number | null; // 0..1
+  short_explanation: string | null;
+  model: string | null;
+  created_at: string | null;
+};
+
 export type EntitySeverityGroupings = {
   buckets: string[];
   rows: { entity: string; counts: Record<string, number>; total: number }[];
@@ -103,4 +115,10 @@ export function fetchEntitySeverity(): Promise<
   ApiResult<EntitySeverityGroupings>
 > {
   return getJson<EntitySeverityGroupings>("/groupings/entity-severity");
+}
+
+export function fetchFault(reportId: string): Promise<ApiResult<FaultVerdict>> {
+  return getJson<FaultVerdict>(
+    `/incidents/${encodeURIComponent(reportId)}/fault`,
+  );
 }

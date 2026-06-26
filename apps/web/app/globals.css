@@ -168,6 +168,24 @@ h1 {
   white-space: pre-wrap;
 }
 
+.fault-verdict {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem 1rem;
+  margin: 1.5rem 0;
+}
+
+.fault-explanation {
+  margin: 0 0 0.75rem;
+}
+
+.fault-disclaimer,
+.fault-footnote {
+  font-size: 0.8rem;
+  margin: 0.5rem 0 0;
+}
+
 .site-footer {
   max-width: var(--max);
   margin: 0 auto;
