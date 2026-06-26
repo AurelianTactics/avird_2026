@@ -1,6 +1,6 @@
 ---
 date: 2026-06-22
-status: active
+status: completed
 type: feat
 origin: docs/brainstorms/2026-06-05-website-mvp-requirements.md
 ---
