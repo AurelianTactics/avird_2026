@@ -6,6 +6,10 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]>=0.115",
     "asyncpg>=0.29",
+    # W5 NL-query agent (plan U4/KTD 5). Contained to POST /derived/query — the
+    # default heatmap render stays dependency-light and LLM-free (KTD 4).
+    "langgraph>=0.2",
+    "anthropic>=0.40",
 ]
 
 [dependency-groups]

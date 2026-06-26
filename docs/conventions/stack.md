@@ -23,8 +23,13 @@ If Railway's internal hostname doesn't resolve for some reason, the temporary fa
 | `DATABASE_URL` | Railway (Postgres reference variable) | `api` | Never committed. `.env.example` placeholder only. Sanitized in logs on failure. |
 | `API_URL`      | Railway (reference variable to `api` service's internal hostname) | `web` (server-side only) | **No `NEXT_PUBLIC_` prefix** — server components only. Never bundled into browser. |
 | `PORT`         | Railway (per-service) | `web`, `api` | FastAPI starts via `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. |
+| `ANTHROPIC_API_KEY` | Railway (`api` service) | `api` (NL-query agent only) | Never committed; `.env.example` placeholder only. Read at call time, never logged (sanitized degrade, mirroring `DATABASE_URL`). Absent ⇒ the site still renders — only `POST /derived/query` degrades to the default-view fallback (W5 KTD 4). |
 
-For local dev, both apps fall back to `.env.example` defaults (`http://localhost:8000` for `API_URL`, a local Postgres URL for `DATABASE_URL`).
+For local dev, both apps fall back to `.env.example` defaults (`http://localhost:8000` for `API_URL`, a local Postgres URL for `DATABASE_URL`). `ANTHROPIC_API_KEY` has no default — leave it unset locally and the NL-query path returns the unfiltered default view.
+
+## Agent path (W5)
+
+The `api` service gains one LLM-backed route — `POST /derived/query` — built as a small **LangGraph** graph with **Claude** (Anthropic SDK) mapping natural language to a structured, allow-list-validated filter (never model-authored SQL). It is the only place `ANTHROPIC_API_KEY` is consumed and the only sanctioned dependency-weight exception to R22 (LangGraph + Anthropic), contained to that route: the default `/heatmaps` render and `GET /derived/heatmaps` stay deterministic and LLM-free, so the site is fully usable with no key configured. Deploy must set `ANTHROPIC_API_KEY` in Railway before the query route works in prod.
 
 ## Cross-service references
 

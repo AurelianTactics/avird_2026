@@ -3,3 +3,6 @@
 # Root Directory deploys. Keep in sync when pyproject.toml changes.
 fastapi[standard]>=0.115
 asyncpg>=0.29
+# W5 NL-query agent (plan U4). Contained to POST /derived/query.
+langgraph>=0.2
+anthropic>=0.40

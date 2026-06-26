@@ -21,12 +21,24 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field
 
 from ..data import IncidentData, get_incident_data
+from .agent import ClaudeFilterModel, FilterModel, run_query
 from .aggregate import build_heatmaps, filter_rows_by_severity, redaction_breakdown
 from .filters import DerivedFilter, resolve
 
 router = APIRouter(prefix="/derived")
+
+
+class QueryRequest(BaseModel):
+    # First POST on the public surface: bound the body before any agent/LLM call.
+    text: str = Field(default="", max_length=500)
+
+
+def get_filter_model() -> FilterModel:
+    """FastAPI dependency for the NL model client. Tests override with a fake."""
+    return ClaudeFilterModel()
 
 
 async def _heatmaps_for_filter(data: IncidentData, raw: dict[str, Any]) -> dict[str, Any]:
@@ -67,3 +79,15 @@ async def redaction(
     # marquee filter, so it lives outside the NL surface (plan KTD 9).
     rows = await data.fetch_derived_rows(DerivedFilter())
     return {"redaction": redaction_breakdown(rows)}
+
+
+@router.post("/query")
+async def query(
+    body: QueryRequest,
+    data: IncidentData = Depends(get_incident_data),
+    model: FilterModel = Depends(get_filter_model),
+) -> dict[str, Any]:
+    # Runs the agent graph (U5). Never 500s on a bad query: agent failures surface
+    # as fallback=true with the default (unfiltered) matrices (plan KTD 4/KTD 5).
+    # Same heatmap shape as GET /derived/heatmaps plus {fallback, message}.
+    return await run_query(body.text, data=data, model=model)

@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from app.derived.routes import get_incident_data
+from app.derived.routes import get_filter_model, get_incident_data
 from app.main import app
 
 
@@ -147,6 +147,79 @@ def test_redaction_ignores_query_params():
     filtered = _get("/derived/redaction?entity=Waymo").json()
     unfiltered = _get("/derived/redaction").json()
     assert filtered == unfiltered
+
+
+# --- POST /derived/query (U6) -----------------------------------------------
+
+
+class FakeModel:
+    def __init__(self, *, returns=None, raises=False):
+        self._returns = returns
+        self._raises = raises
+
+    def propose(self, text):
+        if self._raises:
+            raise RuntimeError("LLM down")
+        return self._returns
+
+
+def _use_model(model):
+    app.dependency_overrides[get_filter_model] = lambda: model
+
+
+def _post(path, json):
+    with TestClient(app) as client:
+        return client.post(path, json=json)
+
+
+def test_query_happy_path_filtered():
+    _use(ROWS)
+    _use_model(FakeModel(returns='{"entity": "Waymo", "state": "AZ"}'))
+    resp = _post("/derived/query", {"text": "only Waymo in Arizona"})
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["applied_filter"] == {"entity": "Waymo", "state": "AZ"}
+    assert body["fallback"] is False
+    assert _cell(body["contact_areas"], "Front", "Rear") == 1
+
+
+def test_query_empty_text_default_no_filter():
+    _use(ROWS)
+    _use_model(FakeModel(returns="{}"))
+    body = _post("/derived/query", {"text": ""}).json()
+    assert body["fallback"] is False
+    assert body["applied_filter"] == {}
+
+
+def test_query_agent_failure_never_500s():
+    _use(ROWS)
+    _use_model(FakeModel(raises=True))
+    resp = _post("/derived/query", {"text": "only Waymo"})
+    assert resp.status_code == 200  # not 500
+    body = resp.json()
+    assert body["fallback"] is True
+    assert body["applied_filter"] == {}
+
+
+def test_query_response_shape_matches_heatmaps_plus_agent_meta():
+    _use(ROWS)
+    _use_model(FakeModel(returns='{"entity": "Waymo"}'))
+    body = _post("/derived/query", {"text": "waymo"}).json()
+    assert set(body) >= {
+        "contact_areas",
+        "pre_crash",
+        "applied_filter",
+        "fallback",
+        "message",
+    }
+
+
+def test_query_over_length_text_rejected_before_agent():
+    _use(ROWS)
+    # A model that raises if invoked proves rejection happens before the agent.
+    _use_model(FakeModel(raises=True))
+    resp = _post("/derived/query", {"text": "x" * 501})
+    assert resp.status_code == 422
 
 
 def test_derived_router_is_read_only():
