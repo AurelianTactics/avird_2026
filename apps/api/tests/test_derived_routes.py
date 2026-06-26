@@ -1,0 +1,158 @@
+"""Tests for the deterministic derived routes (U3).
+
+Route tests override `get_incident_data` with an in-memory fake (no live
+Postgres), exactly like `test_groupings.py`. The fake mimics the data layer:
+`fetch_known_values` supplies the allow-list vocabulary and `fetch_derived_rows`
+applies entity/state filtering over canned rows so the route's resolve ->
+fetch -> aggregate wiring is exercised end to end.
+"""
+
+from __future__ import annotations
+
+import pytest
+from fastapi.testclient import TestClient
+
+from app.derived.routes import get_incident_data
+from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def _clear_overrides():
+    yield
+    app.dependency_overrides.clear()
+
+
+def _contact_row(entity, sv, cp, state=None, severity=None, narrative=None):
+    row = {
+        "master_entity": entity,
+        "State Clean": state,
+        "Highest Injury Severity Alleged": severity,
+        "Narrative": narrative,
+        "SV Pre-Crash Movement": "Going Straight",
+        "CP Pre-Crash Movement": "Stopped",
+    }
+    for area in sv:
+        row[f"SV Contact Area - {area}"] = "Y"
+    for area in cp:
+        row[f"CP Contact Area - {area}"] = "Y"
+    return row
+
+
+ROWS = [
+    _contact_row("Waymo", ["Front"], ["Rear"], state="AZ", severity="Fatality", narrative="clean"),
+    _contact_row(
+        "Waymo", ["Left"], ["Right"], state="CA", severity="Minor", narrative="[REDACTED]"
+    ),
+    _contact_row("Cruise", ["Front"], ["Front"], state="AZ", severity="Minor", narrative="see CBI"),
+]
+
+
+class FakeData:
+    def __init__(self, rows):
+        self._rows = rows
+
+    async def fetch_known_values(self):
+        return {
+            "entities": sorted({r["master_entity"] for r in self._rows}),
+            "states": sorted({r["State Clean"] for r in self._rows if r["State Clean"]}),
+        }
+
+    async def fetch_derived_rows(self, filt):
+        rows = self._rows
+        if filt.entity is not None:
+            rows = [r for r in rows if r["master_entity"] == filt.entity]
+        if filt.state is not None:
+            rows = [r for r in rows if r["State Clean"] == filt.state]
+        return rows
+
+
+def _use(rows):
+    app.dependency_overrides[get_incident_data] = lambda: FakeData(rows)
+
+
+def _cell(matrix, sv, cp):
+    for c in matrix["cells"]:
+        if c["sv"] == sv and c["cp"] == cp:
+            return c["count"]
+    return 0
+
+
+def _get(path):
+    with TestClient(app) as client:
+        return client.get(path)
+
+
+# --- /derived/heatmaps ------------------------------------------------------
+
+
+def test_heatmaps_no_params_aggregates_all_rows():
+    _use(ROWS)
+    body = _get("/derived/heatmaps").json()
+    assert set(body) == {"contact_areas", "pre_crash", "applied_filter"}
+    assert body["applied_filter"] == {}
+    # All three rows feed the contact-area matrix.
+    assert _cell(body["contact_areas"], "Front", "Rear") == 1
+    assert _cell(body["contact_areas"], "Front", "Front") == 1
+
+
+def test_heatmaps_entity_and_state_filter():
+    _use(ROWS)
+    body = _get("/derived/heatmaps?entity=Waymo&state=AZ").json()
+    assert body["applied_filter"] == {"entity": "Waymo", "state": "AZ"}
+    # Only the Waymo/AZ row (Front->Rear) survives.
+    assert _cell(body["contact_areas"], "Front", "Rear") == 1
+    assert _cell(body["contact_areas"], "Front", "Front") == 0
+
+
+def test_heatmaps_unknown_entity_treated_as_unfiltered():
+    _use(ROWS)
+    resp = _get("/derived/heatmaps?entity=Foobar")
+    assert resp.status_code == 200
+    body = resp.json()
+    # Unknown dimension dropped -> not present in applied_filter.
+    assert "entity" not in body["applied_filter"]
+
+
+def test_heatmaps_severity_filter_applied_post_fetch():
+    _use(ROWS)
+    body = _get("/derived/heatmaps?severity=Fatality").json()
+    assert body["applied_filter"] == {"severity": "Fatality"}
+    # Only the Fatality row (Front->Rear) remains.
+    assert _cell(body["contact_areas"], "Front", "Rear") == 1
+    assert _cell(body["contact_areas"], "Left", "Right") == 0
+
+
+def test_heatmaps_response_shape():
+    _use(ROWS)
+    body = _get("/derived/heatmaps").json()
+    for key in ("contact_areas", "pre_crash"):
+        assert set(body[key]) == {"sv_axis", "cp_axis", "cells"}
+
+
+# --- /derived/redaction -----------------------------------------------------
+
+
+def test_redaction_per_entity_over_all_rows():
+    _use(ROWS)
+    body = _get("/derived/redaction").json()
+    out = {r["entity"]: r for r in body["redaction"]}
+    assert out["Waymo"]["redacted"] == 1
+    assert out["Waymo"]["total"] == 2
+    assert out["Cruise"]["redacted"] == 1
+    assert out["Cruise"]["total"] == 1
+
+
+def test_redaction_ignores_query_params():
+    _use(ROWS)
+    filtered = _get("/derived/redaction?entity=Waymo").json()
+    unfiltered = _get("/derived/redaction").json()
+    assert filtered == unfiltered
+
+
+def test_derived_router_is_read_only():
+    # Only GET (and the later POST /query) — no mutation verbs registered.
+    methods = {(route.path, m) for route in app.routes for m in getattr(route, "methods", set())}
+    mutating = {
+        (p, m) for (p, m) in methods if p.startswith("/derived") and m in {"PUT", "PATCH", "DELETE"}
+    }
+    assert mutating == set()

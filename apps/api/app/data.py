@@ -19,9 +19,12 @@ query — the list query must never apply it (see plan KTD 2).
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .db import get_pool
+
+if TYPE_CHECKING:
+    from .derived.filters import DerivedFilter
 
 TABLE = "treated_incident_reports"
 
@@ -54,6 +57,36 @@ LIST_COLUMNS: list[str] = [
 ]
 
 PAGE_SIZE = 50
+
+# Contact-area direction suffixes for the derived heatmap fetch. Mirrors
+# `incidents._CONTACT_AREAS` (the same `* Contact Area - <dir>` raw columns
+# `incidents._collapse_contact_areas` reads); kept here to avoid importing
+# `incidents` (which imports this module) and the resulting cycle.
+_DERIVED_CONTACT_AREAS: list[str] = [
+    "Rear Left",
+    "Left",
+    "Front Left",
+    "Rear",
+    "Top",
+    "Front",
+    "Rear Right",
+    "Right",
+    "Front Right",
+    "Bottom",
+]
+
+# Columns the three derived views need (plan U2). Quoted mixed-case raw
+# passthrough columns; `master_entity` is the cleaned snake_case column.
+DERIVED_COLUMNS: list[str] = [
+    *[f'"SV Contact Area - {a}"' for a in _DERIVED_CONTACT_AREAS],
+    *[f'"CP Contact Area - {a}"' for a in _DERIVED_CONTACT_AREAS],
+    '"SV Pre-Crash Movement"',
+    '"CP Pre-Crash Movement"',
+    "master_entity",
+    '"State Clean"',
+    '"Highest Injury Severity Alleged"',
+    '"Narrative"',
+]
 
 
 class IncidentData:
@@ -128,6 +161,47 @@ class IncidentData:
         pool = await get_pool()
         async with pool.acquire(timeout=5) as conn:
             rows = await conn.fetch(query)
+        return [dict(r) for r in rows]
+
+    async def fetch_known_values(self) -> dict[str, list[str]]:
+        # Allow-list vocabulary for the NL filter (plan U1/U2): the distinct,
+        # canonical-scoped `master_entity` and `State Clean` sets. Sourced here
+        # so the resolver never trusts caller-supplied known values. Cheap at
+        # current data size; queried per request (no premature cache, R22).
+        pool = await get_pool()
+        async with pool.acquire(timeout=5) as conn:
+            entities = await conn.fetch(
+                f"SELECT DISTINCT master_entity FROM {TABLE} "
+                f"WHERE {CANONICAL_CLAUSE} AND master_entity IS NOT NULL"
+            )
+            states = await conn.fetch(
+                f'SELECT DISTINCT "State Clean" FROM {TABLE} '
+                f'WHERE {CANONICAL_CLAUSE} AND "State Clean" IS NOT NULL'
+            )
+        return {
+            "entities": sorted(r["master_entity"] for r in entities),
+            "states": sorted(r["State Clean"] for r in states),
+        }
+
+    async def fetch_derived_rows(self, filt: DerivedFilter) -> list[dict[str, Any]]:
+        # Canonical rows only (plan KTD 8). Entity and state are applied as
+        # parameterized equality on FIXED identifiers (`master_entity`,
+        # `"State Clean"`) with `$n` values only — the resolved values come from
+        # the U1 allow-list, never raw input (plan KTD 3). Severity is NOT a SQL
+        # clause: the raw severity strings normalize to a bucket, so the caller
+        # applies `aggregate.filter_rows_by_severity` post-fetch.
+        clauses = [CANONICAL_CLAUSE]
+        params: list[Any] = []
+        if filt.entity is not None:
+            params.append(filt.entity)
+            clauses.append(f"master_entity = ${len(params)}")
+        if filt.state is not None:
+            params.append(filt.state)
+            clauses.append(f'"State Clean" = ${len(params)}')
+        query = f"SELECT {', '.join(DERIVED_COLUMNS)} FROM {TABLE} WHERE {' AND '.join(clauses)}"
+        pool = await get_pool()
+        async with pool.acquire(timeout=5) as conn:
+            rows = await conn.fetch(query, *params)
         return [dict(r) for r in rows]
 
 
