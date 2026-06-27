@@ -6,6 +6,7 @@ import {
   type FaultVerdict,
   type IncidentDetail,
 } from "../../lib/api";
+import DebatePanel from "./DebatePanel";
 
 export const dynamic = "force-dynamic";
 
@@ -179,6 +180,8 @@ export default async function IncidentDetailPage({
       </section>
 
       <FaultBlock fault={faultResult} />
+
+      <DebatePanel reportId={reportId} />
 
       {d.other_reports.length > 0 && (
         <section>

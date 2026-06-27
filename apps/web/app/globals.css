@@ -186,6 +186,56 @@ h1 {
   margin: 0.5rem 0 0;
 }
 
+.debate-panel {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.5rem 1.25rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.debate-pick button,
+.debate-controls button {
+  margin: 0.25rem 0.5rem 0.25rem 0;
+}
+
+.debate-transcript {
+  margin: 1rem 0;
+  padding-left: 1.2rem;
+}
+
+.debate-msg {
+  margin: 0.5rem 0;
+}
+
+.debate-speaker {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.debate-input {
+  width: 100%;
+  min-height: 4.5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.debate-rounds {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0.75rem 0 0.25rem;
+}
+
+.debate-verdict {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
 .site-footer {
   max-width: var(--max);
   margin: 0 auto;
