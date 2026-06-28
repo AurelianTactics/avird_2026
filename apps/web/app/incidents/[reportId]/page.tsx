@@ -7,6 +7,8 @@ import {
   type IncidentDetail,
 } from "../../lib/api";
 import DebatePanel from "./DebatePanel";
+import IncidentTabs from "./IncidentTabs";
+import { isTabId, type TabId } from "./tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -87,6 +89,18 @@ function areas(list: string[]): string {
   return list.length > 0 ? list.join(", ") : "None reported";
 }
 
+// Map a free-text severity to a tone class. The dataset's wording varies, so we
+// match on substrings and fall back to a neutral badge rather than guessing.
+function severityTone(s: string): string {
+  const t = s.toLowerCase();
+  if (t.includes("fatal")) return "sev--fatal";
+  if (t.includes("serious")) return "sev--serious";
+  if (t.includes("moderate")) return "sev--moderate";
+  if (t.includes("minor")) return "sev--minor";
+  if (t.includes("none") || t.startsWith("no ")) return "sev--none";
+  return "sev--unknown";
+}
+
 // Raw one-pager field groups (plan R3). Rendered in order; every field shown,
 // '—' for blanks — required fields are never dropped silently.
 function fieldGroups(
@@ -136,10 +150,14 @@ function fieldGroups(
 
 export default async function IncidentDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ reportId: string }>;
+  searchParams?: Promise<{ view?: string }>;
 }) {
   const { reportId } = await params;
+  const { view } = (await searchParams) ?? {};
+  const initialView: TabId = isTabId(view) ? view : "verdict";
   // Fault verdict loads in parallel; it's read-only and independent of the
   // incident lookup, so a missing verdict never blocks the page.
   const [result, faultResult] = await Promise.all([
@@ -164,25 +182,54 @@ export default async function IncidentDetailPage({
   }
 
   const d = result.data;
-  return (
-    <main>
-      <p>
-        <Link href="/">← Back to incidents</Link>
-      </p>
-      <h1>
-        {val(d.reporting_entity)} · {val(d.incident_date)}
-      </h1>
-      <p className="muted">Report {val(d.report_id)} — raw reported fields.</p>
+  const severity = val(d.severity);
+  const location = [val(d.city), val(d.state)]
+    .filter((s) => s !== "—")
+    .join(", ");
 
-      <section>
+  // Persistent context: identity, the key crash facts, and the narrative stay
+  // pinned above the tabs — every reasoning surface below is meaningless
+  // without them, so they must never scroll out of reach.
+  const header = (
+    <header className="incident-head">
+      <div className="incident-head__title">
+        <h1>
+          {val(d.reporting_entity)} · {val(d.incident_date)}
+        </h1>
+        {severity !== "—" && (
+          <span className={`sev-badge ${severityTone(severity)}`}>
+            {severity}
+          </span>
+        )}
+      </div>
+      <p className="incident-head__meta muted">
+        Report {val(d.report_id)}
+        {location ? ` · ${location}` : ""} · vs. {val(d.crash_with)}
+      </p>
+      <section className="incident-head__narrative">
         <h2>Narrative</h2>
         <div className="narrative">{val(d.narrative)}</div>
       </section>
+    </header>
+  );
 
+  const verdictPanel = (
+    <>
+      <p className="muted tab-lede">
+        An LLM reads this report&apos;s narrative and structured fields and
+        renders a single fault opinion — the &ldquo;judge&rdquo; pattern. It is
+        computed once per report and cached.
+      </p>
       <FaultBlock fault={faultResult} />
+    </>
+  );
 
-      <DebatePanel reportId={reportId} />
-
+  const reportPanel = (
+    <>
+      <p className="muted tab-lede">
+        Every field exactly as reported to NHTSA — nothing inferred. Blank
+        values show as &ldquo;—&rdquo;.
+      </p>
       {d.other_reports.length > 0 && (
         <section>
           <h2>Other reports of this incident</h2>
@@ -198,7 +245,6 @@ export default async function IncidentDetailPage({
           </ul>
         </section>
       )}
-
       {fieldGroups(d).map((group) => (
         <section key={group.title}>
           <h2>{group.title}</h2>
@@ -212,6 +258,21 @@ export default async function IncidentDetailPage({
           </dl>
         </section>
       ))}
+    </>
+  );
+
+  return (
+    <main>
+      <p>
+        <Link href="/">← Back to incidents</Link>
+      </p>
+      {header}
+      <IncidentTabs
+        initialView={initialView}
+        verdict={verdictPanel}
+        debate={<DebatePanel reportId={reportId} />}
+        report={reportPanel}
+      />
     </main>
   );
 }
