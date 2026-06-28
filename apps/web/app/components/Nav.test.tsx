@@ -3,13 +3,13 @@ import { render } from "@testing-library/react";
 import Nav from "./Nav";
 
 describe("Nav", () => {
-  it("renders Incidents, Groupings, Heatmaps, and About links with correct hrefs", () => {
+  it("renders Incidents, AV Company Stats, Heatmaps, and About links with correct hrefs", () => {
     const { container } = render(<Nav />);
     expect(container.querySelector('a[href="/"]')?.textContent).toBe(
       "Incidents",
     );
     expect(container.querySelector('a[href="/groupings"]')?.textContent).toBe(
-      "Groupings",
+      "AV Company Stats",
     );
     expect(container.querySelector('a[href="/heatmaps"]')?.textContent).toBe(
       "Heatmaps",

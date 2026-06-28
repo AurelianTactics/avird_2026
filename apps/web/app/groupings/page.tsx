@@ -9,10 +9,10 @@ export default async function GroupingsPage() {
 
   return (
     <main>
-      <h1>Groupings</h1>
+      <h1>AV Company Stats</h1>
       <p className="muted">
-        Canonical (deduplicated) crash counts by reporting entity and highest
-        injury severity. Severity is normalized into seven buckets; columns run
+        Canonical (deduplicated) crash counts by AV company and highest injury
+        severity. Severity is normalized into seven buckets; columns run
         left-to-right by decreasing harm.
       </p>
 

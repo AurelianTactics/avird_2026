@@ -321,7 +321,9 @@ h1 {
 .heatmap__caption {
   font-size: 0.85rem;
   color: var(--muted);
-  min-height: 1.4em;
+  /* Reserve two lines so a long active-cell caption wrapping never shifts the
+     grid down (which would slide the hovered cell out from under the cursor). */
+  min-height: 2.7em;
   margin-bottom: 0.5rem;
 }
 
@@ -366,11 +368,21 @@ h1 {
 .heatmap__cell {
   border: 1px solid var(--line);
   border-radius: 3px;
-  min-height: 2.1rem;
+  min-height: 2.5rem;
   font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
   cursor: default;
   transition: transform 120ms ease, box-shadow 120ms ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.heatmap__cell-pct {
+  font-size: 0.62rem;
+  opacity: 0.72;
 }
 
 .heatmap__cell:hover,
@@ -380,4 +392,176 @@ h1 {
   outline: none;
   position: relative;
   z-index: 1;
+}
+
+/* --- Term legend (what SV / CP mean) --- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0 0 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.legend__item {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+
+.legend__term {
+  font-weight: 700;
+  display: inline-block;
+}
+
+.legend__term::before {
+  content: "";
+  display: inline-block;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+  margin-right: 0.4rem;
+  vertical-align: baseline;
+}
+
+.legend__term--sv::before {
+  background: var(--accent);
+}
+
+.legend__term--cp::before {
+  background: #c0552b;
+}
+
+.legend__def {
+  margin: 0.1rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* Larger, clearer corner axis labels (full words, not abbreviations). */
+.heatmap__corner {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Wrapped axis headers for long labels (pre-crash movements). */
+.heatmap__colhead--wrap {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  max-width: none;
+  line-height: 1.15;
+  font-size: 0.72rem;
+}
+
+.heatmap__rowhead--wrap {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.15;
+}
+
+/* --- Cell detail panel (collision / maneuver diagrams) --- */
+
+.heatmap__detail {
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  background: #fff;
+  /* FIXED height (not min-height): the panel must never resize between the
+     empty hint and a diagram, or hovering a top-row cell would shift the grid
+     and cause a hover/un-hover jitter loop. Diagrams are capped to fit here. */
+  height: 11.5rem;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heatmap__detail-hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* Top-down car collision schematic. */
+.collision {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.collision__bolt {
+  color: var(--muted);
+  font-size: 1.4rem;
+}
+
+.cardiag {
+  margin: 0;
+  text-align: center;
+}
+
+.cardiag__svg {
+  height: 6.8rem;
+  width: auto;
+}
+
+.cardiag__front {
+  font-size: 8px;
+  fill: var(--muted);
+  text-anchor: middle;
+  letter-spacing: 0.05em;
+}
+
+.cardiag__cap,
+.maneuver__cap {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
+.cardiag__area,
+.maneuver__move {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 0.78rem;
+}
+
+/* Pre-crash maneuver schematic. */
+.maneuver-pair {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+.maneuver {
+  margin: 0;
+  text-align: center;
+  max-width: 8rem;
+}
+
+.maneuver__svg {
+  height: 5.8rem;
+  width: auto;
+}
+
+.maneuver__tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.maneuver__big {
+  font-size: 22px;
+  font-weight: 700;
+  text-anchor: middle;
 }

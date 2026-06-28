@@ -70,7 +70,9 @@ describe("HeatmapViews", () => {
     );
     // The filtered cell (count 9) is now shown.
     expect(
-      container.querySelector('[aria-label="SV Front, CP Rear: 9"]'),
+      container.querySelector(
+        '[aria-label="Subject vehicle Front, Other party Rear: 9"]',
+      ),
     ).not.toBeNull();
     // Proxy was called same-origin.
     const [url] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
@@ -98,28 +100,40 @@ describe("HeatmapViews", () => {
     );
     // Default data restored: the count-5 cell is still present.
     expect(
-      container.querySelector('[aria-label="SV Front, CP Rear: 5"]'),
+      container.querySelector(
+        '[aria-label="Subject vehicle Front, Other party Rear: 5"]',
+      ),
     ).not.toBeNull();
   });
 
-  it("coarse/fine toggle changes grouping without a refetch", () => {
+  it("contact view opens coarse and the per-area toggle expands it without a refetch", () => {
     const fetchMock = vi.fn();
     global.fetch = fetchMock as unknown as typeof fetch;
     const { getByText, container } = render(
       <HeatmapViews initial={HEATMAPS} />,
     );
-    // Fine grouping renders the per-direction "Left" row header.
-    expect(container.textContent).toContain("Left");
-    fireEvent.click(getByText("Front / rear / side"));
-    // Coarse grouping folds Left/Right into "Side".
+    // Opens on the coarse Front/rear/side view: Left/Right fold into "Side".
     expect(container.querySelector('[aria-label*="Side"]')).not.toBeNull();
+    fireEvent.click(getByText("Per-area detail"));
+    // Per-area detail restores the per-direction "Left" row header.
+    expect(container.textContent).toContain("Left");
     expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("annotates each cell with its share of the matrix total, no decimals", () => {
+    const { container } = render(<HeatmapViews initial={HEATMAPS} />);
+    // Coarse contact total = 5 + 2 = 7; the count-5 cell is 5/7 = 71%.
+    const cell = container.querySelector(
+      'button.heatmap__cell[aria-label="Subject vehicle Front, Other party Rear: 5"]',
+    );
+    expect(cell?.textContent).toContain("5");
+    expect(cell?.textContent).toContain("(71%)");
   });
 
   it("cells are keyboard-reachable buttons with accessible labels", () => {
     const { container } = render(<HeatmapViews initial={HEATMAPS} />);
     const cell = container.querySelector(
-      'button.heatmap__cell[aria-label="SV Front, CP Rear: 5"]',
+      'button.heatmap__cell[aria-label="Subject vehicle Front, Other party Rear: 5"]',
     );
     expect(cell).not.toBeNull();
   });

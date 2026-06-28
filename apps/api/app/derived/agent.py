@@ -9,7 +9,17 @@ independently testable, which is the whole point of using a graph over an inline
 
     parse_intent --> validate_filter --> aggregate --> respond
          |                  |                |
-         +-- default_view <-+----------------+   (any failure)
+         +------------------+                |
+         (parse failure no   |               |
+          longer dead-ends)  +-- default_view +   (validate / aggregate failure)
+
+When the LLM is unavailable (no key, timeout, or malformed output), `parse_intent`
+sets ``candidate=None`` and `validate_filter` recovers deterministically via
+`filters.heuristic_candidates` — keyword-scanning the raw text against the same
+allow-list. So "only Waymo vehicles in Arizona" still filters with no model call;
+only genuinely un-actionable text (nothing matches a known value) reaches
+`default_view`. This is the "maybe filter by that" behavior over a silent
+show-everything.
 
 The model client is **injected** (`run_query(..., model=...)`) so tests run with a
 fake returning canned JSON — no network, no key. Security boundary: the model only
@@ -34,7 +44,7 @@ from langgraph.graph import END, START, StateGraph
 
 from ..data import IncidentData
 from .aggregate import build_heatmaps, filter_rows_by_severity
-from .filters import DerivedFilter, resolve
+from .filters import DerivedFilter, heuristic_candidates, resolve
 
 logger = logging.getLogger(__name__)
 
@@ -130,11 +140,23 @@ async def parse_intent(state: AgentState) -> dict[str, Any]:
 
 
 async def validate_filter(state: AgentState) -> dict[str, Any]:
-    """Resolve candidate values against the data-layer allow-list (U1)."""
+    """Resolve candidate values against the data-layer allow-list (U1).
+
+    When the LLM parse failed (``candidate is None``), recover deterministically
+    by keyword-scanning the raw text against the same allow-list — the NL path
+    degrades to filtering rather than silently showing everything.
+    """
     try:
         known = await state["data"].fetch_known_values()
+        candidate = state.get("candidate")
+        if candidate is None:
+            candidate = heuristic_candidates(
+                state.get("text") or "",
+                known_entities=known["entities"],
+                known_states=known["states"],
+            )
         resolution = resolve(
-            state["candidate"],
+            candidate,
             known_entities=known["entities"],
             known_states=known["states"],
         )
@@ -190,14 +212,14 @@ async def respond(state: AgentState) -> dict[str, Any]:
 # --- Edges ------------------------------------------------------------------
 
 
-def _route_after_parse(state: AgentState) -> str:
-    return "default_view" if state.get("parse_failed") else "validate_filter"
-
-
 def _route_after_validate(state: AgentState) -> str:
     if state.get("validate_failed"):
         return "default_view"
     resolution = state["resolution"]
+    # Parse failed and the deterministic recovery found nothing actionable -> the
+    # user typed something we couldn't act on; show the default with a note.
+    if state.get("parse_failed") and not resolution.resolved:
+        return "default_view"
     # Something was proposed but nothing resolved to an allow-listed value -> the
     # query "failed" in the user's sense; show the default. An empty candidate
     # (genuine "show all") has no drops and proceeds to an unfiltered aggregate.
@@ -219,11 +241,9 @@ def _build_graph():
     builder.add_node("respond", respond)
 
     builder.add_edge(START, "parse_intent")
-    builder.add_conditional_edges(
-        "parse_intent",
-        _route_after_parse,
-        {"validate_filter": "validate_filter", "default_view": "default_view"},
-    )
+    # Parse failure no longer dead-ends: validate_filter runs the deterministic
+    # recovery, so a keyless/erroring LLM still yields a usable filter.
+    builder.add_edge("parse_intent", "validate_filter")
     builder.add_conditional_edges(
         "validate_filter",
         _route_after_validate,

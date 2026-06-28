@@ -37,6 +37,16 @@ export default function HeatmapViews({ initial }: { initial: Heatmaps }) {
           pre_crash: data.pre_crash,
           applied_filter: data.applied_filter,
         });
+        // The filter resolved but matched no canonical incidents — say so
+        // plainly instead of leaving two empty grids that read as "broken".
+        const empty =
+          data.contact_areas.cells.length === 0 &&
+          data.pre_crash.cells.length === 0;
+        if (empty && Object.keys(data.applied_filter).length > 0) {
+          setNote(
+            "No incidents match that filter. Try broadening it or clearing the filter.",
+          );
+        }
       }
     } catch {
       setViews(initial);
@@ -57,6 +67,23 @@ export default function HeatmapViews({ initial }: { initial: Heatmaps }) {
 
   return (
     <div className="heatmaps">
+      <dl className="legend" aria-label="What the two parties mean">
+        <div className="legend__item">
+          <dt className="legend__term legend__term--sv">Subject vehicle</dt>
+          <dd className="legend__def">
+            the autonomous vehicle reported in the incident (the SGO data calls
+            it &ldquo;SV&rdquo;).
+          </dd>
+        </div>
+        <div className="legend__item">
+          <dt className="legend__term legend__term--cp">Other party</dt>
+          <dd className="legend__def">
+            the other road user it crashed with — another vehicle, cyclist, or
+            pedestrian (the data calls it the crash partner, &ldquo;CP&rdquo;).
+          </dd>
+        </div>
+      </dl>
+
       <form className="query" onSubmit={onSubmit}>
         <label className="query__label" htmlFor="nl-query">
           Filter the views in plain English

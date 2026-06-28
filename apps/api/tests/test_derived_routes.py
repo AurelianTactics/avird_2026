@@ -194,11 +194,23 @@ def test_query_empty_text_default_no_filter():
 def test_query_agent_failure_never_500s():
     _use(ROWS)
     _use_model(FakeModel(raises=True))
-    resp = _post("/derived/query", {"text": "only Waymo"})
+    # Unrecoverable text (no known value) -> default view, still 200 not 500.
+    resp = _post("/derived/query", {"text": "asdf qwer zxcv"})
     assert resp.status_code == 200  # not 500
     body = resp.json()
     assert body["fallback"] is True
     assert body["applied_filter"] == {}
+
+
+def test_query_recovers_without_llm():
+    # LLM raises, but the text names known values -> deterministic recovery
+    # filters anyway (the keyless / "maybe filter by that" path).
+    _use(ROWS)
+    _use_model(FakeModel(raises=True))
+    body = _post("/derived/query", {"text": "only Waymo in Arizona"}).json()
+    assert body["fallback"] is False
+    assert body["applied_filter"] == {"entity": "Waymo", "state": "AZ"}
+    assert _cell(body["contact_areas"], "Front", "Rear") == 1
 
 
 def test_query_response_shape_matches_heatmaps_plus_agent_meta():

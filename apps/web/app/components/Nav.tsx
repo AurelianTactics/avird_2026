@@ -4,7 +4,7 @@ import Link from "next/link";
 // routing framework, no active-state lib (YAGNI, plan R22). Server component.
 const LINKS: { label: string; href: string }[] = [
   { label: "Incidents", href: "/" },
-  { label: "Groupings", href: "/groupings" },
+  { label: "AV Company Stats", href: "/groupings" },
   { label: "Heatmaps", href: "/heatmaps" },
   { label: "About", href: "/about" },
 ];

@@ -7,7 +7,7 @@ stand in for `IncidentData.fetch_known_values()`.
 
 from __future__ import annotations
 
-from app.derived.filters import DerivedFilter, resolve
+from app.derived.filters import DerivedFilter, heuristic_candidates, resolve
 
 KNOWN_ENTITIES = ["Waymo", "Cruise", "Mercedes Benz", "Zoox"]
 KNOWN_STATES = ["AZ", "CA", "TX", "NY"]
@@ -92,3 +92,30 @@ def test_as_dict_includes_only_resolved_dimensions():
 def test_all_three_dimensions_resolve():
     res = _resolve({"entity": "cruise", "state": "Texas", "severity": "Fatality"})
     assert res.filter == DerivedFilter(entity="Cruise", state="TX", severity_bucket="Fatality")
+
+
+# --- Deterministic recovery layer (LLM-free keyword extraction) -------------
+
+
+def _heur(text):
+    return heuristic_candidates(text, known_entities=KNOWN_ENTITIES, known_states=KNOWN_STATES)
+
+
+def test_heuristic_extracts_entity_and_state_from_plain_text():
+    cand = _heur("only Waymo vehicles in Arizona")
+    # Candidate words still flow through `resolve`; here we assert extraction.
+    assert _resolve(cand).filter == DerivedFilter(entity="Waymo", state="AZ")
+
+
+def test_heuristic_matches_uppercase_state_code_only():
+    # Bare 2-letter words like "in"/"or" must NOT be read as state codes.
+    assert "state" not in _heur("a vehicle stopped in traffic")
+    assert _heur("crashes in AZ").get("state") == "AZ"
+
+
+def test_heuristic_reads_severity_phrasing():
+    assert _resolve(_heur("show fatal crashes")).filter.severity_bucket == "Fatality"
+
+
+def test_heuristic_finds_nothing_in_unrelated_text():
+    assert _heur("tell me about flying cars") == {}
