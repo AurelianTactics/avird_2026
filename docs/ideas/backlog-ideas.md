@@ -102,3 +102,8 @@ Unsorted, rough backlog items for potential future implementation
     * find findings, current pages, data dictionaries etc
 * Agent native:
     * user asks a question and page generates the query and design for it
+* the lLM as a judge and debate
+    * otehr models or user can choose
+    * consider all relevant narratives and facts for this, not just current narrative, better prompts, better research
+* talk to data might be useful for the groupings page as well
+    * not just for filtering but for "hey which are the incidents that are fatal for waymo"

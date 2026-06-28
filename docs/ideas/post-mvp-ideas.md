@@ -1,10 +1,6 @@
 # working
 * W5 branch
-    * prompt below for the plan
-    * DONE review the plan
-    * agent review of the plan
-    * review the work
-
+    * DONE prompt below for the plan
  /compound-engineering:ce-plan Let's make a plan to do W5 from
   docs\brainstorms\2026-06-05-website-mvp-requirements.md . I was thinking get those visual views and pre crash
   movement redacted stats from the main treated data.
@@ -12,22 +8,49 @@
   Let's have that be the first part of the plan. The second part of the plan I was picturing a text box that would
   allow you to do simple queries like 'Only waymo vehicles in Arizona' and regenerate the plots.
 
+    * DONE review the plan
+    * agent review of the plan
+    * review the output
+        * DONE review the pages
+        * DONE rename the groupings page. Call it like AV Company Stats
+        * “only Waymo vehicles in Arizona” does not work
+            * see what it shows, maybe filter by that
+            * ug, removed LLM call now just deterministic nonsense
+        * DONE open on the front / side rear
+        * DONE the CP / SV should be larger and not abbreviations and explain what they mean
+        * DONE the pre crash movements maybe larger grouping
+            * for the full thing maybe have other? there are too many low value ones and I can't read the CP columns correctly
+            * ... on the columns is not helpful, cant see
+            * try to organize them a bit better maybe not sure what the ordering is
+        * can I do an image that when you over over the heatmap thing shows what parts collided into each other
+        * what about an animation for the maneuvers. maybe on a hover over or a click
+    * more fixes
+        * if I was going to show the %, how would taht work? count's are nice but % might be nice too but % of what? Overall incidents by that SV or CP I think. could do overall % or by row or column but that might be misleading. Could I show the count and the (%) with no decimals?
+        * I think we need more of an explanation of what the text box on the heatmap pages does. Both to me in chat and on the webpage. Some other things related to this:
+            * I'm concerned about the decision for if the LLM part does not work not to go back to default but to go to some sort of deterministic or text matching logic. I think that may make sense in a real application but here I'm trying to learn the LLM and langgraph part. I know I can do rules based things.
+            * it is fine if the text part does not work. If the LLM is down or there is an issue, that is fine. Feel free to print a concise error message along with the default. The only rule based fallback I want is just to show the default
+            * What are the filter options. I think the system prompt says there are only 3 options? That is fine if that's the case just want it to be explicit.
 
-
-
-- finish up ontology work
-    - something to visualize
-        - DONE view the results
-        - results are good but not using the website for some reason, redo
-    - a write up of the strengths and weaknesses
-        - write this up
-    * agent review of the work
-
-
+    * review the text to SQL part
+        * discuss why certain things where chosen versus an out of the box tool
+        * For the heatmap code I want to understand the process of going from text to filtering. I especially want to understand the part that Langgraph does.
+    * confirm the cost and limiting
 
 
 
 # Post MVP Ideas
+* using the ontology work with a graphDB and RAG maybe
+    * get a better sense of how they are combined
+    * RAG embeddings versus asking the graph and that chain of things
+        * exact SQL, agent from a template, agent skills, agent builds etc
+    * see conversation with claude on this
+        * text to SQL, (W5 should have this)
+        * plain RAG over narratives, embed then retreival
+            * small set for evaluation for stages 1 and 2 maybe
+        * knowledge graph queries (would need the ontology instantied and the DB)
+        * route across agents for which to select
+        * hybrid / graph RAG and agentic orchestration
+
 - replan on what you want to accomplish here and re-prioritize
     * thinking W5 here
         * see if can do a text box so can filter the data down in certain ways. shows query. probably preferable to the
@@ -38,6 +61,8 @@
         * revisit the old code
     * then W6
     * then maybe a break
+* maybe pull in the waymo data from the waymo data hub?
+    * the API info from the map at least or maybe some other stuff
 - review old brainstorm, backlog, and other ideas
 
 ## More Website ideas
@@ -84,3 +109,14 @@ On the incident pages let's link to the same incidents but other reports. Move t
 * DONE this really the claude front end
 * DONE incident date not sorted correctly, have some sort of id
 * DONE really no property damage incidents
+
+# done
+
+- DONE finish up ontology work
+    - something to visualize
+        - DONE view the results
+        - results are good but not using the website for some reason, redo
+    - a write up of the strengths and weaknesses
+        - write this up
+    * agent review of the work
+
