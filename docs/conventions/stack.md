@@ -23,7 +23,7 @@ If Railway's internal hostname doesn't resolve for some reason, the temporary fa
 | `DATABASE_URL` | Railway (Postgres reference variable) | `api` | Never committed. `.env.example` placeholder only. Sanitized in logs on failure. |
 | `API_URL`      | Railway (reference variable to `api` service's internal hostname) | `web` (server-side only) | **No `NEXT_PUBLIC_` prefix** — server components only. Never bundled into browser. |
 | `PORT`         | Railway (per-service) | `web`, `api` | FastAPI starts via `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. |
-| `ANTHROPIC_API_KEY` | local `.env` (gitignored) | `ontology/` scripts | Paid LLM calls (discovery, extraction, golden pre-label). Never committed; tests stub the client and need no key. |
+| `ANTHROPIC_API_KEY` | local `.env` (gitignored); Railway `api` service (runtime) | `ontology/` + `fault/` scripts, **and the `api` runtime** | Paid LLM calls. Offline: discovery/extraction/golden pre-label (ontology) and the fault judge batch (`fault/`). Runtime: the live debate routes in `api` (`POST /incidents/{id}/debate/{turn,judge}`) — **new**; `api` was previously key-free. **Do not** add it to `web`. Never committed; tests stub the client and need no key. |
 | `NEO4J_URI` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB Free `neo4j+s://...` connection URI from the Aura console. |
 | `NEO4J_USERNAME` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential (usually `neo4j`). |
 | `NEO4J_PASSWORD` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential, shown once at instance creation. |
@@ -49,6 +49,15 @@ Single-owner project; the repo is not externally writable. Secrets (`DATABASE_UR
 ## API contract (P0)
 
 - `GET /health` → `200 { "status": "ok", "db": "ok" | "down" }`. Returns 200 even when `db` is `"down"` so transient DB blips don't fail Railway healthchecks. The `web` index renders this status as one of `"API: ok"`, `"API: down"`, or `"API: unreachable"` (the last when the fetch itself fails).
+
+## Fault judge + debate routes (P1)
+
+LLM fault features hang off the incident page (see [docs/plans/2026-06-25-001-feat-fault-judge-and-debate-plan.md](../plans/2026-06-25-001-feat-fault-judge-and-debate-plan.md)).
+
+- `GET /incidents/{id}/fault` → the precomputed "insurance adjuster" verdict for one report (`is_av_at_fault`, `av_fault_percentage` 0..1, `short_explanation`, `model`, `fault_version`, `created_at`); `404` when no verdict exists. **Read-only, no LLM deps on this path** — verdicts are computed offline by `fault/judge_batch.py` and stored in `fault_analysis`.
+- `POST /incidents/{id}/debate/turn` → one AI advocate message arguing the *opposite* of the visitor's position. Body: `{ user_position, transcript, user_argument }`. **Live LLM, stateless** (the client holds the transcript).
+- `POST /incidents/{id}/debate/judge` → a neutral verdict `{ is_av_at_fault, fault_percentage, reasoning }` over the transcript. Live LLM, stateless.
+- The debate routes enforce hard caps (max rounds, per-argument + total transcript size → `4xx`) and a process-local rolling-24h USD budget guard (`DEBATE_DAILY_BUDGET_USD`, default `$5`; → `429` once tripped). `web` exposes thin same-origin proxy handlers at `/api/incidents/[id]/debate/{turn,judge}` that re-enforce the caps and forward to the internal `api` via server-only `API_URL`. The internal debate model is `claude-haiku-4-5`, overridable via `DEBATE_MODEL_ID`.
 
 ## Local dev env
 

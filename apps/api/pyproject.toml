@@ -6,6 +6,10 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]>=0.115",
     "asyncpg>=0.29",
+    # Live debate pipeline (Feature 2). Runtime LLM deps — new for the api
+    # service, which was previously key-free. Kept in sync with requirements.txt.
+    "langgraph>=0.2",
+    "langchain-anthropic>=0.3",
 ]
 
 [dependency-groups]

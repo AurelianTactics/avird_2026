@@ -10,6 +10,13 @@
 // Windows, and uvicorn binds IPv4 only — localhost silently ECONNREFUSEDs.
 const API_URL = process.env.API_URL ?? "http://127.0.0.1:8000";
 
+// Shared secret for the internal web→api hop. Server-only; sent only when set
+// (production). Mirrors apps/web/app/lib/debate.ts so read + write paths agree.
+function internalSecretHeaders(): Record<string, string> {
+  const secret = process.env.API_SHARED_SECRET;
+  return secret ? { "x-internal-secret": secret } : {};
+}
+
 export type IncidentListItem = {
   report_id: string;
   reporting_entity: string | null;
@@ -56,6 +63,18 @@ export type IncidentDetail = {
   other_reports: { report_id: string; reporting_entity: string | null }[];
 };
 
+// Precomputed LLM "insurance adjuster" verdict for one report. A parse-failure
+// sentinel row carries null verdict + null percentage + an error explanation.
+export type FaultVerdict = {
+  report_id: string | null;
+  fault_version: string | null;
+  is_av_at_fault: boolean | null;
+  av_fault_percentage: number | null; // 0..1
+  short_explanation: string | null;
+  model: string | null;
+  created_at: string | null;
+};
+
 export type EntitySeverityGroupings = {
   buckets: string[];
   rows: { entity: string; counts: Record<string, number>; total: number }[];
@@ -67,7 +86,10 @@ export type ApiResult<T> =
 
 async function getJson<T>(path: string): Promise<ApiResult<T>> {
   try {
-    const res = await fetch(`${API_URL}${path}`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}${path}`, {
+      cache: "no-store",
+      headers: internalSecretHeaders(),
+    });
     if (res.status === 404) return { ok: false, error: "notfound" };
     if (!res.ok) return { ok: false, error: "unreachable" };
     const data = (await res.json()) as T;
@@ -103,4 +125,10 @@ export function fetchEntitySeverity(): Promise<
   ApiResult<EntitySeverityGroupings>
 > {
   return getJson<EntitySeverityGroupings>("/groupings/entity-severity");
+}
+
+export function fetchFault(reportId: string): Promise<ApiResult<FaultVerdict>> {
+  return getJson<FaultVerdict>(
+    `/incidents/${encodeURIComponent(reportId)}/fault`,
+  );
 }

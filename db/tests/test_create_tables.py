@@ -56,6 +56,7 @@ EXPECTED_TABLES = {
     'raw_incident_reports',
     'ingest_batches',
     'treated_incident_reports',
+    'fault_analysis',
 }
 EXPECTED_VIEWS = {'raw_incident_reports_latest'}
 
@@ -89,6 +90,82 @@ def test_raw_column_list_equals_union_of_headers(engine, csv_paths):
     assert create_tables.METADATA_COLUMNS <= cols
     # no duplication: union has no repeats
     assert len(union) == len(set(union))
+
+
+def test_fault_analysis_has_expected_columns(engine, csv_paths):
+    create_tables.create(engine, csv_paths=csv_paths)
+    insp = inspect(engine)
+    cols = {c['name'] for c in insp.get_columns('fault_analysis')}
+    assert {
+        'report_id',
+        'fault_version',
+        'is_av_at_fault',
+        'av_fault_percentage',
+        'short_explanation_of_decision',
+        'model',
+        'created_at',
+    } <= cols
+
+
+def test_fault_analysis_rejects_out_of_range_percentage(engine, csv_paths):
+    from sqlalchemy.exc import IntegrityError
+
+    create_tables.create(engine, csv_paths=csv_paths)
+    # sqlite enforces CHECK constraints; a percentage outside [0,1] is rejected.
+    with pytest.raises(IntegrityError):
+        with engine.begin() as conn:
+            conn.execute(text(
+                'INSERT INTO fault_analysis '
+                '(report_id, fault_version, av_fault_percentage, created_at) '
+                "VALUES ('R1', 'v1', 2.0, '2026-06-25T00:00:00')"
+            ))
+
+
+def test_fault_analysis_allows_null_sentinel_row(engine, csv_paths):
+    # A parse failure stores NULL verdict + NULL percentage; the 0..1 CHECK
+    # passes on NULL, so the error-sentinel row is legal.
+    create_tables.create(engine, csv_paths=csv_paths)
+    with engine.begin() as conn:
+        conn.execute(text(
+            'INSERT INTO fault_analysis '
+            '(report_id, fault_version, is_av_at_fault, av_fault_percentage, '
+            'short_explanation_of_decision, created_at) '
+            "VALUES ('R1', 'v1', NULL, NULL, 'Error in parse', "
+            "'2026-06-25T00:00:00')"
+        ))
+    with engine.connect() as conn:
+        n = conn.execute(text('SELECT COUNT(*) FROM fault_analysis')).scalar()
+    assert n == 1
+
+
+def test_fault_analysis_unique_key_blocks_duplicate(engine, csv_paths):
+    from sqlalchemy.exc import IntegrityError
+
+    create_tables.create(engine, csv_paths=csv_paths)
+    with engine.begin() as conn:
+        conn.execute(text(
+            'INSERT INTO fault_analysis '
+            '(report_id, fault_version, created_at) '
+            "VALUES ('R1', 'v1', '2026-06-25T00:00:00')"
+        ))
+    # Same (report_id, fault_version) violates the UNIQUE key — re-runs must
+    # upsert (ON CONFLICT), never blindly append a duplicate verdict.
+    with pytest.raises(IntegrityError):
+        with engine.begin() as conn:
+            conn.execute(text(
+                'INSERT INTO fault_analysis '
+                '(report_id, fault_version, created_at) '
+                "VALUES ('R1', 'v1', '2026-06-26T00:00:00')"
+            ))
+
+
+def test_drop_all_drops_fault_analysis(engine, csv_paths):
+    create_tables.create(engine, csv_paths=csv_paths)
+    drop_sql = (create_tables._SQL_DIR / '099_drop_all.sql').read_text()
+    with engine.begin() as conn:
+        create_tables._run_script(conn, drop_sql)
+    insp = inspect(engine)
+    assert 'fault_analysis' not in set(insp.get_table_names())
 
 
 def test_reset_drops_and_recreates_empty(engine, csv_paths):
