@@ -12,12 +12,16 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
+from app.derived.budget import InMemoryBudgetGuard, get_budget_guard
 from app.derived.routes import get_filter_model, get_incident_data
 from app.main import app
 
 
 @pytest.fixture(autouse=True)
 def _clear_overrides():
+    # The /query route depends on the durable DB-backed budget guard; swap in the
+    # in-memory variant (generous default cap) so route tests need no Postgres.
+    app.dependency_overrides[get_budget_guard] = lambda: InMemoryBudgetGuard()
     yield
     app.dependency_overrides.clear()
 

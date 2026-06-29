@@ -35,6 +35,8 @@ For local dev, both apps fall back to `.env.example` defaults (`http://localhost
 
 The `api` service gains one LLM-backed route — `POST /derived/query` — built as a small **LangGraph** graph with **Claude** (Anthropic SDK) mapping natural language to a structured, allow-list-validated filter (never model-authored SQL). It is one of the sanctioned dependency-weight exceptions to R22 (LangGraph + Anthropic, shared with the live debate routes), contained to that route: the default `/heatmaps` render and `GET /derived/heatmaps` stay deterministic and LLM-free, so the site is fully usable with no key configured. Deploy must set `ANTHROPIC_API_KEY` in Railway before the query route works in prod.
 
+Because it's a paid LLM call on a public surface, the route is gated by a **daily USD budget guard** (`app/derived/budget.py`, `DERIVED_DAILY_BUDGET_USD`, default `$2`) — a durable rolling-24h ledger (`derived_spend`) separate from the debate guard's so the two LLM features can't drain each other. Per call it's bounded to a 500-char input and `max_tokens=256`; over the daily cap the agent degrades to the unfiltered default view rather than erroring. The model proposes only candidate filter values that `filters.resolve` validates against the data-layer allow-list, so a prompt-injected query can't reach SQL — the residual exposure is cost/abuse, which the budget guard caps.
+
 ## Cross-service references
 
 Use **Railway reference variables** for cross-service URLs — never hardcode a hostname into the repo. From the `web` service settings, `API_URL` is set to a reference pointing at the `api` service's internal hostname. New services follow the same pattern.

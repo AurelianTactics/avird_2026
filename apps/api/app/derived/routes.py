@@ -26,6 +26,7 @@ from pydantic import BaseModel, Field
 from ..data import IncidentData, get_incident_data
 from .agent import ClaudeFilterModel, FilterModel, run_query
 from .aggregate import build_heatmaps, filter_rows_by_severity, redaction_breakdown
+from .budget import BudgetGuard, get_budget_guard
 from .filters import DerivedFilter, resolve
 
 router = APIRouter(prefix="/derived")
@@ -86,8 +87,11 @@ async def query(
     body: QueryRequest,
     data: IncidentData = Depends(get_incident_data),
     model: FilterModel = Depends(get_filter_model),
+    guard: BudgetGuard = Depends(get_budget_guard),
 ) -> dict[str, Any]:
     # Runs the agent graph (U5). Never 500s on a bad query: agent failures surface
     # as fallback=true with the default (unfiltered) matrices (plan KTD 4/KTD 5).
     # Same heatmap shape as GET /derived/heatmaps plus {fallback, message}.
-    return await run_query(body.text, data=data, model=model)
+    # `guard` enforces a daily USD cap on this public LLM surface (budget.py); over
+    # the cap the agent degrades to the default view rather than erroring.
+    return await run_query(body.text, data=data, model=model, guard=guard)

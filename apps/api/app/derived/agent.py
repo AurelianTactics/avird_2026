@@ -46,6 +46,7 @@ from langgraph.graph import END, START, StateGraph
 
 from ..data import IncidentData
 from .aggregate import build_heatmaps, filter_rows_by_severity
+from .budget import BudgetGuard
 from .filters import DerivedFilter, resolve
 
 logger = logging.getLogger(__name__)
@@ -63,6 +64,9 @@ _FALLBACK_MESSAGE = "Couldn't apply that filter — showing all incidents."
 _LLM_ERROR_MESSAGE = (
     "The natural-language query service is unavailable right now — showing all incidents."
 )
+# Shown when the daily NL-query budget is exhausted — degrade to the default view
+# rather than erroring, so the page stays usable (KTD 5). See `budget.py`.
+_BUDGET_MESSAGE = "The natural-language query service is busy right now — showing all incidents."
 
 SYSTEM_PROMPT = (
     "You extract a structured filter from a user's natural-language request about "
@@ -79,8 +83,7 @@ SYSTEM_PROMPT = (
 class FilterModel(Protocol):
     """The injected model seam: free text -> candidate filter JSON (a string)."""
 
-    def propose(self, text: str) -> str:
-        ...
+    def propose(self, text: str) -> str: ...
 
 
 class ClaudeFilterModel:
@@ -120,6 +123,9 @@ class AgentState(TypedDict, total=False):
     text: str
     data: IncidentData
     model: FilterModel
+    # Optional daily-budget guard (the route injects the durable one; agent unit
+    # tests run without it). When present, `parse_intent` reserves before the call.
+    guard: Any
     candidate: dict[str, Any] | None
     parse_failed: bool
     fallback_message: str
@@ -138,17 +144,41 @@ async def parse_intent(state: AgentState) -> dict[str, Any]:
     On any LLM failure (no key, timeout, or non-JSON output) this routes straight
     to `default_view` — there is no rules-based recovery. The single fallback is
     the default view with a concise "service unavailable" note.
+
+    When a budget `guard` is injected, the call is gated by a daily USD cap: the
+    worst-case cost is reserved *before* the paid call (so concurrent requests
+    can't all slip past the cap), kept if a paid call happens, and released if it
+    doesn't. Over the cap we degrade to the default view, not an error (KTD 5).
     """
     text = (state.get("text") or "").strip()
     if not text:
         return {"candidate": {}, "parse_failed": False}
+
+    guard = state.get("guard")
+    reservation = None
+    if guard is not None:
+        reservation = await guard.reserve(guard.estimate_cost())
+        if reservation is None:
+            # Daily budget exhausted — show the default view with a budget note.
+            return {"candidate": None, "parse_failed": True, "fallback_message": _BUDGET_MESSAGE}
+
     try:
         raw = await asyncio.to_thread(state["model"].propose, text)
+    except Exception:  # noqa: BLE001 — never log the key or raw payload
+        # The paid call didn't bill (no key / timeout) — free the reservation.
+        if guard is not None and reservation is not None:
+            await guard.release(reservation)
+        logger.warning("NL query LLM call failed; using default view")
+        return {"candidate": None, "parse_failed": True, "fallback_message": _LLM_ERROR_MESSAGE}
+
+    # propose returned -> a paid call happened; keep the reservation even if the
+    # output is unparseable (we were still billed for it).
+    try:
         candidate = json.loads(raw)
         if not isinstance(candidate, dict):
             raise ValueError("model did not return a JSON object")
-    except Exception:  # noqa: BLE001 — never log the key or raw payload
-        logger.warning("NL query LLM call failed; using default view")
+    except Exception:  # noqa: BLE001
+        logger.warning("NL query returned malformed output; using default view")
         return {"candidate": None, "parse_failed": True, "fallback_message": _LLM_ERROR_MESSAGE}
     return {"candidate": candidate, "parse_failed": False}
 
@@ -273,12 +303,21 @@ def _build_graph():
 _GRAPH = _build_graph()
 
 
-async def run_query(text: str, *, data: IncidentData, model: FilterModel) -> dict[str, Any]:
+async def run_query(
+    text: str,
+    *,
+    data: IncidentData,
+    model: FilterModel,
+    guard: BudgetGuard | None = None,
+) -> dict[str, Any]:
     """Run the NL-query graph. Always returns a renderable result dict:
 
     ``{applied_filter, fallback, message, contact_areas, pre_crash}``.
+
+    `guard`, when provided, enforces the daily NL-query budget (see `budget.py`);
+    omit it (the agent unit tests do) to run the graph with no budget gating.
     """
-    final = await _GRAPH.ainvoke({"text": text or "", "data": data, "model": model})
+    final = await _GRAPH.ainvoke({"text": text or "", "data": data, "model": model, "guard": guard})
     return final["result"]
 
 
