@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 
 // Shown alongside both LLM features (R5a). The same real-world crash can get
 // different verdicts across its separate reporting rows — that's expected.
-export const FAULT_DISCLAIMER =
+const FAULT_DISCLAIMER =
   "This is an AI opinion generated for entertainment and learning — not a " +
   "legal or factual determination. The same real-world crash can receive " +
   "different verdicts across its separate reporting rows.";

@@ -35,7 +35,7 @@
         * discuss why certain things where chosen versus an out of the box tool
         * For the heatmap code I want to understand the process of going from text to filtering. I especially want to understand the part that Langgraph does.
     * confirm the cost and limiting
-* LLM judge / argument
+* DONE LLM judge / argument
     * RUNNING on step where instantiated DB and verify
     * DONE next would be the run in browser and see=
     * then review
@@ -53,8 +53,10 @@
         * SEE NOTES FOR IDEAS
 * merge in
     * heatmap
-    * LLM judge
+    * TEST LLM judge
+        * ERROR DEBUG HERE
 * agent review of LLM judge / argument and the heatmap;
+
 
 
 # Post MVP Ideas
@@ -71,20 +73,20 @@
         * hybrid / graph RAG and agentic orchestration
         * Prompt:
             * I want to learn more about database options and agentic integration. Let's make a plan. I'm not saying we will do all parts of these plans but I want to see the progression if I was going to implement it. I'm interested in what validations, prompts, context building, agentic self validation loops, and 'golden datasets' I would need to do for each part.
-                * Text to SQL: Sort of accomplished maybe in the heatmap page. Is this enough for the basics or should I expand?
+                * Text to SQL: Sort of accomplished maybe in the heatmap page. Is this enough for the basics or should I expand? Existing is more like text to bound parts of a SQL query. I wouldn't mind learning this a bit better with a real example. Maybe make it more open ended and be able to query any part of the treated table?
                 * Plan RAG over narratives, embed then retrieval.
                 * Knowledge graph queries on the ontology data.
                 * route across agents for which of the above and below options to select
                 * Hybrid graph / RAG and agentic orchestration.
 
 - replan on what you want to accomplish here and re-prioritize
-    * thinking W5 here
+    * IN PROGRESS thinking W5 here
         * see if can do a text box so can filter the data down in certain ways. shows query. probably preferable to the
-    * W3 and W4: maybe re modify
-    * the LLM as a judge ideas
+    * IN PROGRESS the LLM as a judge ideas
         * who is at fault
         * the argument
         * revisit the old code
+    * W3 and W4: maybe re modify
     * then W6
     * then maybe a break
 * maybe pull in the waymo data from the waymo data hub?
