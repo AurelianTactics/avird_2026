@@ -1,0 +1,172 @@
+"use client";
+
+import { useId, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import type { HeatmapMatrix } from "../lib/api";
+
+// Shared interactive heatmap: a CSS-grid of cells whose intensity encodes the
+// co-occurrence count, with a hover/focus caption and keyboard-reachable cells.
+// Hand-rolled (no chart lib, plan KTD 6) over the project's design tokens.
+//
+// The active cell is tracked as a value (not just a caption string) so a caller
+// can render a richer detail panel for it — e.g. a car-collision schematic or a
+// maneuver diagram — via the `renderDetail` render-prop.
+
+export type ActiveCell = { sv: string; cp: string; count: number };
+
+// Share-of-total annotation: integer percent, with non-zero values that round
+// to 0 shown as "<1%" so a real pairing never reads as nothing. Empty -> "".
+function pctLabel(count: number, total: number): string {
+  if (count <= 0 || total <= 0) return "";
+  const raw = (count / total) * 100;
+  if (raw < 0.5) return "<1%";
+  return `${Math.round(raw)}%`;
+}
+
+function cellStyle(ratio: number): React.CSSProperties {
+  // Sequential scale: faint surface -> brand accent. Text flips to white once
+  // the fill is dark enough to keep contrast.
+  const alpha = ratio === 0 ? 0 : 0.12 + 0.88 * ratio;
+  return {
+    backgroundColor:
+      ratio === 0 ? "var(--bg-soft)" : `rgba(31, 95, 176, ${alpha})`,
+    color: ratio > 0.55 ? "#fff" : "var(--ink)",
+  };
+}
+
+export default function MatrixGrid({
+  matrix,
+  rowLabel,
+  colLabel,
+  emptyMessage,
+  wrapHeaders = false,
+  colMinWidth = "2.25rem",
+  unit = "incident",
+  renderDetail,
+}: {
+  matrix: HeatmapMatrix;
+  rowLabel: string;
+  colLabel: string;
+  emptyMessage: string;
+  // Long axis labels (pre-crash movements) wrap instead of being clipped to "…".
+  wrapHeaders?: boolean;
+  colMinWidth?: string;
+  // What one count represents — "incident" (pre-crash: one pair per incident)
+  // or "contact pairing" (contact areas: a crash can flag several pairs). Drives
+  // the cell %-of-total denominator's label so it never overclaims "incidents".
+  unit?: string;
+  // Optional richer panel for the active cell (e.g. a collision diagram).
+  renderDetail?: (cell: ActiveCell) => ReactNode;
+}) {
+  const captionId = useId();
+  const [active, setActive] = useState<ActiveCell | null>(null);
+
+  const { counts, max, total } = useMemo(() => {
+    const map = new Map<string, number>();
+    let m = 0;
+    let sum = 0;
+    for (const c of matrix.cells) {
+      map.set(`${c.sv} ${c.cp}`, c.count);
+      if (c.count > m) m = c.count;
+      sum += c.count;
+    }
+    return { counts: map, max: m, total: sum };
+  }, [matrix]);
+
+  if (matrix.sv_axis.length === 0 || matrix.cp_axis.length === 0) {
+    return <p className="notice">{emptyMessage}</p>;
+  }
+
+  const gridTemplateColumns = `minmax(7rem, auto) repeat(${matrix.cp_axis.length}, minmax(${colMinWidth}, 1fr))`;
+  const unitPlural = (n: number) => (n === 1 ? unit : `${unit}s`);
+  const caption = active
+    ? `${rowLabel} ${active.sv} × ${colLabel} ${active.cp}: ${active.count} ${unitPlural(
+        active.count,
+      )}${
+        active.count > 0 && total > 0
+          ? ` (${pctLabel(active.count, total)} of all ${unit}s shown)`
+          : ""
+      }`
+    : `Hover or focus a cell to read its count and share. Rows = ${rowLabel}, columns = ${colLabel}.`;
+  const colheadClass = wrapHeaders
+    ? "heatmap__colhead heatmap__colhead--wrap"
+    : "heatmap__colhead";
+  const rowheadClass = wrapHeaders
+    ? "heatmap__rowhead heatmap__rowhead--wrap"
+    : "heatmap__rowhead";
+
+  return (
+    <div className="heatmap">
+      <div
+        id={captionId}
+        className="heatmap__caption"
+        role="status"
+        aria-live="polite"
+      >
+        {caption}
+      </div>
+      {renderDetail ? (
+        <div className="heatmap__detail" aria-hidden="true">
+          {active ? (
+            renderDetail(active)
+          ) : (
+            <p className="heatmap__detail-hint">
+              Hover a cell to see the collision shown on the diagram.
+            </p>
+          )}
+        </div>
+      ) : null}
+      <div className="heatmap__grid" style={{ gridTemplateColumns }}>
+        <div className="heatmap__corner" aria-hidden="true">
+          <span className="heatmap__corner-row">{rowLabel} ↓</span>
+          <span className="heatmap__corner-col">{colLabel} →</span>
+        </div>
+        {matrix.cp_axis.map((cp) => (
+          <div key={cp} className={colheadClass} title={cp}>
+            {cp}
+          </div>
+        ))}
+        {matrix.sv_axis.map((sv) => (
+          <div
+            key={sv}
+            className="heatmap__row"
+            style={{ display: "contents" }}
+          >
+            <div className={rowheadClass} title={sv}>
+              {sv}
+            </div>
+            {matrix.cp_axis.map((cp) => {
+              const count = counts.get(`${sv} ${cp}`) ?? 0;
+              const ratio = max > 0 ? count / max : 0;
+              const pct = pctLabel(count, total);
+              const detail = `${rowLabel} ${sv}, ${colLabel} ${cp}: ${count}`;
+              return (
+                <button
+                  type="button"
+                  key={cp}
+                  className="heatmap__cell"
+                  style={cellStyle(ratio)}
+                  aria-label={detail}
+                  title={detail}
+                  onMouseEnter={() => setActive({ sv, cp, count })}
+                  onFocus={() => setActive({ sv, cp, count })}
+                  onMouseLeave={() => setActive(null)}
+                  onBlur={() => setActive(null)}
+                >
+                  {count > 0 ? (
+                    <>
+                      <span className="heatmap__cell-count">{count}</span>
+                      <span className="heatmap__cell-pct">({pct})</span>
+                    </>
+                  ) : (
+                    ""
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

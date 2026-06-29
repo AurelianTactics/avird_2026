@@ -23,13 +23,17 @@ If Railway's internal hostname doesn't resolve for some reason, the temporary fa
 | `DATABASE_URL` | Railway (Postgres reference variable) | `api` | Never committed. `.env.example` placeholder only. Sanitized in logs on failure. |
 | `API_URL`      | Railway (reference variable to `api` service's internal hostname) | `web` (server-side only) | **No `NEXT_PUBLIC_` prefix** — server components only. Never bundled into browser. |
 | `PORT`         | Railway (per-service) | `web`, `api` | FastAPI starts via `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. |
-| `ANTHROPIC_API_KEY` | local `.env` (gitignored); Railway `api` service (runtime) | `ontology/` + `fault/` scripts, **and the `api` runtime** | Paid LLM calls. Offline: discovery/extraction/golden pre-label (ontology) and the fault judge batch (`fault/`). Runtime: the live debate routes in `api` (`POST /incidents/{id}/debate/{turn,judge}`) — **new**; `api` was previously key-free. **Do not** add it to `web`. Never committed; tests stub the client and need no key. |
+| `ANTHROPIC_API_KEY` | local `.env` (gitignored); Railway `api` service (runtime) | `ontology/` + `fault/` scripts, **and the `api` runtime** | Paid LLM calls, read at call time, never logged (sanitized degrade, mirroring `DATABASE_URL`). Offline: discovery/extraction/golden pre-label (ontology) and the fault judge batch (`fault/`). Runtime: the live debate routes (`POST /incidents/{id}/debate/{turn,judge}`) and the NL-query agent (`POST /derived/query`) — `api` was previously key-free. **Do not** add it to `web`. Absent ⇒ the site still renders; only those LLM routes degrade to their fallbacks (debate paused; query → default view). Never committed; tests stub the client and need no key. |
 | `NEO4J_URI` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB Free `neo4j+s://...` connection URI from the Aura console. |
 | `NEO4J_USERNAME` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential (usually `neo4j`). |
 | `NEO4J_PASSWORD` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential, shown once at instance creation. |
 | `LANGSMITH_TRACING` / `LANGSMITH_API_KEY` | local `.env` (optional) | `ontology/` LangGraph runs | Optional run tracing; JSONL run records remain the durable system of record. |
 
-For local dev, both apps fall back to `.env.example` defaults (`http://localhost:8000` for `API_URL`, a local Postgres URL for `DATABASE_URL`).
+For local dev, both apps fall back to `.env.example` defaults (`http://localhost:8000` for `API_URL`, a local Postgres URL for `DATABASE_URL`). `ANTHROPIC_API_KEY` has no default — leave it unset locally and the NL-query path returns the unfiltered default view.
+
+## Agent path (W5)
+
+The `api` service gains one LLM-backed route — `POST /derived/query` — built as a small **LangGraph** graph with **Claude** (Anthropic SDK) mapping natural language to a structured, allow-list-validated filter (never model-authored SQL). It is one of the sanctioned dependency-weight exceptions to R22 (LangGraph + Anthropic, shared with the live debate routes), contained to that route: the default `/heatmaps` render and `GET /derived/heatmaps` stay deterministic and LLM-free, so the site is fully usable with no key configured. Deploy must set `ANTHROPIC_API_KEY` in Railway before the query route works in prod.
 
 ## Cross-service references
 

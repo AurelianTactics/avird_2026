@@ -4,7 +4,8 @@ import Link from "next/link";
 // routing framework, no active-state lib (YAGNI, plan R22). Server component.
 const LINKS: { label: string; href: string }[] = [
   { label: "Incidents", href: "/" },
-  { label: "Groupings", href: "/groupings" },
+  { label: "AV Company Stats", href: "/groupings" },
+  { label: "Heatmaps", href: "/heatmaps" },
   { label: "Ontology", href: "/ontology" },
   { label: "About", href: "/about" },
 ];
@@ -13,7 +14,7 @@ export default function Nav() {
   return (
     <nav className="site-nav" aria-label="Primary">
       <div className="site-nav__inner">
-        <span className="site-nav__brand">avird-2026</span>
+        <span className="site-nav__brand">avird</span>
         <span className="site-nav__links">
           {LINKS.map((l) => (
             <Link key={l.href} href={l.href}>

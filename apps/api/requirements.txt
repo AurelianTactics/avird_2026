@@ -3,5 +3,7 @@
 # Root Directory deploys. Keep in sync when pyproject.toml changes.
 fastapi[standard]>=0.115
 asyncpg>=0.29
+# Live debate pipeline (Feature 2) + W5 NL-query agent (POST /derived/query).
 langgraph>=0.2
 langchain-anthropic>=0.3
+anthropic>=0.40

@@ -32,10 +32,23 @@ INDEX_PAGE = """<!DOCTYPE html>
 
 GROUPINGS_PAGE = """<!DOCTYPE html>
 <html><body>
-<nav><a href="/">Incidents</a><a href="/about">About</a></nav>
+<nav><a href="/">Incidents</a><a href="/heatmaps">Heatmaps</a><a href="/about">About</a></nav>
 <main>
   <h1>Groupings</h1>
   <p>Canonical (deduplicated) crash counts by reporting entity and severity.</p>
+  <h2>Narrative redaction</h2>
+  <p>Share of crash narratives that contain an SGO redaction marker.</p>
+</main>
+</body></html>"""
+
+# The W5 derived-views page. Renders the stable prose intro needle regardless of
+# data/filter state.
+HEATMAPS_PAGE = """<!DOCTYPE html>
+<html><body>
+<nav><a href="/">Incidents</a><a href="/groupings">Groupings</a><a href="/about">About</a></nav>
+<main>
+  <h1>Heatmaps</h1>
+  <p>Two derived views over the canonical crash incidents.</p>
 </main>
 </body></html>"""
 
@@ -86,6 +99,7 @@ def healthy_routes() -> dict[str, tuple[int, str]]:
         "/": (200, INDEX_PAGE),
         "/about": (200, ABOUT_PAGE),
         "/groupings": (200, GROUPINGS_PAGE),
+        "/heatmaps": (200, HEATMAPS_PAGE),
         "/incidents/RPT-1": (200, DETAIL_PAGE),
     }
 
@@ -115,6 +129,56 @@ def test_groupings_needle_is_checked(healthy_routes):
         results = verify("http://test", client=client)
     failed = [r for r in results if not r.ok]
     assert any("/groupings" in r.name and r.detail == "missing" for r in failed)
+
+
+def test_heatmaps_needle_passes_and_missing_fails(healthy_routes):
+    with _client(healthy_routes) as client:
+        results = verify("http://test", client=client)
+    assert any(
+        "/heatmaps" in r.name and "Two derived views" in r.name and r.ok
+        for r in results
+    )
+    # A page missing the needle fails.
+    healthy_routes["/heatmaps"] = (
+        200,
+        HEATMAPS_PAGE.replace("Two derived views over the canonical", "Welcome"),
+    )
+    with _client(healthy_routes) as client:
+        results = verify("http://test", client=client)
+    failed = [r for r in results if not r.ok]
+    assert any("/heatmaps" in r.name and r.detail == "missing" for r in failed)
+
+
+def test_heatmaps_degraded_state_is_rejected(healthy_routes):
+    degraded = HEATMAPS_PAGE.replace(
+        "</main>", '<p class="notice">Could not load heatmaps.</p></main>'
+    )
+    healthy_routes["/heatmaps"] = (200, degraded)
+    with _client(healthy_routes) as client:
+        results = verify("http://test", client=client)
+    failed = [r for r in results if not r.ok]
+    assert any("not-degraded 'Could not load heatmaps'" in r.name for r in failed)
+
+
+def test_groupings_redaction_needle_is_checked(healthy_routes):
+    with _client(healthy_routes) as client:
+        results = verify("http://test", client=client)
+    assert any(
+        "/groupings" in r.name and "Narrative redaction" in r.name and r.ok
+        for r in results
+    )
+    # A groupings page missing the redaction section fails.
+    healthy_routes["/groupings"] = (
+        200,
+        GROUPINGS_PAGE.replace("Narrative redaction", "Something else"),
+    )
+    with _client(healthy_routes) as client:
+        results = verify("http://test", client=client)
+    failed = [r for r in results if not r.ok]
+    assert any(
+        "/groupings" in r.name and "Narrative redaction" in r.name and r.detail == "missing"
+        for r in failed
+    )
 
 
 def test_detail_link_is_discovered_and_checked(healthy_routes):

@@ -1,16 +1,18 @@
-import { fetchEntitySeverity } from "../lib/api";
+import { fetchEntitySeverity, fetchRedactionStats } from "../lib/api";
+import RedactionStats from "./RedactionStats";
 
 export const dynamic = "force-dynamic";
 
 export default async function GroupingsPage() {
   const result = await fetchEntitySeverity();
+  const redaction = await fetchRedactionStats();
 
   return (
     <main>
-      <h1>Groupings</h1>
+      <h1>AV Company Stats</h1>
       <p className="muted">
-        Canonical (deduplicated) crash counts by reporting entity and highest
-        injury severity. Severity is normalized into seven buckets; columns run
+        Canonical (deduplicated) crash counts by AV company and highest injury
+        severity. Severity is normalized into seven buckets; columns run
         left-to-right by decreasing harm.
       </p>
 
@@ -51,6 +53,8 @@ export default async function GroupingsPage() {
           </tbody>
         </table>
       )}
+
+      <RedactionStats result={redaction} />
     </main>
   );
 }

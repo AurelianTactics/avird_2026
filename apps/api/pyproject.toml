@@ -6,10 +6,14 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi[standard]>=0.115",
     "asyncpg>=0.29",
-    # Live debate pipeline (Feature 2). Runtime LLM deps — new for the api
-    # service, which was previously key-free. Kept in sync with requirements.txt.
+    # Runtime LLM deps (new for the api service, previously key-free), kept in
+    # sync with requirements.txt:
+    #   - Live debate pipeline (Feature 2) -> langchain-anthropic
+    #   - W5 NL-query agent (POST /derived/query, KTD 5) -> anthropic SDK direct
+    # The default heatmap render stays dependency-light and LLM-free (KTD 4).
     "langgraph>=0.2",
     "langchain-anthropic>=0.3",
+    "anthropic>=0.40",
 ]
 
 [dependency-groups]
