@@ -202,15 +202,15 @@ def test_query_agent_failure_never_500s():
     assert body["applied_filter"] == {}
 
 
-def test_query_recovers_without_llm():
-    # LLM raises, but the text names known values -> deterministic recovery
-    # filters anyway (the keyless / "maybe filter by that" path).
+def test_query_falls_back_to_default_without_llm():
+    # LLM raises -> the only fallback is the default view (no rules-based recovery),
+    # even when the text names known values. A concise service note is returned.
     _use(ROWS)
     _use_model(FakeModel(raises=True))
     body = _post("/derived/query", {"text": "only Waymo in Arizona"}).json()
-    assert body["fallback"] is False
-    assert body["applied_filter"] == {"entity": "Waymo", "state": "AZ"}
-    assert _cell(body["contact_areas"], "Front", "Rear") == 1
+    assert body["fallback"] is True
+    assert body["applied_filter"] == {}
+    assert "unavailable" in body["message"].lower()
 
 
 def test_query_response_shape_matches_heatmaps_plus_agent_meta():

@@ -116,32 +116,26 @@ async def test_nothing_resolves_falls_back_to_default():
     assert _cell(result["contact_areas"], "Left", "Right") == 1
 
 
-async def test_llm_error_recovers_via_heuristic():
-    # LLM raises -> deterministic recovery scans the text for known values, so a
-    # plain entity query still filters (no key, no model). The "maybe filter by
-    # that" behavior over a silent show-everything.
-    model = FakeModel(raises=True)
-    result = await run_query("only Waymo", data=FakeData(), model=model)
-    assert result["fallback"] is False
-    assert result["applied_filter"] == {"entity": "Waymo"}
-
-
-async def test_llm_unavailable_recovers_entity_and_state():
+async def test_llm_error_falls_back_to_default():
+    # LLM raises -> default view. There is NO rules-based recovery: even a query
+    # containing a known entity shows all incidents, with a service-error note.
     model = FakeModel(raises=True)
     result = await run_query("only Waymo vehicles in Arizona", data=FakeData(), model=model)
-    assert result["fallback"] is False
-    assert result["applied_filter"] == {"entity": "Waymo", "state": "AZ"}
-    # Only the Waymo/AZ row (Front->Rear) feeds the contact matrix.
-    assert _cell(result["contact_areas"], "Front", "Rear") == 1
-    assert _cell(result["contact_areas"], "Left", "Right") == 0
-
-
-async def test_malformed_json_unrecoverable_text_falls_back():
-    # Malformed model output AND no known value in the text -> default view.
-    model = FakeModel(returns="not json at all { definitely")
-    result = await run_query("tell me about flying cars", data=FakeData(), model=model)
     assert result["fallback"] is True
     assert result["applied_filter"] == {}
+    assert "unavailable" in result["message"].lower()
+    # Default = unfiltered: both rows present.
+    assert _cell(result["contact_areas"], "Front", "Rear") == 1
+    assert _cell(result["contact_areas"], "Left", "Right") == 1
+
+
+async def test_malformed_json_falls_back():
+    # Non-JSON model output -> parse failure -> default view with the LLM-error note.
+    model = FakeModel(returns="not json at all { definitely")
+    result = await run_query("only Waymo", data=FakeData(), model=model)
+    assert result["fallback"] is True
+    assert result["applied_filter"] == {}
+    assert "unavailable" in result["message"].lower()
 
 
 async def test_aggregation_error_falls_back():

@@ -15,7 +15,6 @@ never interpolated.
 
 from __future__ import annotations
 
-import re
 from collections.abc import Iterable, Mapping
 from dataclasses import dataclass, field
 
@@ -156,95 +155,6 @@ def _resolve_state(candidate: str, known_states: Iterable[str]) -> str | None:
     return None
 
 
-# Common severity phrasings -> bucket, for the deterministic recovery layer.
-_SEVERITY_KEYWORDS: tuple[tuple[str, str], ...] = (
-    ("fatal", "Fatality"),
-    ("death", "Fatality"),
-    ("killed", "Fatality"),
-    ("serious", "Serious"),
-    ("moderate", "Moderate"),
-    ("minor", "Minor"),
-    ("no injur", "No Injuries"),
-    ("property", "Property"),
-)
-
-# Entity tokens too generic to identify an operator on their own — skipped when
-# scanning free text so e.g. "motors" alone never picks an entity.
-_ENTITY_STOPWORDS: frozenset[str] = frozenset(
-    {
-        "llc",
-        "inc",
-        "corp",
-        "corporation",
-        "company",
-        "holdings",
-        "technologies",
-        "technology",
-        "motors",
-        "automotive",
-        "robotics",
-        "the",
-        "and",
-    }
-)
-
-
-def heuristic_candidates(
-    text: str,
-    *,
-    known_entities: Iterable[str],
-    known_states: Iterable[str],
-) -> dict[str, str]:
-    """Deterministic NL -> candidate extraction for when the LLM is unavailable.
-
-    Scans free text for an allow-listed entity, state, or severity **without a
-    model call**, so a plain query like "only Waymo vehicles in Arizona" still
-    filters when ``ANTHROPIC_API_KEY`` is unset or the LLM errors. This is the
-    "maybe filter by that" path: the NL agent degrades to keyword matching
-    rather than silently showing everything.
-
-    Security is unchanged: the output is still only a *candidate* dict that flows
-    through `resolve` and the same allow-list, so a matched token can only ever
-    resolve to a known constant — never a raw, attacker-controlled string.
-    """
-    low = text.lower()
-    out: dict[str, str] = {}
-
-    # Entity: a distinctive word of a known entity, matched as a whole word. We
-    # emit that word as the candidate; `resolve` substring-maps it back to the
-    # full known `master_entity` (e.g. "waymo" -> "Waymo LLC").
-    for entity in sorted(known_entities, key=len, reverse=True):
-        for word in re.findall(r"[a-z0-9]+", entity.lower()):
-            if len(word) < 4 or word in _ENTITY_STOPWORDS:
-                continue
-            if re.search(rf"\b{re.escape(word)}\b", low):
-                out["entity"] = word
-                break
-        if "entity" in out:
-            break
-
-    # State: a full state name anywhere, or an explicit uppercase 2-letter code
-    # token (uppercase-only avoids false hits on words like "in"/"or"/"me").
-    known_codes = {s.upper() for s in known_states}
-    for name, code in _STATE_NAME_TO_CODE.items():
-        if code in known_codes and re.search(rf"\b{re.escape(name)}\b", low):
-            out["state"] = code
-            break
-    if "state" not in out:
-        for token in re.findall(r"\b[A-Z]{2}\b", text):
-            if token in known_codes:
-                out["state"] = token
-                break
-
-    # Severity: first matching phrasing wins (ordered most-severe-first).
-    for keyword, bucket in _SEVERITY_KEYWORDS:
-        if keyword in low:
-            out["severity"] = bucket
-            break
-
-    return out
-
-
 def _resolve_severity(candidate: str) -> str | None:
     """Resolve a candidate to a `BUCKET_ORDER` label, or `None` if unmapped.
 
@@ -310,6 +220,5 @@ __all__ = [
     "BUCKET_ORDER",
     "DerivedFilter",
     "Resolution",
-    "heuristic_candidates",
     "resolve",
 ]

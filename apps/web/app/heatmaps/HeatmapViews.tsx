@@ -88,6 +88,15 @@ export default function HeatmapViews({ initial }: { initial: Heatmaps }) {
         <label className="query__label" htmlFor="nl-query">
           Filter the views in plain English
         </label>
+        <p id="nl-query-help" className="query__help">
+          Type a request and a language model (Claude) reads it and filters both
+          heatmaps. It understands three things: <strong>operator</strong> (e.g.
+          Waymo, Cruise), <strong>US state</strong> (name or 2-letter code), and{" "}
+          <strong>injury severity</strong> (Fatality, Serious, Moderate, Minor,
+          No Injuries, Property). Anything else is ignored. If the model is
+          unavailable or can&rsquo;t map your request, you&rsquo;ll see all
+          incidents with a short note &mdash; there is no keyword fallback.
+        </p>
         <div className="query__row">
           <input
             id="nl-query"
@@ -95,7 +104,8 @@ export default function HeatmapViews({ initial }: { initial: Heatmaps }) {
             type="text"
             value={text}
             maxLength={500}
-            placeholder="e.g. only Waymo vehicles in Arizona"
+            aria-describedby="nl-query-help"
+            placeholder="e.g. serious Waymo crashes in Arizona"
             onChange={(e) => setText(e.target.value)}
           />
           <button className="query__submit" type="submit" disabled={loading}>
