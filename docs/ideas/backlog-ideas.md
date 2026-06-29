@@ -105,5 +105,7 @@ Unsorted, rough backlog items for potential future implementation
 * the lLM as a judge and debate
     * otehr models or user can choose
     * consider all relevant narratives and facts for this, not just current narrative, better prompts, better research
+    * golden data set, examples, prompt iteration, better selection of releveant data points, external research
+    * too much backporting on this, just revise and move forward
 * talk to data might be useful for the groupings page as well
     * not just for filtering but for "hey which are the incidents that are fatal for waymo"
