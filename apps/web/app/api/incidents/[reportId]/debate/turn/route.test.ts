@@ -40,6 +40,7 @@ describe("debate turn proxy handler", () => {
   });
   afterEach(() => {
     global.fetch = realFetch;
+    delete process.env.API_SHARED_SECRET;
     vi.restoreAllMocks();
   });
 
@@ -56,6 +57,31 @@ describe("debate turn proxy handler", () => {
     expect(calledUrl).toBe(
       "http://api.internal:8000/incidents/RPT-9/debate/turn",
     );
+  });
+
+  it("attaches the internal secret header when API_SHARED_SECRET is set", async () => {
+    process.env.API_SHARED_SECRET = "s3cret";
+    const fetchFn = mockUpstream(200, {
+      message: "rebuttal",
+      ai_position: "not_at_fault",
+      round: 1,
+    });
+    await POST(req(VALID), params());
+    const opts = fetchFn.mock.calls[0][1] as RequestInit;
+    const headers = opts.headers as Record<string, string>;
+    expect(headers["x-internal-secret"]).toBe("s3cret");
+  });
+
+  it("sends no secret header when API_SHARED_SECRET is unset", async () => {
+    const fetchFn = mockUpstream(200, {
+      message: "rebuttal",
+      ai_position: "not_at_fault",
+      round: 1,
+    });
+    await POST(req(VALID), params());
+    const opts = fetchFn.mock.calls[0][1] as RequestInit;
+    const headers = opts.headers as Record<string, string>;
+    expect(headers["x-internal-secret"]).toBeUndefined();
   });
 
   it("rejects an oversize argument before calling the api", async () => {

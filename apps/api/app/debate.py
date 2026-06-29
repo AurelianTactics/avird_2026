@@ -19,7 +19,6 @@ from __future__ import annotations
 import os
 import threading
 import time
-from collections import deque
 from dataclasses import dataclass
 from typing import Any, Literal, TypedDict
 
@@ -48,6 +47,10 @@ MAX_TRANSCRIPT_CHARS = _int_env("DEBATE_MAX_TRANSCRIPT_CHARS", 20000)
 # A transcript is user/ai pairs; allow a little slack over 2*rounds.
 MAX_TRANSCRIPT_MESSAGES = 2 * MAX_ROUNDS + 2
 MAX_REASONING_CHARS = 1500
+# Output cap per call — also the advocate/judge ``max_tokens`` and the output
+# half of the budget reservation estimate, so the cap and the estimate can't
+# drift apart.
+MAX_OUTPUT_TOKENS = _int_env("DEBATE_MAX_OUTPUT_TOKENS", 600)
 
 BUDGET_MESSAGE = "AI debates are taking a break — try again later."
 
@@ -57,6 +60,12 @@ BUDGET_MESSAGE = "AI debates are taking a break — try again later."
 HAIKU_INPUT_USD_PER_TOKEN = 1.00 / 1_000_000
 HAIKU_OUTPUT_USD_PER_TOKEN = 5.00 / 1_000_000
 WINDOW_SECONDS = 24 * 60 * 60
+# Conservative input size for a single call's cost estimate: every input cap
+# maxed out, plus slack for the incident text + prompt scaffold, at ~4 chars
+# per token. Used to *reserve* budget before a call, when the real token count
+# isn't known yet.
+_ESTIMATE_INPUT_CHARS = MAX_TRANSCRIPT_CHARS + MAX_ARGUMENT_CHARS + 4000
+_CHARS_PER_TOKEN = 4
 
 
 def _default_budget_usd() -> float:
@@ -73,9 +82,19 @@ class Usage:
 
 
 class BudgetGuard:
-    """Rolling 24h USD spend tracker. Process-local — good enough for a single
-    small ``api`` instance; resets on restart (noted in the plan). Once the
-    window's spend reaches the cap, ``exceeded()`` is True and routes 429."""
+    """Rolling-window USD spend cap with **reserve-then-check** semantics.
+
+    A call first ``reserve()``s its *estimated* worst-case cost; the reservation
+    is committed and counted against the window before the paid call runs, so
+    concurrent requests see each other and can't all slip past the cap at once
+    (the gap the old check-then-spend guard left open). After the call,
+    ``reconcile()`` rewrites the reservation to the *actual* token cost, or
+    ``release()`` drops it if the call failed.
+
+    Subclasses provide storage: :class:`InMemoryBudgetGuard` (process-local,
+    used by tests) and :class:`DbBudgetGuard` (durable, shared across restarts
+    and instances — the production default).
+    """
 
     def __init__(
         self,
@@ -84,43 +103,145 @@ class BudgetGuard:
         window_seconds: int = WINDOW_SECONDS,
         input_price: float = HAIKU_INPUT_USD_PER_TOKEN,
         output_price: float = HAIKU_OUTPUT_USD_PER_TOKEN,
-        now=time.monotonic,
     ):
         self.daily_limit = _default_budget_usd() if daily_limit_usd is None else daily_limit_usd
         self.window_seconds = window_seconds
         self.input_price = input_price
         self.output_price = output_price
+
+    def cost(self, usage: Usage) -> float:
+        return usage.input_tokens * self.input_price + usage.output_tokens * self.output_price
+
+    def estimate_cost(self) -> float:
+        """Worst-case USD for one call — reserved up front, before token counts
+        are known. Uses this guard's prices so the estimate tracks them."""
+        est_input_tokens = _ESTIMATE_INPUT_CHARS / _CHARS_PER_TOKEN
+        return est_input_tokens * self.input_price + MAX_OUTPUT_TOKENS * self.output_price
+
+    async def reserve(self, estimated_cost: float) -> int | None:  # pragma: no cover
+        raise NotImplementedError
+
+    async def reconcile(self, reservation: int, usage: Usage) -> None:  # pragma: no cover
+        raise NotImplementedError
+
+    async def release(self, reservation: int) -> None:  # pragma: no cover
+        raise NotImplementedError
+
+
+class InMemoryBudgetGuard(BudgetGuard):
+    """Process-local guard. Correct for a single instance but does **not**
+    survive restarts or coordinate across instances — that's what
+    :class:`DbBudgetGuard` is for. Kept as the test seam (no DB needed)."""
+
+    def __init__(self, *args, now=time.monotonic, **kwargs):
+        super().__init__(*args, **kwargs)
         self._now = now
-        self._events: deque[tuple[float, float]] = deque()
+        self._events: dict[int, tuple[float, float]] = {}
+        self._seq = 0
         self._lock = threading.Lock()
 
-    def _trim(self, t: float) -> None:
+    def _spent_locked(self, t: float) -> float:
         cutoff = t - self.window_seconds
-        while self._events and self._events[0][0] < cutoff:
-            self._events.popleft()
+        for rid in [k for k, (ts, _) in self._events.items() if ts < cutoff]:
+            del self._events[rid]
+        return sum(cost for _, cost in self._events.values())
 
     def spent(self) -> float:
         with self._lock:
-            self._trim(self._now())
-            return sum(cost for _, cost in self._events)
+            return self._spent_locked(self._now())
 
-    def exceeded(self) -> bool:
-        return self.spent() >= self.daily_limit
-
-    def record(self, usage: Usage) -> float:
-        cost = usage.input_tokens * self.input_price + usage.output_tokens * self.output_price
+    async def reserve(self, estimated_cost: float) -> int | None:
         with self._lock:
             t = self._now()
-            self._trim(t)
-            self._events.append((t, cost))
-        return cost
+            if self._spent_locked(t) + estimated_cost > self.daily_limit:
+                return None
+            self._seq += 1
+            self._events[self._seq] = (t, estimated_cost)
+            return self._seq
+
+    async def reconcile(self, reservation: int, usage: Usage) -> None:
+        with self._lock:
+            event = self._events.get(reservation)
+            if event is not None:
+                self._events[reservation] = (event[0], self.cost(usage))
+
+    async def release(self, reservation: int) -> None:
+        with self._lock:
+            self._events.pop(reservation, None)
 
 
-_budget_guard = BudgetGuard()
+class DbBudgetGuard(BudgetGuard):
+    """Durable guard backed by a ``debate_spend`` ledger in Postgres. Survives
+    api restarts and is correct across multiple instances. The reserve check +
+    insert run under a transaction-scoped advisory lock so concurrent callers
+    serialize on the spend total — no overshoot. The table is created lazily
+    (``IF NOT EXISTS``) on first use; it's operational state owned by the api,
+    not part of the crash-data pipeline."""
+
+    # Arbitrary 64-bit key; all reservations contend on the same advisory lock.
+    _LOCK_KEY = 0x4156_4244_4753  # "AVBDGS"
+
+    def __init__(self, *args, pool_getter=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if pool_getter is None:
+            from .db import get_pool
+
+            pool_getter = get_pool
+        self._pool_getter = pool_getter
+        self._table_ready = False
+
+    async def _ensure_table(self, conn) -> None:
+        if self._table_ready:
+            return
+        await conn.execute(
+            "CREATE TABLE IF NOT EXISTS debate_spend ("
+            "  id BIGSERIAL PRIMARY KEY,"
+            "  ts timestamptz NOT NULL DEFAULT now(),"
+            "  cost_usd double precision NOT NULL)"
+        )
+        await conn.execute("CREATE INDEX IF NOT EXISTS debate_spend_ts_idx ON debate_spend (ts)")
+        self._table_ready = True
+
+    async def reserve(self, estimated_cost: float) -> int | None:
+        pool = await self._pool_getter()
+        async with pool.acquire() as conn:
+            await self._ensure_table(conn)
+            async with conn.transaction():
+                # Serialize concurrent reservations; lock auto-releases at commit.
+                await conn.execute("SELECT pg_advisory_xact_lock($1)", self._LOCK_KEY)
+                spent = await conn.fetchval(
+                    "SELECT COALESCE(SUM(cost_usd), 0) FROM debate_spend "
+                    "WHERE ts > now() - make_interval(secs => $1)",
+                    float(self.window_seconds),
+                )
+                if float(spent) + estimated_cost > self.daily_limit:
+                    return None
+                return await conn.fetchval(
+                    "INSERT INTO debate_spend (cost_usd) VALUES ($1) RETURNING id",
+                    estimated_cost,
+                )
+
+    async def reconcile(self, reservation: int, usage: Usage) -> None:
+        pool = await self._pool_getter()
+        async with pool.acquire() as conn:
+            await conn.execute(
+                "UPDATE debate_spend SET cost_usd = $1 WHERE id = $2",
+                self.cost(usage),
+                reservation,
+            )
+
+    async def release(self, reservation: int) -> None:
+        pool = await self._pool_getter()
+        async with pool.acquire() as conn:
+            await conn.execute("DELETE FROM debate_spend WHERE id = $1", reservation)
+
+
+_budget_guard: BudgetGuard = DbBudgetGuard()
 
 
 def get_budget_guard() -> BudgetGuard:
-    """FastAPI dependency. Tests override with a low-cap instance."""
+    """FastAPI dependency. Production uses the durable DB-backed guard; tests
+    override with a low-cap :class:`InMemoryBudgetGuard`."""
     return _budget_guard
 
 
@@ -138,7 +259,11 @@ class AnthropicDebateClient:
     importing this module (and the test suite) never needs a key or network."""
 
     def __init__(
-        self, model_id: str | None = None, *, max_tokens: int = 600, temperature: float = 0.3
+        self,
+        model_id: str | None = None,
+        *,
+        max_tokens: int = MAX_OUTPUT_TOKENS,
+        temperature: float = 0.3,
     ):
         self.model_id = model_id or os.environ.get("DEBATE_MODEL_ID", "claude-haiku-4-5")
         self._max_tokens = max_tokens
@@ -377,25 +502,31 @@ async def debate_turn(
     guard: BudgetGuard = Depends(get_budget_guard),
 ) -> dict[str, Any]:
     _enforce_caps(body.transcript, body.user_argument)
-    if guard.exceeded():
-        raise HTTPException(status_code=429, detail=BUDGET_MESSAGE)
-
+    # Resolve the incident (404) before reserving budget, so a bad report id
+    # never churns the ledger.
     incident_text = await _incident_text(report_id, data)
-    prompt = _advocate_prompt(
-        incident_text, body.user_position, body.transcript, body.user_argument
-    )
-    graph = build_advocate_graph(client)
-    state = await run_in_threadpool(
-        graph.invoke, {"prompt": prompt, "message": None, "usage": None}
-    )
-    if state.get("usage") is not None:
-        guard.record(state["usage"])
 
-    return {
-        "message": state["message"],
-        "ai_position": _opposite(body.user_position),
-        "round": sum(1 for m in body.transcript if m.role == "user") + 1,
-    }
+    reservation = await guard.reserve(guard.estimate_cost())
+    if reservation is None:
+        raise HTTPException(status_code=429, detail=BUDGET_MESSAGE)
+    try:
+        prompt = _advocate_prompt(
+            incident_text, body.user_position, body.transcript, body.user_argument
+        )
+        graph = build_advocate_graph(client)
+        state = await run_in_threadpool(
+            graph.invoke, {"prompt": prompt, "message": None, "usage": None}
+        )
+        await guard.reconcile(reservation, state.get("usage") or Usage(0, 0))
+        return {
+            "message": state["message"],
+            "ai_position": _opposite(body.user_position),
+            "round": sum(1 for m in body.transcript if m.role == "user") + 1,
+        }
+    except Exception:
+        # The call didn't bill (or we can't know its cost) — free the reservation.
+        await guard.release(reservation)
+        raise
 
 
 @router.post("/incidents/{report_id}/debate/judge")
@@ -407,16 +538,19 @@ async def debate_judge(
     guard: BudgetGuard = Depends(get_budget_guard),
 ) -> dict[str, Any]:
     _enforce_caps(body.transcript)
-    if guard.exceeded():
-        raise HTTPException(status_code=429, detail=BUDGET_MESSAGE)
-
     incident_text = await _incident_text(report_id, data)
-    prompt = _judge_prompt(incident_text, body.transcript)
-    graph = build_judge_graph(client)
-    state = await run_in_threadpool(
-        graph.invoke, {"prompt": prompt, "verdict": None, "usage": None}
-    )
-    if state.get("usage") is not None:
-        guard.record(state["usage"])
 
-    return _coerce_verdict(state["verdict"])
+    reservation = await guard.reserve(guard.estimate_cost())
+    if reservation is None:
+        raise HTTPException(status_code=429, detail=BUDGET_MESSAGE)
+    try:
+        prompt = _judge_prompt(incident_text, body.transcript)
+        graph = build_judge_graph(client)
+        state = await run_in_threadpool(
+            graph.invoke, {"prompt": prompt, "verdict": None, "usage": None}
+        )
+        await guard.reconcile(reservation, state.get("usage") or Usage(0, 0))
+        return _coerce_verdict(state["verdict"])
+    except Exception:
+        await guard.release(reservation)
+        raise

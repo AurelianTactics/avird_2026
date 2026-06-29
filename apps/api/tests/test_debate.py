@@ -12,7 +12,8 @@ from fastapi.testclient import TestClient
 
 from app import debate
 from app.debate import (
-    BudgetGuard,
+    DbBudgetGuard,
+    InMemoryBudgetGuard,
     JudgeVerdict,
     Usage,
     get_budget_guard,
@@ -72,8 +73,9 @@ class StubClient:
 def _use(*, data=None, client=None, guard=None):
     app.dependency_overrides[get_incident_data] = lambda: data or FakeIncidentData()
     app.dependency_overrides[get_debate_client] = lambda: client or StubClient()
-    if guard is not None:
-        app.dependency_overrides[get_budget_guard] = lambda: guard
+    # Always override the guard with an in-memory one (default cap) so route
+    # tests never reach the production DB-backed guard.
+    app.dependency_overrides[get_budget_guard] = lambda: guard or InMemoryBudgetGuard()
 
 
 def _clear():
@@ -243,14 +245,16 @@ def test_judge_clamps_out_of_range_percentage():
 # --- budget guard ----------------------------------------------------------
 
 
-def test_budget_guard_returns_429_once_tripped():
-    # Tiny cap; the first call's stub usage spends past it, so the second 429s.
-    guard = BudgetGuard(daily_limit_usd=0.0001)
-    client = StubClient(usage=Usage(input_tokens=1000, output_tokens=1000))
+def test_budget_guard_blocks_a_call_that_would_exceed_cap():
+    # Reserve-then-check: a single call's *reservation* already exceeds the cap,
+    # so the call is refused before it ever reaches the LLM.
+    guard = InMemoryBudgetGuard()
+    guard.daily_limit = guard.estimate_cost() / 2
+    client = StubClient()
     _use(client=client, guard=guard)
     try:
         with TestClient(app) as http:
-            first = http.post(
+            resp = http.post(
                 "/incidents/RPT-9/debate/turn",
                 json={
                     "user_position": "av_at_fault",
@@ -258,38 +262,45 @@ def test_budget_guard_returns_429_once_tripped():
                     "user_argument": "round one",
                 },
             )
-            assert first.status_code == 200  # records spend
-            second = http.post(
-                "/incidents/RPT-9/debate/turn",
-                json={
-                    "user_position": "av_at_fault",
-                    "transcript": [],
-                    "user_argument": "round two",
-                },
-            )
+            assert resp.status_code == 429
+            assert "break" in resp.json()["detail"]
+            assert client.advocate_calls == 0  # never billed
+    finally:
+        _clear()
+
+
+def test_budget_guard_allows_one_call_then_blocks():
+    # Cap fits exactly one reservation; after the first call reconciles to its
+    # (smaller) actual cost, a second reservation tips over the cap.
+    guard = InMemoryBudgetGuard()
+    guard.daily_limit = guard.estimate_cost() + 0.00001
+    client = StubClient(usage=Usage(input_tokens=100, output_tokens=50))
+    _use(client=client, guard=guard)
+    try:
+        with TestClient(app) as http:
+            body = {"user_position": "av_at_fault", "transcript": [], "user_argument": "go"}
+            first = http.post("/incidents/RPT-9/debate/turn", json=body)
+            assert first.status_code == 200
+            second = http.post("/incidents/RPT-9/debate/turn", json=body)
             assert second.status_code == 429
-            assert "break" in second.json()["detail"]
-            # The blocked call never reached the LLM.
-            assert client.advocate_calls == 1
+            assert client.advocate_calls == 1  # only the first call billed
     finally:
         _clear()
 
 
 def test_budget_guard_blocks_judge_too():
-    guard = BudgetGuard(daily_limit_usd=0.0001)
-    client = StubClient(usage=Usage(input_tokens=1000, output_tokens=1000))
+    guard = InMemoryBudgetGuard()
+    guard.daily_limit = guard.estimate_cost() / 2
+    client = StubClient()
     _use(client=client, guard=guard)
     try:
         with TestClient(app) as http:
-            http.post(
-                "/incidents/RPT-9/debate/turn",
-                json={"user_position": "av_at_fault", "transcript": [], "user_argument": "spend"},
-            )
             resp = http.post(
                 "/incidents/RPT-9/debate/judge",
                 json={"transcript": [{"role": "user", "content": "x"}]},
             )
             assert resp.status_code == 429
+            assert client.judge_calls == 0
     finally:
         _clear()
 
@@ -297,13 +308,144 @@ def test_budget_guard_blocks_judge_too():
 # --- budget guard unit ------------------------------------------------------
 
 
-def test_budget_guard_window_rolls_off():
+async def test_in_memory_guard_window_rolls_off():
     clock = {"t": 1000.0}
-    guard = BudgetGuard(daily_limit_usd=1.0, window_seconds=100, now=lambda: clock["t"])
+    guard = InMemoryBudgetGuard(daily_limit_usd=1.0, window_seconds=100, now=lambda: clock["t"])
     guard.input_price = guard.output_price = 1.0  # $1 per token for easy math
-    guard.record(Usage(input_tokens=1, output_tokens=0))  # $1 spent at t=1000
+    rid = await guard.reserve(0.5)
+    assert rid is not None
+    await guard.reconcile(rid, Usage(input_tokens=1, output_tokens=0))  # $1 actual
     assert guard.spent() == 1.0
-    assert guard.exceeded() is True
-    clock["t"] = 1101.0  # >100s later — event rolls out of the window
+    assert await guard.reserve(0.01) is None  # over cap now
+    clock["t"] = 1101.0  # >100s later — the event rolls out of the window
     assert guard.spent() == 0.0
-    assert guard.exceeded() is False
+    assert await guard.reserve(0.5) is not None
+
+
+async def test_in_memory_guard_release_frees_the_reservation():
+    guard = InMemoryBudgetGuard(daily_limit_usd=1.0)
+    rid = await guard.reserve(0.9)
+    assert rid is not None
+    assert await guard.reserve(0.9) is None  # 0.9 already held
+    await guard.release(rid)
+    assert await guard.reserve(0.9) is not None  # freed
+
+
+# --- DbBudgetGuard SQL contract (fake connection, no real Postgres) ---------
+
+
+class _FakeConn:
+    """Minimal asyncpg-connection stand-in: answers the SUM probe with a fixed
+    spend and hands out incrementing ids on INSERT."""
+
+    def __init__(self, spent: float):
+        self._spent = spent
+        self.executed: list[str] = []
+        self.inserted: list[float] = []
+        self._next_id = 1
+
+    async def execute(self, sql, *args):
+        self.executed.append(sql)
+
+    async def fetchval(self, sql, *args):
+        if "SUM(cost_usd)" in sql:
+            return self._spent
+        if "INSERT INTO debate_spend" in sql:
+            self.inserted.append(args[0])
+            rid = self._next_id
+            self._next_id += 1
+            return rid
+        return None
+
+    def transaction(self):
+        return _AsyncNoop()
+
+
+class _AsyncNoop:
+    async def __aenter__(self):
+        return None
+
+    async def __aexit__(self, *exc):
+        return False
+
+
+class _FakePool:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def acquire(self):
+        return _ConnCtx(self._conn)
+
+
+class _ConnCtx:
+    def __init__(self, conn):
+        self._conn = conn
+
+    async def __aenter__(self):
+        return self._conn
+
+    async def __aexit__(self, *exc):
+        return False
+
+
+def _getter(pool):
+    async def _get():
+        return pool
+
+    return _get
+
+
+async def test_db_guard_reserves_under_cap_and_locks_first():
+    conn = _FakeConn(spent=0.0)
+    guard = DbBudgetGuard(daily_limit_usd=1.0, pool_getter=_getter(_FakePool(conn)))
+    rid = await guard.reserve(0.5)
+    assert rid == 1
+    assert conn.inserted == [0.5]
+    # The advisory lock is taken before the spend is summed.
+    lock_i = next(i for i, s in enumerate(conn.executed) if "pg_advisory_xact_lock" in s)
+    assert lock_i >= 0
+
+
+async def test_db_guard_refuses_over_cap_without_inserting():
+    conn = _FakeConn(spent=0.95)
+    guard = DbBudgetGuard(daily_limit_usd=1.0, pool_getter=_getter(_FakePool(conn)))
+    assert await guard.reserve(0.1) is None
+    assert conn.inserted == []  # nothing committed when refused
+
+
+# --- internal-boundary shared secret (web→api hop) -------------------------
+
+
+def test_routes_open_when_no_secret_configured(monkeypatch):
+    monkeypatch.delenv("API_SHARED_SECRET", raising=False)
+    _use(client=StubClient(), guard=InMemoryBudgetGuard())
+    try:
+        with TestClient(app) as http:
+            resp = http.post(
+                "/incidents/RPT-9/debate/turn",
+                json={"user_position": "av_at_fault", "transcript": [], "user_argument": "hi"},
+            )
+            assert resp.status_code == 200  # no header needed when unset
+    finally:
+        _clear()
+
+
+def test_secret_required_when_configured(monkeypatch):
+    monkeypatch.setenv("API_SHARED_SECRET", "s3cret")
+    _use(client=StubClient(), guard=InMemoryBudgetGuard())
+    try:
+        with TestClient(app) as http:
+            body = {"user_position": "av_at_fault", "transcript": [], "user_argument": "hi"}
+            # No header → rejected at the boundary, before the route runs.
+            assert http.post("/incidents/RPT-9/debate/turn", json=body).status_code == 401
+            # Correct header → passes through.
+            ok = http.post(
+                "/incidents/RPT-9/debate/turn",
+                json=body,
+                headers={"x-internal-secret": "s3cret"},
+            )
+            assert ok.status_code == 200
+            # The health probe stays exempt so the platform check never breaks.
+            assert http.get("/health").status_code == 200
+    finally:
+        _clear()

@@ -10,6 +10,14 @@ function apiUrl(): string {
   return process.env.API_URL ?? "http://127.0.0.1:8000";
 }
 
+// Shared secret for the internal web→api hop. Server-only (no NEXT_PUBLIC_).
+// When unset (local dev) we send no header and the api skips the check; in
+// production both services carry the same value. See apps/api/app/main.py.
+export function internalSecretHeaders(): Record<string, string> {
+  const secret = process.env.API_SHARED_SECRET;
+  return secret ? { "x-internal-secret": secret } : {};
+}
+
 export const MAX_ROUNDS = 5;
 export const MAX_ARGUMENT_CHARS = 2000;
 export const MAX_TRANSCRIPT_CHARS = 20000;
@@ -95,7 +103,10 @@ export async function proxyDebate(
   try {
     upstream = await fetch(`${apiUrl()}${path}`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        ...internalSecretHeaders(),
+      },
       body: JSON.stringify(body),
       cache: "no-store",
     });
