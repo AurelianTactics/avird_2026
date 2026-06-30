@@ -25,7 +25,41 @@ describe("POST /api/heatmaps/query", () => {
   });
   afterEach(() => {
     global.fetch = realFetch;
+    delete process.env.API_SHARED_SECRET;
     vi.restoreAllMocks();
+  });
+
+  it("attaches the internal secret header when API_SHARED_SECRET is set", async () => {
+    process.env.API_SHARED_SECRET = "s3cret";
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => QUERY_RESULT,
+      } as unknown as Response),
+    );
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await POST(post({ text: "only Waymo" }));
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = (init as RequestInit).headers as Record<string, string>;
+    expect(headers["x-internal-secret"]).toBe("s3cret");
+  });
+
+  it("sends no secret header when API_SHARED_SECRET is unset", async () => {
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => QUERY_RESULT,
+      } as unknown as Response),
+    );
+    global.fetch = fetchMock as unknown as typeof fetch;
+
+    await POST(post({ text: "only Waymo" }));
+    const [, init] = fetchMock.mock.calls[0];
+    const headers = (init as RequestInit).headers as Record<string, string>;
+    expect(headers["x-internal-secret"]).toBeUndefined();
   });
 
   it("forwards text to the API and returns its JSON", async () => {

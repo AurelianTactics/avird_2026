@@ -11,6 +11,7 @@
 
 import { NextResponse } from "next/server";
 import type { HeatmapQueryResult } from "../../../lib/api";
+import { internalSecretHeaders } from "../../../lib/debate";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +56,13 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const res = await fetch(`${apiUrl()}/derived/query`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      // Same internal-boundary secret every other web->api proxy sends; without
+      // it the api's middleware 401s in prod (API_SHARED_SECRET set) and the
+      // feature silently degrades to the fallback view on every query.
+      headers: {
+        "Content-Type": "application/json",
+        ...internalSecretHeaders(),
+      },
       body: JSON.stringify({ text }),
       cache: "no-store",
     });
