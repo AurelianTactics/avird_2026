@@ -21,6 +21,7 @@ If Railway's internal hostname doesn't resolve for some reason, the temporary fa
 | Variable | Set by | Consumed by | Notes |
 |----------|--------|-------------|-------|
 | `DATABASE_URL` | Railway (Postgres reference variable) | `api` | Never committed. `.env.example` placeholder only. Sanitized in logs on failure. |
+| `READONLY_DATABASE_URL` | local `.env` (gitignored); Railway `api` service (when P1 text-to-SQL is exposed) | the open-ended text-to-SQL agent (`app/nlsql/`) | Connection string for a Postgres role with `SELECT`-only on `treated_incident_reports` (plan P1, KTD-1). Provisioned by `tools/setup_readonly_role.py` from this URL; see "Text-to-SQL read-only role" below. Local-first: absent ⇒ the nlsql CLI prints a one-line setup hint. Never committed. |
 | `API_URL`      | Railway (reference variable to `api` service's internal hostname) | `web` (server-side only) | **No `NEXT_PUBLIC_` prefix** — server components only. Never bundled into browser. |
 | `PORT`         | Railway (per-service) | `web`, `api` | FastAPI starts via `uvicorn app.main:app --host 0.0.0.0 --port $PORT`. |
 | `ANTHROPIC_API_KEY` | local `.env` (gitignored); Railway `api` service (runtime) | `ontology/` + `fault/` scripts, **and the `api` runtime** | Paid LLM calls, read at call time, never logged (sanitized degrade, mirroring `DATABASE_URL`). Offline: discovery/extraction/golden pre-label (ontology) and the fault judge batch (`fault/`). Runtime: the live debate routes (`POST /incidents/{id}/debate/{turn,judge}`) and the NL-query agent (`POST /derived/query`) — `api` was previously key-free. **Do not** add it to `web`. Absent ⇒ the site still renders; only those LLM routes degrade to their fallbacks (debate paused; query → default view). Never committed; tests stub the client and need no key. |
@@ -36,6 +37,14 @@ For local dev, both apps fall back to `.env.example` defaults (`http://localhost
 The `api` service gains one LLM-backed route — `POST /derived/query` — built as a small **LangGraph** graph with **Claude** (Anthropic SDK) mapping natural language to a structured, allow-list-validated filter (never model-authored SQL). It is one of the sanctioned dependency-weight exceptions to R22 (LangGraph + Anthropic, shared with the live debate routes), contained to that route: the default `/heatmaps` render and `GET /derived/heatmaps` stay deterministic and LLM-free, so the site is fully usable with no key configured. Deploy must set `ANTHROPIC_API_KEY` in Railway before the query route works in prod.
 
 Because it's a paid LLM call on a public surface, the route is gated by a **daily USD budget guard** (`app/derived/budget.py`, `DERIVED_DAILY_BUDGET_USD`, default `$2`) — a durable rolling-24h ledger (`derived_spend`) separate from the debate guard's so the two LLM features can't drain each other. Per call it's bounded to a 500-char input and `max_tokens=256`; over the daily cap the agent degrades to the unfiltered default view rather than erroring. The model proposes only candidate filter values that `filters.resolve` validates against the data-layer allow-list, so a prompt-injected query can't reach SQL — the residual exposure is cost/abuse, which the budget guard caps.
+
+## Text-to-SQL read-only role (P1)
+
+The open-ended text-to-SQL agent (plan `docs/plans/2026-06-30-001-feat-agentic-data-access-progression-plan.md`, P1) lets a model author real `SELECT` SQL — defensible only because that SQL executes as a Postgres role that *structurally* can do nothing else (KTD-1). The role has `SELECT` on `treated_incident_reports` and nothing more: no write privileges, no access to any other table (including the `*_spend` ledgers), plus a role-level `statement_timeout` and `work_mem`.
+
+- **Provision (local, idempotent):** `python tools/setup_readonly_role.py`. It reads `READONLY_DATABASE_URL` to derive the role name, password, and database, then applies `db/roles/readonly_role.sql` over the admin `DATABASE_URL`. A second run reports the role exists and re-asserts the grants.
+- **Provision (Railway/prod):** run `db/roles/readonly_role.sql` once with `psql -v role=… -v password=… -v dbname=…`, then set `READONLY_DATABASE_URL` on the `api` service. The agent connects as this role, never as the owning `DATABASE_URL` role.
+- **Local-first:** P1 ships **no public route** (the live-exposure gate is a separate, deferred decision). The agent runs via `python -m app.nlsql.cli` against the seeded local DB; absent `READONLY_DATABASE_URL` it prints a one-line setup hint pointing at the script above.
 
 ## Cross-service references
 
