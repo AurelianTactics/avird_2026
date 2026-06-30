@@ -1,5 +1,5 @@
 # working
-* W5 branch
+* DONE W5 branch
     * DONE prompt below for the plan
  /compound-engineering:ce-plan Let's make a plan to do W5 from
   docs\brainstorms\2026-06-05-website-mvp-requirements.md . I was thinking get those visual views and pre crash
@@ -47,15 +47,15 @@
         * REVIEW UI review review
             * thinking tabs maybe then spreading down. at the least not at the top. then each tabl could have an explanation
             * important info carries over at the top like the narrative
-* confirm limiting and cost
+* DONE confirm limiting and cost
     * heatmap
     * DONE llm judge
         * SEE NOTES FOR IDEAS
-* merge in
+* DONE merge in
     * heatmap
     * TEST LLM judge
         * ERROR DEBUG HERE
-* agent review of LLM judge / argument and the heatmap;
+* DONE agent review of LLM judge / argument and the heatmap;
 
 
 
@@ -80,15 +80,16 @@
                 * Hybrid graph / RAG and agentic orchestration.
 
 - replan on what you want to accomplish here and re-prioritize
-    * IN PROGRESS thinking W5 here
+    * DONE thinking W5 here
         * see if can do a text box so can filter the data down in certain ways. shows query. probably preferable to the
-    * IN PROGRESS the LLM as a judge ideas
+    * DONE  the LLM as a judge ideas
         * who is at fault
         * the argument
         * revisit the old code
+    * maybe a learnings tab with the eda an ontology    
+    * maybe a break?
     * W3 and W4: maybe re modify
     * then W6
-    * then maybe a break
 * maybe pull in the waymo data from the waymo data hub?
     * the API info from the map at least or maybe some other stuff
 - review old brainstorm, backlog, and other ideas
