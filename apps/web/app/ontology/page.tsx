@@ -3,7 +3,7 @@ import OntologyGraph from "./OntologyGraph";
 import graph from "./graph-data.json";
 
 export const metadata: Metadata = {
-  title: "Ontology · avird-2026",
+  title: "Ontology · avird",
   description:
     "A property-graph ontology built over NHTSA AV crash narratives: schema, real extracted incidents, the pipeline, and takeaways.",
 };
@@ -71,10 +71,10 @@ export default function OntologyPage() {
       <h1>An ontology over AV crash narratives</h1>
       <p className="onto-lede">
         NHTSA&apos;s Standing General Order publishes autonomous-vehicle crash
-        reports as structured columns and free-text incident
-        narratives. This is a property-graph ontology built over both a
-        deterministic backbone seeded from the columns, extended with concept
-        types an LLM discovered in the narratives. The LLM then used both elements to extract a graph
+        reports as structured columns and free-text incident narratives. This is
+        a property-graph ontology built over both a deterministic backbone
+        seeded from the columns, extended with concept types an LLM discovered
+        in the narratives. The LLM then used both elements to extract a graph
         from each incident. Below is the schema, real extracted incidents, how
         the pipeline runs, and some misc thoughts.
       </p>
@@ -125,7 +125,10 @@ export default function OntologyPage() {
       </section>
 
       <section className="onto-section">
-        <h2>Example Questions for Evaluating the Schema (Backlog item is to improve this process with LLM feedback and improved human workflow)</h2>
+        <h2>
+          Example Questions for Evaluating the Schema (Backlog item is to
+          improve this process with LLM feedback and improved human workflow)
+        </h2>
         <ul className="onto-cqs">
           {cqs.map((q) => (
             <li key={q}>{q}</li>
@@ -137,21 +140,35 @@ export default function OntologyPage() {
         <h2>Thoughts</h2>
         <p>
           I have worked on ontologies professionally and here as an experiment.
-          I find the ontology process a bit less precise than other aspects of data science work.
-          There are many decisions that I can see being done in different ways and are hard to tell which method is better than the other.
-          For example, should these similar nodes be merged into one name? And if so which one? Should that be a property or its own node?
+          I find the ontology process a bit less precise than other aspects of
+          data science work. There are many decisions that I can see being done
+          in different ways and are hard to tell which method is better than the
+          other. For example, should these similar nodes be merged into one
+          name? And if so which one? Should that be a property or its own node?
           Should there be multiple edges or consolidate with properties?
         </p>
-        <p> 
-          I tried with this pipeline to address two of my main frustrations with ontology building.</p> 
+        <p>
+          I tried with this pipeline to address two of my main frustrations with
+          ontology building.
+        </p>
 
-        <p>1. More metrics based to instrument parts of the pipeline and potentially address weak spots.</p> 
-        <p>2. Include an LLM more to review work and help draft initial work.</p> 
+        <p>
+          1. More metrics based to instrument parts of the pipeline and
+          potentially address weak spots.
+        </p>
+        <p>
+          2. Include an LLM more to review work and help draft initial work.
+        </p>
 
-        <p> Both approaches had some successes and ares of improvements. The LLM can be helpful in instances but the LLM lacks context
-          and can overly prune schemas, not merge properly, or come up with poor examples. The metrics can help with parts but the metrics
-          are only as good as the underlying data set and human annotations, which can be a lot of work. Also the sheer magnitude of metrics
-          is a bit overwhelming for a simple learning example.
+        <p>
+          {" "}
+          Both approaches had some successes and ares of improvements. The LLM
+          can be helpful in instances but the LLM lacks context and can overly
+          prune schemas, not merge properly, or come up with poor examples. The
+          metrics can help with parts but the metrics are only as good as the
+          underlying data set and human annotations, which can be a lot of work.
+          Also the sheer magnitude of metrics is a bit overwhelming for a simple
+          learning example.
         </p>
       </section>
 

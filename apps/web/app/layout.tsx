@@ -3,7 +3,7 @@ import "./globals.css";
 import Nav from "./components/Nav";
 
 export const metadata = {
-  title: "AVIRD",
+  title: "avird",
   description: "NHTSA AV crash data website",
 };
 
@@ -14,8 +14,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Nav />
         {children}
         <footer className="site-footer">
-          © 2026 · MIT License · Data: NHTSA Standing General
-          Order crash reports
+          © 2026 avird · MIT License · Data: NHTSA Standing General Order crash
+          reports
         </footer>
       </body>
     </html>
