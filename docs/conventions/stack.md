@@ -46,6 +46,15 @@ The open-ended text-to-SQL agent (plan `docs/plans/2026-06-30-001-feat-agentic-d
 - **Provision (Railway/prod):** run `db/roles/readonly_role.sql` once with `psql -v role=… -v password=… -v dbname=…`, then set `READONLY_DATABASE_URL` on the `api` service. The agent connects as this role, never as the owning `DATABASE_URL` role.
 - **Local-first:** P1 ships **no public route** (the live-exposure gate is a separate, deferred decision). The agent runs via `python -m app.nlsql.cli` against the seeded local DB; absent `READONLY_DATABASE_URL` it prints a one-line setup hint pointing at the script above.
 
+## Narrative RAG store + toolchain (P2)
+
+Phase 2 of the agentic progression (`app/rag/`) retrieves crash narratives by cosine similarity over the existing `bge-base` embeddings.
+
+- **Store:** `db/pgvector_setup.sql` enables `vector` and creates `narrative_embeddings(incident_id, embedding vector(768), narrative)`. `app/rag/store.py` retrieves via `embedding <=> $1` (pgvector) with a vendored numpy-cosine **in-memory fallback** behind the same `retrieve` signature (KTD-3).
+- **Ingest is a re-derive, not a parquet load:** the embedding cache stores only `{text_hash, vector}` — no incident id, no narrative. `app/rag/ingest.py` re-derives the deduped `(Same Incident ID, narrative)` rows from the raw `data/nhtsa/` CSVs (via the `eda` dedup pipeline), re-hashes each narrative, and joins to the cache vector by hash; unmatched rows are reported, never dropped.
+- **Dependency strategy (decided per the plan's U8 note):** P2 ships **no production route**, so its toolchain deps (`numpy`, `pandas`, `pyarrow`, `huggingface_hub`) are **not** added to `apps/api`'s production `pyproject.toml` — that keeps the deployed api ML-free (R22). They are lazy-imported by the RAG CLI/ingest/eval and live in the **shared dev venv** only. `numpy` is imported at the top of `rag/store.py`, but `rag/` is never imported by the FastAPI app (no route), so it costs nothing at runtime. The deferred live-exposure unit adds whatever runtime deps a real `/rag/ask` route needs.
+- **pgvector availability (open question):** stock Windows PG 17 may lack `vector`; if `CREATE EXTENSION vector` fails locally, the in-memory path is the local default and pgvector parity is validated against Railway PG 16.
+
 ## Cross-service references
 
 Use **Railway reference variables** for cross-service URLs — never hardcode a hostname into the repo. From the `web` service settings, `API_URL` is set to a reference pointing at the `api` service's internal hostname. New services follow the same pattern.
