@@ -7,3 +7,5 @@ asyncpg>=0.29
 langgraph>=0.2
 langchain-anthropic>=0.3
 anthropic>=0.40
+# P1 text-to-SQL validator (app/nlsql/validate.py) — parse-only, no execution.
+sqlglot>=25

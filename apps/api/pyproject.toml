@@ -14,6 +14,9 @@ dependencies = [
     "langgraph>=0.2",
     "langchain-anthropic>=0.3",
     "anthropic>=0.40",
+    # P1 text-to-SQL validator: parse + read-only-shape + allow-list checks on
+    # model-authored SQL, no execution (app/nlsql/validate.py). Pure-Python.
+    "sqlglot>=25",
 ]
 
 [dependency-groups]
