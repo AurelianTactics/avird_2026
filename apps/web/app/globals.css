@@ -1062,3 +1062,91 @@ h1 {
   font-weight: 700;
   text-anchor: middle;
 }
+
+/* --- Text-to-SQL page (/nlsql) --- */
+.nlsql-examples {
+  margin: 0.75rem 0;
+  color: var(--muted);
+}
+.chip--button {
+  cursor: pointer;
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  margin: 0 0.3rem 0.3rem 0;
+  font-size: 0.85rem;
+  color: var(--ink);
+}
+.chip--button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.nlsql-sql {
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.nlsql-result__h {
+  font-size: 1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+.nlsql-table-wrap {
+  overflow-x: auto;
+}
+.nlsql-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+.nlsql-table th,
+.nlsql-table td {
+  border: 1px solid var(--line);
+  padding: 0.35rem 0.6rem;
+  text-align: left;
+}
+.nlsql-table th {
+  background: var(--bg-soft);
+  color: var(--muted);
+}
+.nlsql-trace {
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
+}
+.nlsql-trace ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.25rem;
+}
+.nlsql-trace li {
+  margin: 0.35rem 0;
+}
+.nlsql-trace code {
+  word-break: break-word;
+}
+.tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.05rem 0.4rem;
+  border-radius: 4px;
+  margin-right: 0.4rem;
+}
+.tag--valid {
+  background: #e3f3e8;
+  color: #1c7a3e;
+}
+.tag--invalid {
+  background: #fbe6e6;
+  color: #b02525;
+}
+.nlsql-dict {
+  margin-top: 2rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}

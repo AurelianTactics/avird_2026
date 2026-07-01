@@ -106,6 +106,43 @@ export type HeatmapQueryResult = Heatmaps & {
   message: string;
 };
 
+// --- Text-to-SQL (P1) -------------------------------------------------------
+
+// One column from the data dictionary the /nlsql page shows next to the box.
+export type NlSqlColumn = {
+  name: string;
+  type: string;
+  raw: boolean; // true => mixed-case raw column that must be double-quoted
+  identifier: string; // the column rendered the way SQL needs it
+};
+
+export type NlSqlSchema = {
+  available: boolean;
+  table: string | null;
+  columns: NlSqlColumn[];
+  value_samples: Record<string, string[]>;
+};
+
+// One author attempt in the repair trace.
+export type NlSqlAttempt = {
+  iteration: number;
+  sql: string | null;
+  status: string; // "valid" | "invalid"
+  reason: string;
+};
+
+// The result the /nlsql page renders (SQL + rows + repair trace).
+export type NlSqlResult = {
+  question: string;
+  sql: string | null;
+  rows: Record<string, unknown>[];
+  row_count: number;
+  iterations: number;
+  fallback: boolean;
+  attempts: NlSqlAttempt[];
+  message: string;
+};
+
 export type RedactionRow = {
   entity: string;
   redacted: number;
@@ -178,4 +215,9 @@ export function fetchHeatmaps(): Promise<ApiResult<Heatmaps>> {
 // Static redaction breakdown for the /groupings table (unfiltered, KTD 9).
 export function fetchRedactionStats(): Promise<ApiResult<RedactionStats>> {
   return getJson<RedactionStats>("/derived/redaction");
+}
+
+// Column data-dictionary for the /nlsql page (server-rendered next to the box).
+export function fetchNlSqlSchema(): Promise<ApiResult<NlSqlSchema>> {
+  return getJson<NlSqlSchema>("/nlsql/schema");
 }
