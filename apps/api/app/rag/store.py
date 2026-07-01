@@ -43,8 +43,7 @@ class Store(Protocol):
 
     async def retrieve(
         self, query_embedding: Any, k: int, *, diversify: bool = False
-    ) -> list[RetrievedChunk]:
-        ...
+    ) -> list[RetrievedChunk]: ...
 
 
 # --- vendored cosine (numpy only) -------------------------------------------
