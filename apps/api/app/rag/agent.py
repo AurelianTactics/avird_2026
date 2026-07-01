@@ -339,15 +339,25 @@ async def faithfulness_judge(state: RagState) -> dict[str, Any]:
     return {"supported": True, "observation": None}
 
 
+def _chunk_dicts(retrieved: list[RetrievedChunk]) -> list[dict[str, Any]]:
+    """Retrieved chunks as renderable dicts — the web page's "what the model read"."""
+    return [
+        {"incident_id": c.incident_id, "narrative": c.narrative, "distance": c.distance}
+        for c in retrieved
+    ]
+
+
 async def respond(state: RagState) -> dict[str, Any]:
     answer = strip_invalid_citations(state.get("answer", ""), state["context"].id_map)
     resolved, _ = resolve_citations(answer, state["context"].id_map)
+    retrieved = state.get("retrieved", [])
     return {
         "result": {
             "question": state["question"],
             "answer": answer,
             "cited_incident_ids": resolved,
-            "retrieved_ids": [c.incident_id for c in state.get("retrieved", [])],
+            "retrieved_ids": [c.incident_id for c in retrieved],
+            "retrieved": _chunk_dicts(retrieved),
             "supported": state.get("supported", True),
             "refused": state.get("refused", False),
             "iterations": state.get("iterations", 0),
@@ -366,6 +376,7 @@ async def fallback(state: RagState) -> dict[str, Any]:
             "answer": "",
             "cited_incident_ids": [],
             "retrieved_ids": [c.incident_id for c in retrieved],
+            "retrieved": _chunk_dicts(retrieved),
             "supported": False,
             "refused": False,
             "iterations": state.get("iterations", 0),
@@ -475,8 +486,8 @@ async def run_rag_query(
 ) -> dict[str, Any]:
     """Run the RAG graph. Always returns a renderable result dict:
 
-    ``{question, answer, cited_incident_ids, retrieved_ids, supported, refused,
-    iterations, fallback, message}``.
+    ``{question, answer, cited_incident_ids, retrieved_ids, retrieved, supported,
+    refused, iterations, fallback, message}``.
 
     Never raises: embedding/retrieval/model/judge failures route to ``fallback``
     (retrieval-only). ``judge`` is optional (structural citation gate only when

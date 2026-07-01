@@ -17,6 +17,9 @@ describe("Nav", () => {
     expect(container.querySelector('a[href="/nlsql"]')?.textContent).toBe(
       "Ask the data",
     );
+    expect(container.querySelector('a[href="/rag"]')?.textContent).toBe(
+      "Ask the narratives",
+    );
     expect(container.querySelector('a[href="/about"]')?.textContent).toBe(
       "About",
     );

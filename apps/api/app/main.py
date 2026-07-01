@@ -17,6 +17,7 @@ from . import debate, fault, groupings, incidents
 from .db import check_db
 from .derived import routes as derived_routes
 from .nlsql import routes as nlsql_routes
+from .rag import routes as rag_routes
 
 logging.basicConfig(level=logging.INFO)
 
@@ -46,6 +47,7 @@ app.include_router(fault.router)
 app.include_router(debate.router)
 app.include_router(derived_routes.router)
 app.include_router(nlsql_routes.router)
+app.include_router(rag_routes.router)
 
 
 @app.get("/health")

@@ -13,9 +13,10 @@ api doesn't take a scikit-learn dependency. The query embedding is computed
 *outside* the store (by the RAG agent's embedding adapter) and passed in, so the
 store never needs ``huggingface_hub``.
 
-numpy is imported at module top: this module is only ever loaded by the RAG CLI/
-agent/tests (P2 ships no route), never by the FastAPI app, so it doesn't weigh on
-the api's runtime footprint.
+numpy is imported at module top: since the P2 live-exposure routes (``rag/routes.py``)
+mount this store in the FastAPI app, numpy is a declared api dependency
+(pyproject + requirements.txt). The heavy ingest deps (pandas/pyarrow) remain
+offline-only.
 """
 
 from __future__ import annotations
@@ -44,6 +45,8 @@ class Store(Protocol):
     async def retrieve(
         self, query_embedding: Any, k: int, *, diversify: bool = False
     ) -> list[RetrievedChunk]: ...
+
+    async def count(self) -> int: ...
 
 
 # --- vendored cosine (numpy only) -------------------------------------------
@@ -101,6 +104,9 @@ class InMemoryStore:
     def __len__(self) -> int:
         return len(self._ids)
 
+    async def count(self) -> int:
+        return len(self._ids)
+
     async def retrieve(
         self, query_embedding: Any, k: int, *, diversify: bool = False, mmr_lambda: float = 0.5
     ) -> list[RetrievedChunk]:
@@ -133,6 +139,11 @@ class PgVectorStore:
     @staticmethod
     def _vector_literal(query_embedding: Any) -> str:
         return "[" + ",".join(repr(float(x)) for x in query_embedding) + "]"
+
+    async def count(self) -> int:
+        pool = await self._pool_getter()
+        async with pool.acquire() as conn:
+            return int(await conn.fetchval(f"SELECT count(*) FROM {TABLE}"))
 
     async def retrieve(
         self, query_embedding: Any, k: int, *, diversify: bool = False

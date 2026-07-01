@@ -105,12 +105,12 @@ def derive_canonical_rows(*, limit: int | None = None) -> list[dict[str, Any]]:
         if limit is not None and i >= limit:
             break
         sid = r.get(SID_COL)
-        rows.append(
-            {
-                "incident_id": (str(sid).strip() if sid is not None else "") or f"row-{i}",
-                "narrative": r.get(NARRATIVE_COL),
-            }
-        )
+        # A missing Same Incident ID arrives as pandas NaN, which str()s to
+        # "nan" — never let that leak into provenance the UI shows.
+        sid_str = "" if sid is None else str(sid).strip()
+        if sid_str.lower() in ("", "nan", "none"):
+            sid_str = f"row-{i}"
+        rows.append({"incident_id": sid_str, "narrative": r.get(NARRATIVE_COL)})
     return rows
 
 

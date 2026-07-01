@@ -27,8 +27,11 @@ describe("OntologyPage", () => {
     );
   });
 
-  it("marks the takeaways as a draft to revise", () => {
+  it("renders the takeaways section", () => {
     const { container } = render(<OntologyPage />);
-    expect(container.textContent).toContain("Draft");
+    expect(container.textContent).toContain("Thoughts");
+    expect(container.textContent).toContain(
+      "I have worked on ontologies professionally",
+    );
   });
 });

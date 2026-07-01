@@ -221,3 +221,36 @@ export function fetchRedactionStats(): Promise<ApiResult<RedactionStats>> {
 export function fetchNlSqlSchema(): Promise<ApiResult<NlSqlSchema>> {
   return getJson<NlSqlSchema>("/nlsql/schema");
 }
+
+// --- Narrative RAG (P2) ------------------------------------------------------
+
+// One retrieved narrative with provenance — "what the model read".
+export type RagChunk = {
+  incident_id: string;
+  narrative: string;
+  distance: number;
+};
+
+// The result the /rag page renders (cited answer + retrieved narratives).
+export type RagResult = {
+  question: string;
+  answer: string;
+  cited_incident_ids: string[];
+  retrieved_ids: string[];
+  retrieved: RagChunk[];
+  supported: boolean;
+  refused: boolean;
+  iterations: number;
+  fallback: boolean;
+  message: string;
+};
+
+// Store reachability + corpus size for the /rag page (server-rendered).
+export type RagStatus = {
+  available: boolean;
+  corpus_size: number;
+};
+
+export function fetchRagStatus(): Promise<ApiResult<RagStatus>> {
+  return getJson<RagStatus>("/rag/status");
+}

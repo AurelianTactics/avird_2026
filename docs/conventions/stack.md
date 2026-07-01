@@ -29,6 +29,9 @@ If Railway's internal hostname doesn't resolve for some reason, the temporary fa
 | `NEO4J_USERNAME` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential (usually `neo4j`). |
 | `NEO4J_PASSWORD` | local `.env` (gitignored) | `ontology/graph_load.py` | AuraDB credential, shown once at instance creation. |
 | `LANGSMITH_TRACING` / `LANGSMITH_API_KEY` | local `.env` (optional) | `ontology/` LangGraph runs | Optional run tracing; JSONL run records remain the durable system of record. |
+| `HF_TOKEN` | local `.env` (gitignored); Railway `api` service (when P2 RAG is exposed) | `eda/build_narrative_embeddings.py` (offline) and the RAG query embedder (`app/rag/agent.py`, runtime) | HuggingFace Inference token for `bge-base` embeddings. Absent ⇒ `POST /rag/ask` degrades to a service notice; the rest of the site is unaffected. Never committed. |
+| `RAG_STORE` / `RAG_DATASET_ID` | local `apps/api/.env` | `app/rag/routes.py` store selection | `RAG_STORE=memory` selects the in-memory corpus — the **local default**, because `CREATE EXTENSION vector` fails on local Windows PG 17 (resolved plan open question). Unset/other ⇒ pgvector over `DATABASE_URL` (production path; confirm the extension on Railway PG 16 before live exposure). |
+| `RAG_DAILY_BUDGET_USD` / `RAG_JUDGE_ENABLED` | Railway `api` service / local `.env` | `app/rag/budget.py`, `app/rag/routes.py` | Daily USD cap for `POST /rag/ask` (default `$2`, ledger `rag_spend`, separate from the debate/derived/nlsql guards). `RAG_JUDGE_ENABLED=0` disables the sonnet faithfulness judge (structural citation gate still runs). |
 
 For local dev, both apps fall back to `.env.example` defaults (`http://localhost:8000` for `API_URL`, a local Postgres URL for `DATABASE_URL`). `ANTHROPIC_API_KEY` has no default — leave it unset locally and the NL-query path returns the unfiltered default view.
 

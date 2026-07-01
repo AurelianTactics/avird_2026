@@ -10,11 +10,12 @@
 --
 --   psql "$DATABASE_URL" -f db/pgvector_setup.sql
 --
--- DEFERRED-TO-IMPLEMENTATION CHECK (plan Open Questions): stock Windows
--- PostgreSQL 17 does not bundle `vector`, so `CREATE EXTENSION vector` may fail
--- locally without a manual build. If it does, the in-memory retrieval fallback
--- (rag/store.py) is the local default and pgvector parity is validated against
--- Railway PG 16 (also confirm the extension there before any live exposure).
+-- RESOLVED (2026-07-01, plan Open Questions): `CREATE EXTENSION vector` FAILS on
+-- the local Windows PG 17 (no vector.control shipped). Per KTD-3 the in-memory
+-- retrieval fallback (rag/store.py) is therefore the LOCAL default — set
+-- RAG_STORE=memory for the api service locally. This script is the
+-- Railway/production path; confirm the extension on Railway PG 16 before any
+-- live exposure (`SELECT * FROM pg_available_extensions WHERE name='vector'`).
 
 CREATE EXTENSION IF NOT EXISTS vector;
 

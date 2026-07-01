@@ -17,6 +17,12 @@ dependencies = [
     # P1 text-to-SQL validator: parse + read-only-shape + allow-list checks on
     # model-authored SQL, no execution (app/nlsql/validate.py). Pure-Python.
     "sqlglot>=25",
+    # P2 narrative-RAG route (POST /rag/ask): numpy for the retrieval store's
+    # vendored cosine path (app/rag/store.py), huggingface_hub for the query
+    # embedding at request time (app/rag/agent.py, lazy — needs HF_TOKEN).
+    # The heavy ingest deps (pandas/pyarrow) stay offline-only, never api deps.
+    "numpy>=1.26",
+    "huggingface_hub>=0.24",
 ]
 
 [dependency-groups]
