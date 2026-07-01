@@ -1,0 +1,8 @@
+{"question": "Describe a crash where the autonomous vehicle was hit while going straight.", "expected_incident_ids": [], "answer_points": ["going straight", "struck"]}
+{"question": "What happened in an incident involving a parked or stopped vehicle?", "expected_incident_ids": [], "answer_points": ["parked", "stopped"]}
+{"question": "Tell me about a crash that occurred during a right turn.", "expected_incident_ids": [], "answer_points": ["right turn", "turning"]}
+{"question": "What occurred when a vehicle backed into the autonomous vehicle?", "expected_incident_ids": [], "answer_points": ["backing", "reverse"]}
+{"question": "Describe an incident at a highway on-ramp or merge.", "expected_incident_ids": [], "answer_points": ["merge", "ramp", "highway"]}
+{"question": "What happened in a rear-end collision in stop-and-go traffic?", "expected_incident_ids": [], "answer_points": ["rear-end", "traffic"]}
+{"question": "Tell me about a crash involving a pedestrian who entered the roadway.", "expected_incident_ids": [], "answer_points": ["pedestrian", "roadway"]}
+{"question": "What was each vehicle's exact purchase price and insurance policy number?", "unsupported": true}

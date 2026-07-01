@@ -1,0 +1,15 @@
+{"question": "Describe a crash where the autonomous vehicle was rear-ended while stopped.", "expected_incident_ids": [], "answer_points": ["rear-ended", "stopped"]}
+{"question": "What happened in an incident involving a pedestrian in a crosswalk?", "expected_incident_ids": [], "answer_points": ["pedestrian", "crosswalk"]}
+{"question": "Describe a collision that occurred at an intersection.", "expected_incident_ids": [], "answer_points": ["intersection"]}
+{"question": "Tell me about a crash that happened while the vehicle was making a left turn.", "expected_incident_ids": [], "answer_points": ["left turn", "turning"]}
+{"question": "What occurred in an incident involving a cyclist?", "expected_incident_ids": [], "answer_points": ["cyclist", "bicycle"]}
+{"question": "Describe a low-speed contact in a parking lot or while parking.", "expected_incident_ids": [], "answer_points": ["parking", "low speed"]}
+{"question": "What happened when another vehicle changed lanes into the autonomous vehicle?", "expected_incident_ids": [], "answer_points": ["lane change", "merging"]}
+{"question": "Describe a crash that happened at night or in low visibility.", "expected_incident_ids": [], "answer_points": ["night", "dark"]}
+{"question": "Tell me about an incident where the autonomous vehicle was struck from behind in traffic.", "expected_incident_ids": [], "answer_points": ["struck", "behind", "traffic"]}
+{"question": "What happened in a crash involving a turning movement at a signalized intersection?", "expected_incident_ids": [], "answer_points": ["intersection", "turn", "signal"]}
+{"question": "Describe an incident where the other party ran a red light or stop sign.", "expected_incident_ids": [], "answer_points": ["red light", "stop sign"]}
+{"question": "What occurred when the autonomous vehicle was sideswiped?", "expected_incident_ids": [], "answer_points": ["sideswipe", "side"]}
+{"question": "Tell me about a crash in rainy or wet conditions.", "expected_incident_ids": [], "answer_points": ["rain", "wet"]}
+{"question": "What is the recommended tire-rotation interval for each vehicle?", "unsupported": true}
+{"question": "What were the names and ages of the people inside each vehicle?", "unsupported": true}
