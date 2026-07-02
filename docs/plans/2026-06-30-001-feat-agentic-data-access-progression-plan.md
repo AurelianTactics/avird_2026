@@ -19,7 +19,7 @@ A **progression roadmap** for learning database-backed agentic retrieval on the 
 4. **P4 — Agent router** that picks SQL vs RAG vs KG for a given question.
 5. **P5 — Hybrid graph+RAG + agentic orchestration** (multi-step plans that fuse structured, semantic, and graph evidence).
 
-The plan is **front-loaded**: P1 and P2 are implementation-ready (units, test scenarios, golden-set specs); P3 is moderately detailed; P4 and P5 are directional decisions plus learning scaffolding you firm up once the earlier phases teach you what you need.
+The plan is **front-loaded**: P1 and P2 are implementation-ready (units, test scenarios, golden-set specs); P3 was firmed up to implementation-ready on 2026-07-02 after P1/P2 shipped (see the phase header for the decisions that resolved it); P4 and P5 are directional decisions plus learning scaffolding you firm up once the earlier phases teach you what you need.
 
 Every phase is treated through the **same five learning dimensions** you asked about — **validations, prompts, context-building, agentic self-validation loops, and golden datasets** — defined once as a reusable rubric (see *Learning Scaffolding Model*) and instantiated per phase rather than re-explained five times.
 
@@ -178,8 +178,14 @@ apps/api/app/
     context.py            # chunk assembly + provenance
     agent.py              # retrieve -> generate(cite) -> faithfulness loop
     cli.py
-  kgquery/                # P3 — NL -> Cypher (directional)
-    ...
+  kgquery/                # P3 — NL -> Cypher (implementation-ready, U13–U18)
+    __init__.py
+    graph_card.py         # schema/v001.yaml -> card + label/rel allow-list
+    validate.py           # write-clause rejection + allow-list + EXPLAIN gate
+    agent.py              # generate -> validate -> execute(READ) -> repair
+    cli.py
+    routes.py             # POST /kgquery/ask + GET /kgquery/status
+    budget.py             # KGQUERY_DAILY_BUDGET_USD, ledger kgquery_spend
   router/                 # P4 — capability router (directional)
     ...
   orchestrator/           # P5 — hybrid orchestration (directional)
@@ -526,26 +532,171 @@ Same shape as Phase 1: optional `POST /rag/ask` mirroring `derived/routes.py` + 
 
 ---
 
-## Phase 3 — Knowledge-graph queries *(moderately detailed / directional)*
+## Phase 3 — Knowledge-graph queries *(implementation-ready — firmed up 2026-07-02 after P1/P2)*
 
-**Goal:** NL → Cypher over the existing Neo4j ontology, constrained to the `schema/v001.yaml` vocabulary, validated read-only, seeded by the schema's **competency questions** as the golden set.
+**Goal:** NL → Cypher over the existing Neo4j ontology, constrained to the `schema/v001.yaml` vocabulary, validated read-only, seeded by the schema's **competency questions** as the golden set — delivered end-to-end through a `/kg` web page, the same shape P1 and P2 actually shipped.
 
-**Why this is lighter:** P3 reuses P1's *exact* loop shape (generate → validate → execute → repair) with Cypher instead of SQL and Neo4j instead of Postgres, so the learning is mostly transfer plus graph-specific grounding. Detail it fully once P1's loop is proven.
+**Decisions that firmed this up (2026-07-02):**
+- **Graph backend: Neo4j Community Edition on Railway, one instance for dev and prod.** Replaces the AuraDB Free assumption. Rationale: no 72h pause / idle deletion (the worst P3 risk under Aura), same platform as everything else (the `api` service reaches it over Railway's private network, like Postgres), and the existing `graph_load.py` wiring carries over as an env-var change. Cost: a small always-on JVM container (~512M heap is plenty for this graph), roughly $2–5/mo of Railway usage + a volume. CE has **no role management** (Enterprise feature, same limitation Aura Free had), so the read-access-mode-transaction floor below is unchanged.
+- **Local dev reaches the same instance via Railway's public TCP proxy** on the bolt port. Accepted trade-off: the proxy doesn't terminate TLS, so dev access is unencrypted `bolt://` + strong password — tolerable for a rebuildable graph of public NHTSA data; the proxy can be toggled off between sessions. (Prod traffic stays on the private network.)
+- **Web delivery is in-plan, not gated.** P1 and P2 both "deferred" the route/page and both shipped one after iteration — the pattern (route + own budget guard/ledger + same-origin proxy + show-your-work page) is now the established deliverable, so P3 plans it up front (U17).
+- **Coverage honesty: keep the 143-incident subgraph, label it.** The graph covers the ~143 incidents from the 2026-06-18 extraction run, not the full treated table, so KG answers will disagree with `/nlsql` on questions like "which companies had the most incidents." Every answer surface (page banner, writeup) frames results as "over the extracted subgraph (n≈143)." No new extraction spend — the NL→Cypher learning goal doesn't need full coverage.
 
 **The five dimensions, instantiated:**
-- **Validations:** the **primary** safety floor is a **read-access-mode transaction** (`session(default_access_mode=READ)` / `execute_query(routing_=READ)`) — the server rejects any write at runtime regardless of tier, which is the reliable lever since a custom read-only DB credential/role is an Enterprise/role-management feature **likely unavailable on AuraDB Free**. On top of that: reject write clauses statically (`CREATE`/`MERGE`/`DELETE`/`SET`/`REMOVE`); label/relationship allow-list drawn from `schema_model`; `EXPLAIN` (Neo4j supports it) before run. (This is the KTD-1 analogue — but the read-mode transaction, not a credential, is the floor; a read-only credential is a bonus if the tier offers one.)
+- **Validations:** the **primary** safety floor is a **read-access-mode transaction** (`session(default_access_mode=READ)` / `execute_query(routing_=READ)`) — the server rejects any write at runtime regardless of edition (CE has no role management, so a read-only credential is not available). On top of that: reject write clauses statically (`CREATE`/`MERGE`/`DELETE`/`SET`/`REMOVE`/`FOREACH`/`LOAD CSV`, and `CALL` wholesale); label/relationship allow-list drawn from the schema; `EXPLAIN` (Neo4j supports it) before run; `LIMIT` injection. (The KTD-1 analogue — the read-mode transaction, not a credential, is the floor.)
 - **Prompts:** system prompt embeds the **node types, relationship types, and patterns** from `schema/v001.yaml` (the graph's whole point is that the schema is small and enumerable); output contract "one read-only Cypher, no prose"; refusal when the question needs a label not in the schema.
 - **Context building:** render the schema as a compact "graph card" (labels, rels, the `patterns` triples) + the competency questions as few-shot exemplars (they're already written, lines 830–848 of `schema/v001.yaml`).
 - **Self-validation loop:** generate → validate → `EXPLAIN` → execute → on Cypher error or empty result, repair with the error fed back; bounded.
 - **Golden dataset:** `golden/kgquery/{dev,heldout}.jsonl` seeded directly from the 18 competency questions (split dev/heldout); metric = answer-set F1 against gold answers (run a hand-written gold Cypher per question to produce expected rows). Reuse `ontology/evaluate.py`'s graph-eval surface (it already does "competency-question answerability").
 
-**Directional units (firm up post-P1):**
-- **U13.** Graph-card + Cypher validator (`apps/api/app/kgquery/{graph_card,validate}.py`) — schema render from `schema_model.py`; read-**access-mode transaction** as the floor + static write-clause rejection + label/rel allow-list + `EXPLAIN`. *Mirrors U2+U3.*
-- **U14.** NL→Cypher agent with repair loop (`apps/api/app/kgquery/agent.py`) + CLI. *Mirrors U4+U5.* Reuses the existing Neo4j driver wiring from `ontology/graph_load.py`; degrades cleanly when Aura is paused (the known 72h sharp edge) by falling back to the file-derived graph or a "graph unavailable" message.
-- **U15.** Golden from competency questions + `tools/eval_kgquery.py`. *Mirrors U6.* The competency questions give you a near-free, domain-validated golden seed.
-- **U16.** Phase-3 writeup.
+### U13. Railway Neo4j CE + graph rebuild from artifacts
 
-**Key risk to flag now:** AuraDB Free pauses after 72h and is deleted after extended idle (`ontology/CLAUDE.md`). The KG agent must treat the graph as **rebuildable, not authoritative** — fallback to "graph unavailable / rebuild from `artifacts/extractions/`," never assume liveness. This shapes U14's fallback design.
+**Goal:** A persistent Neo4j Community Edition instance on Railway holding the extracted ontology graph, reachable by the `api` service privately and by local dev via the TCP proxy — the P3 analogue of U1's "provision the substrate first."
+
+**Requirements:** R4, R7
+
+**Dependencies:** none. **Human/console steps included** (Railway dashboard provisioning), mirroring U1's role-provisioning shape.
+
+**Files:**
+- Modify: `docs/conventions/stack.md` (new `neo4j` service, `NEO4J_URI`/`NEO4J_USERNAME`/`NEO4J_PASSWORD` contract for both private-network and TCP-proxy forms, memory tuning, cost note)
+- Modify: `ontology/CLAUDE.md` (replace the AuraDB sharp-edge block: no more 72h pause, but the graph stays **rebuildable-not-authoritative**; record the rebuild command and the instance's memory settings)
+
+**Approach:** Provision a Neo4j CE service on Railway (official image + volume; tune `server.memory.heap.max_size≈512m`, pagecache ≈128m — the graph is tiny). Enable the public TCP proxy on 7687 for local dev; set a strong password. Repoint the root `.env` `NEO4J_*` at the proxy address. The extraction artifacts are gitignored and live only in the `avird-2026-ontology-v001` checkout — copy `ontology/artifacts/extractions/` (and the run manifests) into this worktree, then rebuild: `python ontology/graph_load.py` (preflight → constraints → load; `--reset --yes` first if re-running). `graph_load.py` needs **no code change** — it reads `NEO4J_URI`/`NEO4J_USERNAME`/`NEO4J_PASSWORD` as-is.
+
+**Patterns to follow:** `ontology/graph_load.py` (get_driver env contract, preflight, `graph_counts`); U1 (`tools/setup_readonly_role.py`) for the "provision + verify + document" shape.
+
+**Test scenarios:** *(infrastructure unit — verification is operational, not pytest)*
+- Happy path: `graph_load.py` preflight succeeds against the Railway instance; load reports node/relationship counts matching the artifact.
+- Idempotence: `--reset --yes` + reload lands identical counts.
+- Edge: with the TCP proxy disabled, preflight fails with the module's friendly setup hint (no raw driver traceback) — confirms the degrade path U15 depends on.
+
+**Verification:** `python ontology/graph_load.py` (no flags) prints live counts; a read query via `cypher-shell`/driver returns extracted incidents; `stack.md` records the proxy on/off toggle.
+
+### U14. Graph card + Cypher validator
+
+**Goal:** The grounding context (schema rendered as a compact "graph card") and the structural gate that accepts only a single safe, allow-listed read-only Cypher statement — independent of the LLM. *Mirrors U2+U3.*
+
+**Requirements:** R4
+
+**Dependencies:** U13 (for the EXPLAIN path; the static gate needs no live graph).
+
+**Files:**
+- Create: `apps/api/app/kgquery/__init__.py`, `apps/api/app/kgquery/graph_card.py`, `apps/api/app/kgquery/validate.py`
+- Create: `apps/api/app/kgquery/tests/test_graph_card.py`, `apps/api/app/kgquery/tests/test_validate.py`
+- Modify: `apps/api/pyproject.toml` + shared `requirements.txt` (add `neo4j` + `pyyaml` — the P2 precedent: minimal runtime deps in, heavy chains stay out)
+
+**Approach:** `graph_card.py` parses `ontology/schema/v001.yaml` **directly with pyyaml** (never imports ontology modules — same isolation call as P2's vendored cosine): render node labels + properties, relationship types, the `patterns` triples, and expose the structured label/rel allow-list the validator consumes. The card ships with the api (read the yaml at startup from a repo-relative path; it's committed and frozen). `validate.py`: assert exactly one statement; reject write clauses by keyword/AST-walk (`CREATE`, `MERGE`, `DELETE`, `DETACH`, `SET`, `REMOVE`, `FOREACH`, `LOAD CSV`) and reject `CALL` wholesale (procedures are where read-only guarantees leak); check every label/relationship token against the allow-list; inject `LIMIT` if absent; then `EXPLAIN` on a read-mode session to catch syntax/semantic errors with zero execution. Return `ValidationResult{ok, reason, normalized_cypher}` — never raises on bad input.
+
+**Patterns to follow:** `apps/api/app/nlsql/schema_card.py` (card + allow-list dual output, module-level memo), `apps/api/app/nlsql/validate.py` (structured result, layered checks, LIMIT injection).
+
+**Test scenarios:**
+- Happy path: the card lists every schema label/rel/pattern; the allow-list matches the yaml exactly (shared fixture with the validator tests).
+- Happy path: `MATCH (c:Company)-[:OPERATED]->(v:Vehicle) RETURN c.name, count(v)` passes; missing `LIMIT` gets the cap injected; an existing `LIMIT 10` is untouched.
+- Security: `MATCH (n) DETACH DELETE n` → rejected (write clause).
+- Security: `MATCH (n) SET n.x = 1 RETURN n` / `MERGE (:Company {name:'x'})` / `CREATE …` → rejected.
+- Security: `CALL db.labels()` / `CALL apoc.*` → rejected (CALL wholesale).
+- Security: a label not in the schema (`MATCH (u:User) RETURN u`) → rejected with the unknown-label reason.
+- Edge: a Cypher syntax error passes the static gate but fails `EXPLAIN` with a captured reason (no execution).
+
+**Verification:** every write/injection vector returns `ok=False` with a human-readable reason; `EXPLAIN` runs in read mode and returns zero rows.
+
+### U15. NL→Cypher agent with repair loop + CLI
+
+**Goal:** The agent that assembles the graph card, authors Cypher, validates, executes in a read-mode transaction, and repairs on failure — P1's loop shape transferred to the graph. *Mirrors U4+U5.*
+
+**Requirements:** R4, R5(prep), R7, R8
+
+**Dependencies:** U13, U14.
+
+**Files:**
+- Create: `apps/api/app/kgquery/agent.py`, `apps/api/app/kgquery/cli.py`
+- Create: `apps/api/app/kgquery/tests/test_agent.py`
+
+**Approach:** Mirror `app/nlsql/agent.py`: `assemble_context → generate_cypher → validate → execute → (repair|respond|fallback)`, bounded by `max_iterations` (3) + budget guard. Injected seams: `CypherModel` `Protocol` (real `ClaudeCypherModel` on `claude-haiku-4-5` per KTD-7; fake for tests) and a `KgData` seam wrapping the neo4j driver — **every** execution path goes through `execute_query(routing_=READ)` / a `default_access_mode=READ` session (the U14 floor). Graph-unreachable (Railway restart, proxy off, instance down) is a **first-class degrade**, not an error: the agent returns `{graph_available: false, message}` without calling the model — the graph is rebuildable-not-authoritative, never assumed live. Result dict mirrors nlsql: `{question, cypher, rows, row_count, iterations, fallback, attempts, message, graph_available}`. CLI mirrors `nlsql/cli.py`: `python -m app.kgquery.cli "which companies had pedestrian incidents?"` with `--verbose` (graph card + attempt trace) and a canned-Cypher stub when no key is set.
+
+**Patterns to follow:** `apps/api/app/nlsql/agent.py` (loop, Protocol seams, fallback edges, key hygiene), `apps/api/app/nlsql/cli.py`.
+
+**Test scenarios:**
+- Happy path: fake model returns valid Cypher first try → executes, `iterations == 1`, `fallback == False`.
+- Self-correction: invalid Cypher then valid on retry → `iterations == 2`, correct rows.
+- Edge: valid Cypher, zero rows → one reconsider iteration, then accepts the empty result.
+- Degrade: `KgData` raising unreachable → `graph_available=false` result, **zero** model calls, budget untouched.
+- Error: model raises → fallback, reservation released, no key/payload logged.
+- Budget: tripped guard → fallback before any paid call.
+- Bound: never-valid model stops at `max_iterations` (assert call count).
+- Floor: the fake `KgData` asserts it was invoked read-mode (the seam's contract).
+
+**Verification:** never raises on bad model output; runs key-free via fakes; a live CLI run against the Railway graph answers a competency question and shows the repair trace when it fires.
+
+### U16. Golden set from competency questions + eval harness (kgquery)
+
+**Goal:** A held-out-disciplined golden set seeded from the 18 competency questions, scored on **answer-set F1** against gold Cypher run on the live graph. *Mirrors U6.*
+
+**Requirements:** R2, R4
+
+**Dependencies:** U15. (CLI helpful for authoring gold Cypher.)
+
+**Files:**
+- Create: `golden/kgquery/dev.jsonl`, `golden/kgquery/heldout.jsonl`, `golden/kgquery/README.md`
+- Create: `tools/eval_kgquery.py`, `tools/tests/test_eval_kgquery.py`
+
+**Approach:** Split the 18 competency questions ~12 dev / 6 held-out as `{question, gold_cypher}` rows; hand-write the gold Cypher against the loaded 143-incident graph (the answers are small and checkable); add 2–3 "unanswerable" rows (questions needing labels outside the schema — expects refusal). Harness runs candidate + gold Cypher (both read-mode) and compares normalized result sets (order-insensitive, rounded); reports exact-set accuracy, answer-set F1 (partial credit), refusal-precision, and mean iterations. Copy the `golden_split_path` guard so `heldout.jsonl` refuses without `--heldout`. Committed JSON+markdown summary under `tools/results/`.
+
+**Patterns to follow:** `tools/eval_nlsql.py` (U6), `ontology/evaluate.py` (split hygiene, deterministic summaries).
+
+**Test scenarios:**
+- Happy path: a candidate matching gold scores exact; row-order differences still match.
+- Edge: superset/subset answers score partial F1, not full.
+- Hygiene: heldout without `--heldout` raises `PermissionError`.
+- Edge: an unanswerable row credits the agent's refusal, penalizes a hallucinated answer.
+- Determinism: identical summary JSON across two runs (fake agent).
+
+**Verification:** `python tools/eval_kgquery.py` prints metrics from real graph execution; held-out untouched during iteration.
+
+### U17. Web delivery: `/kgquery` routes + budget guard + `/kg` page
+
+**Goal:** The end-to-end deliverable — the pattern P1/P2 converged on, planned up front this time: a budget-guarded route, a same-origin proxy, and a show-your-work page.
+
+**Requirements:** R4, R7, R8
+
+**Dependencies:** U15. (U16 numbers inform the writeup, not this unit.)
+
+**Files:**
+- Create: `apps/api/app/kgquery/routes.py`, `apps/api/app/kgquery/budget.py`, `apps/api/app/kgquery/tests/test_routes.py`
+- Create: `apps/web/app/api/kgquery/ask/route.ts` (same-origin proxy), `apps/web/app/kg/page.tsx` (+ client component as needed)
+- Modify: `apps/api/app/main.py` (mount router), `docs/conventions/stack.md` (route + env contract), `apps/api/CLAUDE.md` (new paid surface note)
+
+**Approach:** Mirror `nlsql/routes.py` + `nlsql/budget.py` exactly:
+- `POST /kgquery/ask` — run the agent; always returns a renderable dict, never 500s (failures are `fallback=true`, graph-down is `graph_available=false`).
+- `GET /kgquery/status` — graph availability + node/relationship counts + the rendered graph card (labels/rels/patterns) for the page sidebar; degrades to `available=false` without erroring (the analogue of `GET /nlsql/schema`).
+- `budget.py` — its own durable ledger (`kgquery_spend`), own ceiling (`KGQUERY_DAILY_BUDGET_USD`), estimate sized to the P3 prompt (graph card + few-shot ≈ smaller than P1's schema card; size it from the rendered card, not copied constants — the KTD-5 caveat, third time).
+- `/kg` page ("Ask the graph"): question box, the generated Cypher, the result table, the repair trace when it fired, the graph card sidebar, a **persistent "answers cover the extracted subgraph (n≈143), not the full dataset" banner** (the coverage-honesty decision), and a friendly graph-unavailable state.
+- In prod the api reaches Neo4j over the **private network** URI; `NEO4J_*` set on the `api` Railway service.
+
+**Patterns to follow:** `apps/api/app/nlsql/routes.py` + `budget.py` (injected deps, never-500 contract, per-surface ledger), `apps/web/app/api/nlsql/query/route.ts` (proxy), `apps/web/app/nlsql/page.tsx` (page shape).
+
+**Test scenarios:**
+- Happy path: POST with a question (fakes injected) → 200 with cypher/rows/iterations; GET status → card + counts.
+- Degrade: graph down → both routes 200 with `available/graph_available=false`, page-renderable payloads.
+- Budget: tripped guard → 200 `fallback=true`, no model call.
+- Contract: an agent exception surfaces as `fallback=true`, never a 500 (mirrors nlsql route tests).
+- Input bound: question capped (same `MAX_QUESTION_CHARS` discipline) before any paid call.
+
+**Verification:** `/verify-local` covers the `/kg` page (question → Cypher + rows rendered; unavailable state when the graph is stopped); budget ledger rows appear in `kgquery_spend`.
+
+### U18. Phase-3 writeup
+
+**Goal:** Short markdown capturing the SQL→Cypher transfer (what carried, what didn't), the CE-on-Railway decision and its trade-offs, the read-mode-transaction floor, the subgraph-coverage framing, and the golden numbers.
+
+**Requirements:** R4 *(learning artifact)*
+
+**Dependencies:** U16, U17.
+
+**Files:** Create: `docs/writeups/kg-queries-nl-to-cypher.md`
+
+**Test scenarios:** none — prose.
+
+**Verification:** renders cleanly; links the CLI + eval commands + `/kg` page; records dev-set numbers and the n≈143 caveat.
 
 ---
 
@@ -589,15 +740,15 @@ Same shape as Phase 1: optional `POST /rag/ask` mirroring `derived/routes.py` + 
 
 ## Scope Boundaries
 
-- **In scope:** the local-first core of all five capabilities, each with the five-dimension scaffolding; P1–P2 implementation-ready, P3 moderate, P4–P5 directional; a reusable golden/eval pattern.
-- **Not building:** the public-API routes for any phase — each live-exposure is a separately-gated decision (recorded in Open Questions), not delivered here.
+- **In scope:** the local-first core of all five capabilities, each with the five-dimension scaffolding; P1–P3 implementation-ready (P3 firmed up 2026-07-02), P4–P5 directional; a reusable golden/eval pattern.
+- **Not building:** the public-API routes for P4–P5 — those live-exposures remain separately-gated decisions. *(Revised 2026-07-02: P1 and P2 both passed their gates and shipped route+proxy+page; P3 plans its web delivery up front as U17 — the gate pattern taught its lesson.)*
 - **Not building:** a UI for any capability beyond the CLIs (the learning UI is a possible follow-up; the ontology page already shows a static-graph precedent).
 - **Not in scope:** retraining/fine-tuning any model; a second embedding model; ontology schema revision (frozen-schema discipline applies — `schema/v001.yaml` is used as-is).
 - **Not in scope:** replacing the existing bounded-filter agent — it stays as the safe default on the live heatmap surface; P1 is a *parallel* open-ended capability, not a swap.
 
 ### Deferred to Follow-Up Work
 
-- **Live routes per phase** (`POST /nlsql/query`, `/rag/ask`, `/kgquery`, a unified `/ask` router) with dedicated budget guards + `web` proxies + prod read-only role / read-only Aura credential.
+- **Live routes for P4–P5** (a unified `/ask` router surface) with dedicated budget guards + `web` proxies. *(P1's `/nlsql`, P2's `/rag` shipped; P3's `/kgquery` + `/kg` is in-plan as U17.)*
 - **A learning UI** that shows the SQL/Cypher, the retrieved chunks, the repair iterations, and the routing decision — the natural "show your work" surface for a portfolio.
 - **Caching** of embeddings/results (R22 "no premature cache" holds until measured need).
 - **Cross-phase shared budget ledger** (today each phase would get its own, mirroring `derived_spend` vs the debate guard).
@@ -612,9 +763,15 @@ Same shape as Phase 1: optional `POST /rag/ask` mirroring `derived/routes.py` + 
 - **Surface:** local-first for every phase; live exposure decided phase-by-phase, always budget-guarded + secure. *(Resolved.)*
 - **Depth:** front-loaded — P1/P2 implementation-ready, P3 moderate, P4/P5 directional. *(Resolved.)*
 
+### Resolved at P3 firm-up (2026-07-02)
+- **Graph backend:** Neo4j **Community Edition on Railway** (volume + tuned ~512M heap), replacing AuraDB Free — no 72h pause/idle deletion, private-network access from the `api` service, `graph_load.py` unchanged. One instance for dev and prod; local dev via the public **TCP proxy** (unencrypted bolt + strong password accepted for a rebuildable public-data graph; toggle the proxy off between sessions). Small always-on cost (~$2–5/mo) accepted.
+- **Read-only enforcement for Neo4j:** read-**access-mode transaction** confirmed as the floor (CE has no role management, same as Aura Free); static write-clause + `CALL` rejection, label/rel allow-list, and `EXPLAIN` on top. *(Was a deferred question; now U14/U15.)*
+- **P3 deliverable:** web delivery (route + budget guard + proxy + `/kg` page) planned up front as U17, per the P1/P2 lesson.
+- **Graph coverage:** keep the 143-incident extracted subgraph; label every answer surface "over the extracted subgraph (n≈143)" rather than spending on more extraction.
+- **Artifacts location:** the extraction JSONL is gitignored and lives in the `avird-2026-ontology-v001` checkout — U13 copies it into this worktree before rebuild.
+
 ### Deferred to implementation
 - **pgvector availability — verify, don't assume.** The plan defaults to pgvector, but stock **Windows** Postgres 17 does not bundle the `vector` extension, so `CREATE EXTENSION vector` may need a manual build locally. First action in U8: confirm `CREATE EXTENSION vector` succeeds on the local PG17; if it doesn't install trivially, the in-memory path becomes the **local default** and pgvector/parity is validated only against Railway (also confirm the prod PG 16 extension before any P2 live exposure).
-- **Read-only enforcement for Neo4j** — primary lever is a read-**access-mode transaction** (server-enforced, tier-independent); a dedicated read-only credential/role is likely an Enterprise feature **not on AuraDB Free**. Resolve the exact driver call in U13/U14; don't assume a read-only credential exists.
 - **Faithfulness-judge model + cost** — which model (KTD-7) and how often it runs (every answer vs only on long answers); tune against the P2 golden set.
 - **SQL parser choice** — `sqlglot` assumed for U3 (read-only, no execution); confirm it parses the mixed-case-quoted column dialect cleanly, else fall back to a stricter regex+`EXPLAIN` gate.
 - **Router architecture** (LLM vs embedding-similarity vs hybrid) — P4 fork, resolve by building/comparing.
@@ -627,7 +784,7 @@ Same shape as Phase 1: optional `POST /rag/ask` mirroring `derived/routes.py` + 
 
 - **Reused infrastructure:** the asyncpg seam (`data.py`/`db.py`), the injected-model `Protocol` (`derived/agent.py`), the `BudgetGuard`, the embedding adapter (`eda_utils_embed`), the Neo4j driver (`graph_load.py`), and the golden/eval discipline (`ontology/evaluate.py`) are all reused, not reinvented. New code mirrors existing shapes.
 - **New external surfaces (when/if exposed):** each live route is a new paid LLM surface and inherits the `ANTHROPIC_API_KEY` runtime contract + a new per-phase budget env var. None added by this plan.
-- **New DB objects:** a read-only role (U1), a `narrative_embeddings` + pgvector table (U8). Both local-first; prod provisioning is part of the deferred live-exposure units.
+- **New DB objects:** a read-only role (U1), a `narrative_embeddings` + pgvector table (U8), a `kgquery_spend` ledger (U17), and a new **Railway Neo4j CE service** with a volume (U13) — the first new Railway service this plan adds.
 - **Security posture:** P1's read-only role is the most important new control — it makes "model authors SQL" defensible. The layered validator + budget guard mirror existing controls. The injection vectors are enumerated as P1/P3 test scenarios.
 - **Unchanged invariants:** the bounded-filter agent, the heatmap default render (deterministic, LLM-free), the ontology pipeline, and the existing debate/fault routes are all untouched.
 
@@ -641,7 +798,9 @@ Same shape as Phase 1: optional `POST /rag/ask` mirroring `derived/routes.py` + 
 | Read-only role misconfigured → write reachable | U1 test scenarios assert INSERT/UPDATE/DROP fail and that unrelated tables are unreadable; defense-in-depth via statement-type + table allow-list (U3). |
 | pgvector unavailable (local or Railway) | In-memory cosine fallback behind the same `retrieve` signature (KTD-3, U8); never blocks local iteration. |
 | Faithfulness judge cost/latency makes the RAG loop impractical | Make the judge opt-in/threshold-gated; structural citation-existence check (cheap, deterministic) is the always-on floor; budget guard caps the loop. |
-| AuraDB Free paused/deleted (72h idle) breaks P3 | KG agent treats the graph as rebuildable, falls back to "unavailable / rebuild from artifacts," never assumes liveness (matches `ontology/CLAUDE.md`). |
+| Railway Neo4j CE down/restarting breaks the `/kg` page | Graph-unavailable is a first-class degrade state (U15/U17), never a 500; the graph stays rebuildable-not-authoritative (`graph_load.py --reset --yes` from artifacts). Far rarer than Aura's 72h pause, which this decision replaced. |
+| Dev TCP-proxy access is unencrypted bolt | Strong password, public NHTSA data only, rebuildable graph; toggle the proxy off between dev sessions; prod stays on the private network. |
+| KG answers contradict `/nlsql` counts (n≈143 subgraph vs full table) | Persistent coverage banner on the `/kg` page + writeup framing; golden gold-Cypher answers are authored against the same subgraph so the eval is internally consistent. |
 | Multi-step P5 orchestration cost explosion | Hard `max_steps` + budget guard; start from a fixed KG-then-RAG template before free-roam planning. |
 | Golden sets too small to be meaningful | Front-loaded phases get real held-out splits; treat numbers as directional learning signal, not benchmark claims; document n. |
 | Scope sprawl (this is five features) | The plan is explicitly a progression — only P1/P2 are implementation-ready; P3–P5 are gated on the prior phase's learnings before being firmed up. |
@@ -653,7 +812,7 @@ Same shape as Phase 1: optional `POST /rag/ask` mirroring `derived/routes.py` + 
 - **Existing text-to-SQL (the "basics" baseline):** `apps/api/app/derived/agent.py`, `apps/api/app/derived/filters.py`, `apps/api/app/data.py` — bounded allow-list filter, injected model `Protocol`, budget guard, fail-to-default graph.
 - **Budget-guard + live-LLM-route + judge pattern:** `apps/api/app/debate.py`, `apps/api/app/derived/budget.py`, `docs/conventions/stack.md` (Agent path W5, fault/debate routes).
 - **Embeddings / RAG groundwork:** `docs/plans/2026-05-17-001-feat-narrative-embeddings-unsupervised-plan.md`, `eda/eda_utils_embed.py`, `eda/eda_utils_neighbors.py`, `eda/build_narrative_embeddings.py`, `data/embeddings/` cache.
-- **Knowledge graph:** `ontology/schema/v001.yaml` (node/rel/pattern vocabulary + 18 competency questions = a ready golden seed), `ontology/graph_load.py` (Neo4j driver), `ontology/CLAUDE.md` (Aura sharp edges).
+- **Knowledge graph:** `ontology/schema/v001.yaml` (node/rel/pattern vocabulary + 18 competency questions = a ready golden seed), `ontology/graph_load.py` (Neo4j driver), `ontology/CLAUDE.md` (graph sharp edges — Aura notes superseded by the Railway CE decision, updated in U13).
 - **Golden / eval discipline to mirror:** `ontology/evaluate.py` (dev/held-out hygiene, `golden_split_path` guard, committed-summary determinism), `ontology/golden.py`.
 - **Local stack / seeded DB:** `docs/conventions/stack.md` (local Postgres, `tools/local_db_setup.py`, `db/run_pipeline.py`, `tools/dev_stack.py`).
 - **Conventions:** root `CLAUDE.md` (learning-project framing, progressive disclosure), `docs/conventions/workflow.md`.

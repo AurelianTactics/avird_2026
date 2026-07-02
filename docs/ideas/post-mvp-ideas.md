@@ -23,11 +23,11 @@
     * ce review the code
     * golden data set
 * DONE docs / write up for both
-* metrics and golden data sets for both
-* Deploy P1
+* DONE metrics and golden data sets for both
+* TEST Deploy P1
     * DONE railway read only DB set up
         * make sure other users for this (like heatmap are using this too)
-* deploy P2
+* TEST deploy P2
 
 # Post MVP Ideas
 * using the ontology work with a graphDB and RAG maybe

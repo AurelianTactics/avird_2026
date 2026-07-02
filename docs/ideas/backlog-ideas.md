@@ -112,3 +112,4 @@ Unsorted, rough backlog items for potential future implementation
 * related incidents grouped on the tab
 * RAG / text to SQL more into the golden data set and the metrics
 * use more of the RAG like users for all the DB users maybe?
+* better metrics and golden data set for LLM RAG P1 and P2
