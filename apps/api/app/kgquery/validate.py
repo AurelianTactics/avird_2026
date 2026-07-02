@@ -61,6 +61,10 @@ _STRING_LITERAL_RE = re.compile(r"'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\"")
 # (map keys are `identifier:` — colon *after* — so they don't match).
 _TOKEN_RE = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")
 
+# Map-literal values written tight (`{is_subject_vehicle:true}`) also match the
+# token regex; these value keywords are never labels, so they're exempt.
+_VALUE_KEYWORDS = frozenset({"true", "false", "null"})
+
 
 class Explainer(Protocol):
     """The async EXPLAIN seam: raises on invalid Cypher, returns None when it plans.
@@ -131,6 +135,8 @@ def validate_static(
             allowed_relationships = card.allowed_relationships
     known = allowed_labels | allowed_relationships
     for token in _TOKEN_RE.findall(scannable):
+        if token.lower() in _VALUE_KEYWORDS:
+            continue
         if token not in known:
             return _reject(f"'{token}' is not a label or relationship in the graph schema")
 

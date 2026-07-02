@@ -104,6 +104,36 @@ def test_unknown_relationship_rejected():
     assert "HACKED_BY" in result.reason
 
 
+def test_tight_map_literal_value_keywords_are_not_labels():
+    result = check("MATCH (v:Vehicle {is_subject_vehicle:true}) RETURN v.name")
+    assert result.ok
+
+
+def test_committed_golden_cypher_passes_the_real_static_gate():
+    # Every gold_cypher in golden/kgquery/ must clear the same gate the agent
+    # uses (real schema vocabulary) — a golden row the validator would reject
+    # could never be matched by a correct candidate.
+    import json
+    from pathlib import Path
+
+    from app.kgquery.graph_card import load_graph_card
+
+    card = load_graph_card()
+    golden_dir = Path(__file__).resolve().parents[3] / "golden" / "kgquery"
+    rows = []
+    for split in ("dev.jsonl", "heldout.jsonl"):
+        with (golden_dir / split).open(encoding="utf-8") as f:
+            rows += [json.loads(line) for line in f if line.strip()]
+    assert rows
+    for row in rows:
+        result = validate_static(
+            row["gold_cypher"],
+            allowed_labels=card.allowed_labels,
+            allowed_relationships=card.allowed_relationships,
+        )
+        assert result.ok, f"gold cypher rejected ({result.reason}): {row['question']}"
+
+
 def test_backticks_rejected():
     result = check("MATCH (n:`Weird Label`) RETURN n")
     assert result.ok is False
