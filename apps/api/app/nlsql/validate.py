@@ -48,6 +48,15 @@ ALLOWED_TABLES: frozenset[str] = frozenset({TABLE})
 _FORBIDDEN_SCHEMAS = frozenset({"information_schema", "pg_catalog"})
 _FORBIDDEN_TABLE_PREFIX = "pg_"
 
+# Forbidden function calls (the U3 "function-access rejection" scope). ``pg_*``
+# covers the system/admin surface (pg_sleep, pg_read_file, …); ``set_config``
+# is singled out because a session-level GUC change would outlive the statement
+# on a pooled connection — e.g. disabling the role's statement_timeout guard.
+# sqlglot parses unknown functions as ``Anonymous`` carrying the bare name even
+# when schema-qualified (``pg_catalog.set_config`` → name ``set_config``).
+_FORBIDDEN_FUNCTION_PREFIX = "pg_"
+_FORBIDDEN_FUNCTIONS = frozenset({"set_config"})
+
 # Any of these nodes anywhere in the tree means the candidate isn't a pure read.
 _WRITE_NODES: tuple[type, ...] = (
     exp.Insert,
@@ -68,7 +77,8 @@ _WRITE_NODES: tuple[type, ...] = (
 class ExplainConn(Protocol):
     """The async DB seam for the EXPLAIN dry-run: asyncpg's ``.execute``."""
 
-    async def execute(self, query: str, *args: Any) -> Any: ...
+    async def execute(self, query: str, *args: Any) -> Any:
+        ...
 
 
 @dataclass(frozen=True)
@@ -119,6 +129,12 @@ def validate_static(
 
     if not isinstance(root, exp.Query):
         return _reject("only SELECT queries are allowed")
+
+    # Function deny-list: system/admin functions and session-setting writes.
+    for func in root.find_all(exp.Anonymous):
+        fname = (func.name or "").lower()
+        if fname.startswith(_FORBIDDEN_FUNCTION_PREFIX) or fname in _FORBIDDEN_FUNCTIONS:
+            return _reject(f"function '{fname}' is not allowed")
 
     # Table allow-list. CTE-defined names are local aliases, not real tables —
     # exclude them so a legitimate WITH clause isn't mistaken for an unknown table.

@@ -4,10 +4,10 @@ The second phase of the [agentic data-access progression](../plans/2026-06-30-00
 
 ## What shipped
 
-A local-first narrative-RAG agent (`app/rag/`), no public route:
+A narrative-RAG agent (`app/rag/`), local-first with a web surface layered on after the live-exposure gate:
 
 ```bash
-python db/pgvector_setup.sql          # optional: pgvector store (else in-memory)
+psql "$DATABASE_URL" -f db/pgvector_setup.sql   # optional: pgvector store (else in-memory)
 python -m app.rag.cli --dataset-id <id> "pedestrian in a crosswalk at night"
 python -m app.rag.cli --pgvector --judge "rear-end collisions while stopped"
 python tools/eval_rag.py --dataset-id <id>   # citation + coverage numbers
@@ -20,6 +20,7 @@ The pieces:
 - **Context** (`context.py`, U9) — numbered `[n] (incident <id>): …` chunks with an `id_map`, deduped by incident, truncated to a budget. The numbering is the contract the citation gate depends on.
 - **Agent** (`agent.py`, U10) — `embed → retrieve → assemble → generate → validate_citations → faithfulness_judge → respond`, with re-retrieve-and-regenerate repair bounded by `max_iterations` + budget.
 - **Golden** (`golden/rag/`, `eval_rag.py`, U11) — citation recall/precision + answer-point coverage, held-out-guarded.
+- **Web delivery (the live-exposure gate, passed)** — `POST /rag/ask` + `GET /rag/status` (`rag/routes.py`), a same-origin `web` proxy (`/api/rag/ask`), and the `/rag` page ("Ask the narratives"): question box, the cited answer with a faithful/unverified tag, the resolved incident citations, and a "what the model read" expander showing the retrieved narratives with distances. Gated by its own durable daily budget (`rag/budget.py`, `RAG_DAILY_BUDGET_USD`, ledger `rag_spend`) sized to the pricier judge call; `RAG_JUDGE_ENABLED=0` drops to the structural citation gate only. `RAG_STORE=memory` selects the in-memory corpus locally (Windows PG 17 has no pgvector — resolved open question); pgvector over `DATABASE_URL` is the production path.
 
 ## Why these choices
 
@@ -35,7 +36,7 @@ The pieces:
 
 ## What's deferred
 
-- **Live exposure.** P2 ships no route. `POST /rag/ask` (proxy + `RAG_DAILY_BUDGET_USD` guard) is a separate gated decision.
-- **Dependency weight.** Per R22 and the "api stays ML-free" invariant, the RAG toolchain deps (`numpy`, `pandas`, `pyarrow`, `huggingface_hub`) are **not** in `apps/api`'s production `pyproject.toml` — they're lazy-imported, live in the shared dev env, and `rag/` is never loaded by the FastAPI app. The live-exposure unit adds runtime deps when a real route needs them.
+- **Production wiring.** The route is built and budget-guarded, but the prod side of the gate — confirming the `vector` extension on Railway PG 16, running `db/pgvector_setup.sql` + the ingest there, and setting `HF_TOKEN` on the `api` service — happens at deploy time (see `docs/conventions/stack.md`).
+- **Dependency weight (revised for the live route).** The minimal runtime deps (`numpy` for the store's vendored cosine, `huggingface_hub` for the lazy query embedding) are now declared api deps; the heavy ingest chain (`pandas`, `pyarrow`, the flat `eda` modules) stays offline-only, lazy-imported by the CLI/ingest/eval from the shared dev venv.
 - **Golden labeling + numbers.** `expected_incident_ids` ship unlabeled (`[]`) — the right ids depend on the seeded corpus and are hand-picked via the CLI (see `golden/rag/README.md`); unlabeled rows are scored on coverage only and excluded from the citation means. The committed summary lands under `tools/results/` once run with the cache + keys.
 - **LLM-judge coverage.** Answer-point coverage is deterministic keyword matching for a reproducible number; an LLM-judged variant (temperature 0, documented as non-deterministic) is a possible follow-up.

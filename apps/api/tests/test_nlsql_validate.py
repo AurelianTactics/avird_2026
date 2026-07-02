@@ -100,6 +100,26 @@ class TestSecurity:
         assert not res.ok
         assert "not allowed" in res.reason
 
+    def test_system_functions_rejected(self):
+        # pg_* is the system/admin surface; set_config could disable the role's
+        # statement_timeout for the pooled session (schema-qualified included).
+        for sql in (
+            "SELECT pg_sleep(10)",
+            "SELECT set_config('statement_timeout', '0', false)",
+            "SELECT pg_catalog.set_config('statement_timeout', '0', false)",
+            "SELECT pg_read_file('/etc/passwd')",
+        ):
+            res = v.validate_static(sql)
+            assert not res.ok, sql
+            assert "not allowed" in res.reason
+
+    def test_ordinary_functions_still_pass(self):
+        res = v.validate_static(
+            "SELECT master_entity, COUNT(*) AS n FROM treated_incident_reports "
+            "GROUP BY master_entity"
+        )
+        assert res.ok
+
     def test_garbage_is_rejected_not_raised(self):
         res = v.validate_static("this is not sql at all <<<")
         assert not res.ok

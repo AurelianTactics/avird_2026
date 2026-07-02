@@ -196,7 +196,12 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     print()
-    print(f"verify (SELECT-only): psql '{readonly_url}' -c 'SELECT count(*) FROM {TABLE};'")
+    # Never echo the URL itself — it carries the role's password (R8: secrets
+    # are read at call time and never logged, even at provisioning).
+    print(
+        f'verify (SELECT-only): psql "${READONLY_DATABASE_URL_ENV}" '
+        f"-c 'SELECT count(*) FROM {TABLE};'"
+    )
     print("  an INSERT/UPDATE/DROP as this role must raise a permission error.")
     return 0
 

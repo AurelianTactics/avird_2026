@@ -134,6 +134,17 @@ async def test_empty_result_reconsiders_once_then_accepts():
     assert model.calls == 2
 
 
+async def test_refusal_contract_skips_reconsider():
+    # The prompt's can't-answer contract is deliberately empty — the loop must
+    # accept it in one iteration, not burn a paid call second-guessing it.
+    model = FakeSqlModel(responses=["SELECT NULL WHERE false"])
+    result = await run_sql_query("q", data=FakeSqlData(empty=True), model=model)
+    assert result["fallback"] is False
+    assert result["row_count"] == 0
+    assert result["iterations"] == 1
+    assert model.calls == 1
+
+
 # --- error / budget / bound -------------------------------------------------
 
 

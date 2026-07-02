@@ -82,6 +82,11 @@ class TestRefusal:
         assert e.is_refusal({"fallback": False, "sql": "SELECT NULL WHERE false"})
         assert e.is_refusal({"fallback": False, "sql": "select  null  where  false"})
 
+    def test_refusal_sentinel_with_injected_limit(self):
+        # The agent reports the *normalized* SQL, into which the validator
+        # injects a default LIMIT — still a refusal.
+        assert e.is_refusal({"fallback": False, "sql": "SELECT NULL WHERE FALSE LIMIT 1000"})
+
     def test_normal_sql_is_not_refusal(self):
         assert not e.is_refusal(
             {"fallback": False, "sql": "SELECT COUNT(*) AS n FROM treated_incident_reports"}

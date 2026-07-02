@@ -28,15 +28,19 @@
 
 -- 1. Create the LOGIN role if absent; otherwise (re)set its password so the
 --    script is safe to re-run after a credential rotation.
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role') THEN
-    EXECUTE format('CREATE ROLE %I LOGIN PASSWORD %L', :'role', :'password');
-  ELSE
-    EXECUTE format('ALTER ROLE %I LOGIN PASSWORD %L', :'role', :'password');
-  END IF;
-END
-$$;
+--
+--    \gexec, not a DO block: psql never interpolates :'role' / :'password'
+--    inside a dollar-quoted body (interpolation stops at any quoting), so a DO
+--    block would fail with `syntax error at or near ":"`. Here the variables
+--    are substituted in plain SQL, format() builds the DDL string, and \gexec
+--    executes each returned row as a statement.
+SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'role', :'password')
+WHERE NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role')
+\gexec
+
+SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'role', :'password')
+WHERE EXISTS (SELECT 1 FROM pg_roles WHERE rolname = :'role')
+\gexec
 
 -- 2. Least privilege. Strip the ambient grants this role inherits, then add
 --    back only: CONNECT to this database, USAGE on the public schema, and

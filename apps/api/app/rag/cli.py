@@ -33,9 +33,12 @@ from .store import InMemoryStore, PgVectorStore, Store
 
 def build_default_store(*, dataset_id: str, use_pgvector: bool) -> Store:
     if use_pgvector:
-        from ..nlsql.agent import get_readonly_pool  # reuse a pooled getter shape
+        # The app pool (DATABASE_URL), matching rag/routes.py: the P1 read-only
+        # role was deliberately never granted narrative_embeddings — it exists
+        # for model-authored SQL, and this retrieval query is fixed, trusted code.
+        from ..db import get_pool
 
-        return PgVectorStore(get_readonly_pool)
+        return PgVectorStore(get_pool)
     from .ingest import build_corpus_with_vectors
 
     ids, narratives, matrix, report = build_corpus_with_vectors(dataset_id=dataset_id)

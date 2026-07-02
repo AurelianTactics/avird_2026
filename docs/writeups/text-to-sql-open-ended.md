@@ -4,7 +4,7 @@ The first phase of the [agentic data-access progression](../plans/2026-06-30-001
 
 ## What shipped
 
-A local-first text-to-SQL agent (`app/nlsql/`), runnable with no public route:
+A text-to-SQL agent (`app/nlsql/`), local-first with a web surface layered on after the live-exposure gate:
 
 ```bash
 # one-time: provision the SELECT-only role on the seeded local DB
@@ -18,11 +18,12 @@ python tools/eval_nlsql.py --heldout  # final numbers only
 
 The pieces, each the same five-dimension story the plan defines once:
 
-- **Validations** — three layers, cheapest-first, fail-closed. A Postgres **read-only role** (`db/roles/readonly_role.sql`, U1) is the structural floor: it has `SELECT` on the one treated table and *nothing else*, so even a perfect injection can't mutate or read another table. On top, a **static validator** (`validate.py`, U3) parses with `sqlglot`, accepts exactly one read-only query, rejects DML/DDL/`;`-chaining/CTE-wrapped-DML/`SELECT INTO`/`pg_*`/`information_schema`/unlisted tables, and injects a `LIMIT`. Then an **`EXPLAIN` dry-run** catches column typos with zero rows touched.
+- **Validations** — three layers, cheapest-first, fail-closed. A Postgres **read-only role** (`db/roles/readonly_role.sql`, U1) is the structural floor: it has `SELECT` on the one treated table and *nothing else*, so even a perfect injection can't mutate or read another table. On top, a **static validator** (`validate.py`, U3) parses with `sqlglot`, accepts exactly one read-only query, rejects DML/DDL/`;`-chaining/CTE-wrapped-DML/`SELECT INTO`/`pg_*`/`information_schema`/unlisted tables and system function calls (`pg_*`, `set_config` — which could otherwise disable the role's `statement_timeout` on a pooled session), and injects a `LIMIT`. Then an **`EXPLAIN` dry-run** catches column typos with zero rows touched.
 - **Prompts** — a system prompt fixing the dialect (Postgres), the output contract (one `SELECT`, no prose/fences), the column-naming trap, and the refusal contract (`SELECT NULL WHERE false`).
 - **Context** — a **schema card** (`schema_card.py`, U2) generated from `information_schema` + `SELECT DISTINCT` value samples, so the grounding can't drift from the real table.
 - **Self-validation loop** — `generate → validate → execute → repair` (`agent.py`, U4): on a validation failure, DB error, or implausible empty result, the observation is fed back and the model repairs, bounded by `max_iterations` (3) and the budget guard.
 - **Golden set** — `golden/nlsql/{dev,heldout}.jsonl` scored on **execution-result equivalence** (`eval_nlsql.py`, U6), not SQL string match — the honest measure.
+- **Web delivery (the live-exposure gate, passed)** — `POST /nlsql/query` + `GET /nlsql/schema` (`nlsql/routes.py`), a same-origin `web` proxy (`/api/nlsql/query`), and the `/nlsql` page ("Ask the data"): question box, the SQL the model wrote, the result table, the repair trace when it fired, and the live column dictionary. Gated by its own durable daily budget (`nlsql/budget.py`, `NLSQL_DAILY_BUDGET_USD`, ledger `nlsql_spend`) with a per-call estimate sized to the P1 prompt — the KTD-5 caveat, resolved. The route never 500s; failures come back as `fallback=true`.
 
 ## Why these choices
 
@@ -38,6 +39,6 @@ The pieces, each the same five-dimension story the plan defines once:
 
 ## What's deferred
 
-- **Live exposure.** P1 ships no route. Mounting `POST /nlsql/query` is a separate, explicitly-gated decision (plan: Phase-1 live-exposure gate) that would add a `web` same-origin proxy, a **per-phase budget guard**, and the read-only role wired in prod.
-- **Per-phase budget sizing (KTD-5).** The agent reserves `guard.estimate_cost()` when a guard is injected, but the durable DB-backed guard and an `estimate_cost` sized to the larger P1 prompt (schema card + value samples + few-shot) land with the live-exposure unit — the verbatim `derived/budget.py` estimate under-reserves for this path.
+- **Production wiring.** The route is built and budget-guarded, but the prod side of the gate — provisioning the read-only role on Railway and setting `READONLY_DATABASE_URL` on the `api` service — happens at deploy time (`db/roles/readonly_role.sql` + `docs/conventions/stack.md`).
 - **Golden numbers.** The harness produces a committed JSON+markdown summary under `tools/results/` when run against a seeded DB with a key. The gold SQL is a starting seed; category-string filters (e.g. exact raw severity values) should be tuned against the seeded DB using the CLI's `--verbose` value samples before the held-out numbers are trusted.
+- **Few-shot exemplars in the live prompt.** The agent accepts `examples=` (drawn from the dev split, never held-out) but the route doesn't wire them yet — a cheap accuracy lever once the golden numbers show where the model stumbles.

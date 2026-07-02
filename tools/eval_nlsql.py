@@ -99,7 +99,11 @@ def partial_credit(candidate_rows, gold_rows):
     return len(a & b) / len(union) if union else 0.0
 
 
-_REFUSAL_SQL = re.compile(r"^selectnullwhere\(?false\)?$")
+# The agent reports the *normalized* SQL, into which the validator injects a
+# default LIMIT — so the refusal contract comes back as
+# "SELECT NULL WHERE FALSE LIMIT 1000". Tolerate that suffix (and sqlglot's
+# optional parenthesizing) or every correct refusal scores as wrong.
+_REFUSAL_SQL = re.compile(r"^selectnullwhere\(?false\)?(limit\d+)?$")
 
 
 def is_refusal(candidate):

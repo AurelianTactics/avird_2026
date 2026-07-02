@@ -35,6 +35,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import re
 from typing import Any, Protocol, TypedDict
 
 from langgraph.graph import END, START, StateGraph
@@ -73,20 +74,34 @@ SYSTEM_PROMPT = (
 )
 
 
+# The refusal contract from SYSTEM_PROMPT, matched loosely: the validator may
+# have injected a LIMIT into the normalized form, and sqlglot may parenthesize.
+_REFUSAL_SQL_RE = re.compile(r"^selectnullwhere\(?false\)?(limit\d+)?$")
+
+
+def is_refusal_sql(sql: str | None) -> bool:
+    """True when ``sql`` is the prompt's can't-answer contract (SELECT NULL WHERE false)."""
+    return bool(_REFUSAL_SQL_RE.match(re.sub(r"\s+", "", sql or "").lower()))
+
+
 class SqlModel(Protocol):
     """The injected model seam: (system, user) -> a single SQL string."""
 
-    def author(self, system: str, user: str) -> str: ...
+    def author(self, system: str, user: str) -> str:
+        ...
 
 
 class SqlData(Protocol):
     """The injected read-only data seam (real impl: :class:`NlSqlData`)."""
 
-    async def schema_card(self) -> SchemaCard: ...
+    async def schema_card(self) -> SchemaCard:
+        ...
 
-    async def validate(self, sql: str) -> ValidationResult: ...
+    async def validate(self, sql: str) -> ValidationResult:
+        ...
 
-    async def execute(self, sql: str) -> list[dict[str, Any]]: ...
+    async def execute(self, sql: str) -> list[dict[str, Any]]:
+        ...
 
 
 # --- prompt building --------------------------------------------------------
@@ -356,9 +371,15 @@ def _route_after_execute(state: AgentState) -> str:
     if rows is None:
         # DB error — repair if budget of iterations remains, else fall back.
         return "generate_sql" if state["iterations"] < _max_iters(state) else "fallback"
-    if not rows and not state.get("reconsidered_empty") and state["iterations"] < _max_iters(state):
+    if (
+        not rows
+        and not is_refusal_sql(state.get("candidate_sql"))
+        and not state.get("reconsidered_empty")
+        and state["iterations"] < _max_iters(state)
+    ):
         # Empty result: reconsider once (maybe the filter value was wrong), then
-        # accept the empty answer rather than looping forever.
+        # accept the empty answer rather than looping forever. The refusal
+        # contract is *deliberately* empty — don't burn a paid call second-guessing it.
         return "reconsider_empty"
     return "respond"
 
@@ -458,5 +479,6 @@ __all__ = [
     "SqlModel",
     "build_user_prompt",
     "get_readonly_pool",
+    "is_refusal_sql",
     "run_sql_query",
 ]
