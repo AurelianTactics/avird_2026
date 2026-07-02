@@ -69,8 +69,7 @@ class Explainer(Protocol):
     inside a read-access-mode session; tests inject a fake.
     """
 
-    async def explain(self, cypher: str) -> None:
-        ...
+    async def explain(self, cypher: str) -> None: ...
 
 
 @dataclass(frozen=True)
