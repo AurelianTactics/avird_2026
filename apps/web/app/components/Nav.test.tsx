@@ -20,6 +20,9 @@ describe("Nav", () => {
     expect(container.querySelector('a[href="/rag"]')?.textContent).toBe(
       "Ask the narratives",
     );
+    expect(container.querySelector('a[href="/kg"]')?.textContent).toBe(
+      "Ask the graph",
+    );
     expect(container.querySelector('a[href="/about"]')?.textContent).toBe(
       "About",
     );

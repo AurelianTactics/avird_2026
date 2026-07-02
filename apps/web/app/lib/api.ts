@@ -254,3 +254,44 @@ export type RagStatus = {
 export function fetchRagStatus(): Promise<ApiResult<RagStatus>> {
   return getJson<RagStatus>("/rag/status");
 }
+
+// --- Knowledge-graph queries (P3) ---------------------------------------------
+
+// One author attempt in the Cypher repair trace.
+export type KgAttempt = {
+  iteration: number;
+  cypher: string | null;
+  status: string; // "valid" | "invalid"
+  reason: string;
+};
+
+// The result the /kg page renders (Cypher + rows + repair trace).
+// graph_available=false means the Neo4j instance was unreachable — a
+// first-class degrade state, distinct from an ordinary fallback.
+export type KgResult = {
+  question: string;
+  cypher: string | null;
+  rows: Record<string, unknown>[];
+  row_count: number;
+  iterations: number;
+  fallback: boolean;
+  attempts: KgAttempt[];
+  message: string;
+  graph_available: boolean;
+};
+
+// Graph reachability + counts + the schema card for the /kg sidebar.
+export type KgStatus = {
+  available: boolean;
+  nodes: number;
+  relationships: number;
+  card: {
+    labels: string[];
+    relationship_types: string[];
+    patterns: string[][]; // [source, relationship, target]
+  };
+};
+
+export function fetchKgStatus(): Promise<ApiResult<KgStatus>> {
+  return getJson<KgStatus>("/kgquery/status");
+}

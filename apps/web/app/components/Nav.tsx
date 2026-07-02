@@ -8,6 +8,7 @@ const LINKS: { label: string; href: string }[] = [
   { label: "Heatmaps", href: "/heatmaps" },
   { label: "Ask the data", href: "/nlsql" },
   { label: "Ask the narratives", href: "/rag" },
+  { label: "Ask the graph", href: "/kg" },
   { label: "Ontology", href: "/ontology" },
   { label: "About", href: "/about" },
 ];

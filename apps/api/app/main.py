@@ -16,6 +16,7 @@ from fastapi.responses import JSONResponse
 from . import debate, fault, groupings, incidents
 from .db import check_db
 from .derived import routes as derived_routes
+from .kgquery import routes as kgquery_routes
 from .nlsql import routes as nlsql_routes
 from .rag import routes as rag_routes
 
@@ -48,6 +49,7 @@ app.include_router(debate.router)
 app.include_router(derived_routes.router)
 app.include_router(nlsql_routes.router)
 app.include_router(rag_routes.router)
+app.include_router(kgquery_routes.router)
 
 
 @app.get("/health")
