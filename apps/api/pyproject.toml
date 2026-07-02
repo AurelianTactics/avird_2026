@@ -23,6 +23,12 @@ dependencies = [
     # The heavy ingest deps (pandas/pyarrow) stay offline-only, never api deps.
     "numpy>=1.26",
     "huggingface_hub>=0.24",
+    # P3 NL->Cypher route (POST /kgquery/ask): pyyaml renders the frozen
+    # ontology schema into the graph card (app/kgquery/graph_card.py, never
+    # imports ontology modules); neo4j executes validated read-mode Cypher
+    # (app/kgquery/agent.py, lazy — needs NEO4J_* at call time).
+    "pyyaml>=6.0",
+    "neo4j>=5.20",
 ]
 
 [dependency-groups]
