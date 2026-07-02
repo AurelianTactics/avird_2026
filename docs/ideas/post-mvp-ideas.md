@@ -15,17 +15,17 @@
         * how to store measurables, how to stor user feedback and what users are asking for (maybe backlog some of this)
     
     * local webpage testing
-* P2
+* DONE P2
     * my review of the code
         * understand the embedding decisions, model used, and pipeline
     * DONE check the display results as well
-* P1 and P2
+* DONE P1 and P2
     * ce review the code
     * golden data set
+* DONE docs / write up for both
 * metrics and golden data sets for both
-* docs / write up for both
 * Deploy P1
-    * railway read only DB set up
+    * DONE railway read only DB set up
         * make sure other users for this (like heatmap are using this too)
 * deploy P2
 
