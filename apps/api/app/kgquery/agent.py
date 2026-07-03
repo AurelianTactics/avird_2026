@@ -75,13 +75,15 @@ SYSTEM_PROMPT = (
 )
 
 
-# The refusal contract from SYSTEM_PROMPT, matched loosely (case/whitespace).
+# The refusal contract from SYSTEM_PROMPT, matched loosely (case/whitespace,
+# and the trailing semicolon models add — the validator tolerates it, so the
+# refusal check must too or an honest refusal burns a reconsider call).
 _REFUSAL_CYPHER_RE = re.compile(r"^returnnulllimit0$")
 
 
 def is_refusal_cypher(cypher: str | None) -> bool:
     """True when ``cypher`` is the prompt's can't-answer contract (RETURN NULL LIMIT 0)."""
-    return bool(_REFUSAL_CYPHER_RE.match(re.sub(r"\s+", "", cypher or "").lower()))
+    return bool(_REFUSAL_CYPHER_RE.match(re.sub(r"[\s;]+", "", cypher or "").lower()))
 
 
 class CypherModel(Protocol):
@@ -283,9 +285,15 @@ async def assemble_context(state: AgentState) -> dict[str, Any]:
     first-class degrade: no model call, no budget spend."""
     try:
         card = state["data"].graph_card()
-    except Exception:  # noqa: BLE001
-        logger.warning("kgquery: graph-card build failed; using fallback")
-        return {"fallback": True, "fallback_message": _FALLBACK_MESSAGE}
+    except Exception:  # noqa: BLE001 — a broken/missing schema is a service
+        # problem, not a bad question: degrade like graph-down (no "try
+        # rephrasing" hint, no model call), never a per-question fallback.
+        logger.warning("kgquery: graph-card build failed; degrading without a model call")
+        return {
+            "fallback": True,
+            "graph_available": False,
+            "fallback_message": GRAPH_DOWN_MESSAGE,
+        }
     try:
         await state["data"].ping()
     except Exception:  # noqa: BLE001 — never log the URI/credentials

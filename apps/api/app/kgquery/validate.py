@@ -57,12 +57,21 @@ _LIMIT_RE = re.compile(r"\bLIMIT\b", re.IGNORECASE)
 # before any keyword/token scan so data values can't trip or hide a check.
 _STRING_LITERAL_RE = re.compile(r"'(?:[^'\\]|\\.)*'|\"(?:[^\"\\]|\\.)*\"")
 
-# A label or relationship token: a colon immediately followed by an identifier
-# (map keys are `identifier:` — colon *after* — so they don't match).
-_TOKEN_RE = re.compile(r":([A-Za-z_][A-Za-z0-9_]*)")
+# A map-literal key looks exactly like a label token to a colon scan
+# (`{name:n.name}` vs `(n:Incident)`). The disambiguator is what precedes the
+# key identifier: map keys follow `{` or `,`; label positions follow `(`, `[`,
+# or a bare variable. Blanking the key's colon before the token scan keeps
+# idiomatic tight map projections from being rejected as unknown labels.
+_MAP_KEY_RE = re.compile(r"([{,]\s*[A-Za-z_][A-Za-z0-9_]*\s*):")
 
-# Map-literal values written tight (`{is_subject_vehicle:true}`) also match the
-# token regex; these value keywords are never labels, so they're exempt.
+# A label/relationship token expression: `:Ident`, optionally continued as an
+# alternation (`:A|B`, `:A | :B`) — every alternative must face the allow-list,
+# not just the first (a `|`-smuggled off-schema type would otherwise skip it).
+_TOKEN_RE = re.compile(r":\s*([A-Za-z_][A-Za-z0-9_]*(?:\s*\|\s*:?\s*[A-Za-z_][A-Za-z0-9_]*)*)")
+_TOKEN_SPLIT_RE = re.compile(r"[|:\s]+")
+
+# Map values that still slip through (e.g. after an unusual key shape) can be
+# bare value keywords; these are never labels, so they're exempt.
 _VALUE_KEYWORDS = frozenset({"true", "false", "null"})
 
 
@@ -134,11 +143,13 @@ def validate_static(
         if allowed_relationships is None:
             allowed_relationships = card.allowed_relationships
     known = allowed_labels | allowed_relationships
-    for token in _TOKEN_RE.findall(scannable):
-        if token.lower() in _VALUE_KEYWORDS:
-            continue
-        if token not in known:
-            return _reject(f"'{token}' is not a label or relationship in the graph schema")
+    token_scannable = _MAP_KEY_RE.sub(r"\1 ", scannable)
+    for expression in _TOKEN_RE.findall(token_scannable):
+        for token in _TOKEN_SPLIT_RE.split(expression):
+            if not token or token.lower() in _VALUE_KEYWORDS:
+                continue
+            if token not in known:
+                return _reject(f"'{token}' is not a label or relationship in the graph schema")
 
     if not _LIMIT_RE.search(scannable):
         text = f"{text} LIMIT {default_limit}"

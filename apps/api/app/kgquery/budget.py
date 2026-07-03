@@ -15,6 +15,7 @@ Output is bounded by the agent's ``max_tokens`` (512).
 
 from __future__ import annotations
 
+import functools
 import os
 import threading
 import time
@@ -34,21 +35,18 @@ _PROMPT_OVERHEAD_CHARS = 2500
 _FALLBACK_CARD_CHARS = 13000
 _ESTIMATE_OUTPUT_TOKENS = 512
 
-_estimate_input_chars: int | None = None
 
-
+@functools.lru_cache(maxsize=1)
 def _estimate_chars() -> int:
-    """Measure the rendered card once; fall back to a conservative constant."""
-    global _estimate_input_chars
-    if _estimate_input_chars is None:
-        try:
-            from .graph_card import load_graph_card
+    """Measure the rendered card + system prompt once; fall back conservatively."""
+    try:
+        from .agent import SYSTEM_PROMPT
+        from .graph_card import load_graph_card
 
-            card_chars = len(load_graph_card().render())
-        except Exception:  # noqa: BLE001 — never let sizing break the guard
-            card_chars = _FALLBACK_CARD_CHARS
-        _estimate_input_chars = card_chars + _PROMPT_OVERHEAD_CHARS
-    return _estimate_input_chars
+        measured = len(load_graph_card().render()) + len(SYSTEM_PROMPT)
+    except Exception:  # noqa: BLE001 — never let sizing break the guard
+        measured = _FALLBACK_CARD_CHARS
+    return measured + _PROMPT_OVERHEAD_CHARS
 
 
 def _default_budget_usd() -> float:

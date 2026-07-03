@@ -111,7 +111,7 @@ def is_refusal(candidate):
     if candidate.get("fallback"):
         return True
     sql = candidate.get("sql") or ""
-    return bool(_REFUSAL_SQL.match(re.sub(r"\s+", "", sql).lower()))
+    return bool(_REFUSAL_SQL.match(re.sub(r"[\s;]+", "", sql).lower()))
 
 
 def score_case(case, candidate, gold_rows):

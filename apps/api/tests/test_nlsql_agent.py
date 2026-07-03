@@ -145,6 +145,18 @@ async def test_refusal_contract_skips_reconsider():
     assert model.calls == 1
 
 
+async def test_refusal_with_trailing_semicolon_still_skips_reconsider():
+    # sqlglot tolerates a trailing ';' at validation — the refusal check must
+    # too, or an honest refusal burns a reconsider call (P3 review finding,
+    # same class as kgquery's).
+    model = FakeSqlModel(responses=["SELECT NULL WHERE false;"])
+    result = await run_sql_query("q", data=FakeSqlData(empty=True), model=model)
+    assert result["fallback"] is False
+    assert result["row_count"] == 0
+    assert result["iterations"] == 1
+    assert model.calls == 1
+
+
 # --- error / budget / bound -------------------------------------------------
 
 

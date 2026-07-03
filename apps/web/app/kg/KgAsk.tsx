@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import ResultTable from "../components/ResultTable";
 import type { KgResult } from "../lib/api";
 
 // Client shell for the graph-query box: posts the question to the same-origin
@@ -16,36 +17,6 @@ const EXAMPLES = [
   "In which cities and states do incidents occur most frequently?",
 ];
 
-function ResultTable({ rows }: { rows: Record<string, unknown>[] }) {
-  if (rows.length === 0) return <p className="muted">No rows returned.</p>;
-  const columns = Object.keys(rows[0]);
-  return (
-    <div className="nlsql-table-wrap">
-      <table className="nlsql-table">
-        <thead>
-          <tr>
-            {columns.map((c) => (
-              <th key={c}>{c}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {rows.slice(0, 200).map((row, i) => (
-            <tr key={i}>
-              {columns.map((c) => (
-                <td key={c}>{String(row[c] ?? "")}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-      {rows.length > 200 ? (
-        <p className="muted">Showing the first 200 of {rows.length} rows.</p>
-      ) : null}
-    </div>
-  );
-}
-
 export default function KgAsk() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,6 +30,9 @@ export default function KgAsk() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ question: q }),
       });
+      // A non-2xx body (e.g. the proxy's 422) isn't KgResult-shaped — treat it
+      // as a fallback rather than crashing the render on a missing field.
+      if (!res.ok) throw new Error(`upstream ${res.status}`);
       setResult((await res.json()) as KgResult);
     } catch {
       setResult({

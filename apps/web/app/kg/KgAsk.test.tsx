@@ -119,6 +119,27 @@ describe("KgAsk", () => {
     expect(container.textContent).toContain("Couldn't answer that");
   });
 
+  it("renders a fallback notice (not a crash) when the proxy returns a non-2xx body", async () => {
+    // e.g. the proxy's 422 { error: "question too long" } — not KgResult-shaped.
+    global.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 422,
+        json: async () => ({ error: "question too long" }),
+      } as unknown as Response),
+    ) as unknown as typeof fetch;
+    const { container } = render(<KgAsk />);
+    fireEvent.change(container.querySelector("input")!, {
+      target: { value: "long question" },
+    });
+    fireEvent.submit(container.querySelector("form")!);
+
+    await waitFor(() => {
+      expect(container.querySelector(".notice")).not.toBeNull();
+    });
+    expect(container.textContent).toContain("Couldn't run that question");
+  });
+
   it("renders the graph-down state distinctly from an ordinary fallback", async () => {
     mockResult({
       question: "anything",

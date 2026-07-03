@@ -18,13 +18,14 @@ from tests.test_kgquery_agent import VALID_CYPHER, FakeCypherModel, FakeKgData
 
 
 class CountingKgData(FakeKgData):
-    """Status route needs count queries; answer them from canned totals."""
+    """Status route needs the combined-counts query; answer from canned totals.
+    Unreachable raises on execute — the count query doubles as the probe."""
 
     async def execute(self, cypher):
+        if self._unreachable:
+            raise RuntimeError("ServiceUnavailable")
         if "count(n)" in cypher:
-            return [{"n": 431}]
-        if "count(r)" in cypher:
-            return [{"n": 987}]
+            return [{"nodes": 431, "relationships": 987}]
         return await super().execute(cypher)
 
 
@@ -93,6 +94,23 @@ def test_ask_never_500s_on_bad_model():
 
 def test_ask_graph_down_is_a_renderable_degrade():
     _override(FakeKgData(unreachable=True), FakeCypherModel())
+    r = client.post("/kgquery/ask", json={"question": "anything"})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["fallback"] is True
+    assert body["graph_available"] is False
+
+
+def test_ask_never_500s_even_if_the_agent_itself_raises(monkeypatch):
+    # Belt-and-braces: run_kg_query is contracted never to raise, but the route
+    # must hold the never-500 contract even if that contract is broken.
+    from app.kgquery import routes as kg_routes
+
+    async def boom(*args, **kwargs):
+        raise RuntimeError("agent bug")
+
+    monkeypatch.setattr(kg_routes, "run_kg_query", boom)
+    _override(FakeKgData(), FakeCypherModel())
     r = client.post("/kgquery/ask", json={"question": "anything"})
     assert r.status_code == 200
     body = r.json()

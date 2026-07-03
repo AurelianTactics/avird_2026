@@ -109,6 +109,25 @@ def test_tight_map_literal_value_keywords_are_not_labels():
     assert result.ok
 
 
+def test_tight_map_projection_keys_are_not_labels():
+    # Idiomatic return-map with no space after the colon: `name`/`n.name` and
+    # `count` are map keys/values, not labels — must not be falsely rejected.
+    result = check("MATCH (n:Incident) RETURN {name:n.name, count:count(n)} LIMIT 5")
+    assert result.ok
+
+
+def test_relationship_alternation_checks_every_alternative():
+    # A `|`-smuggled off-schema type must not skip the allow-list.
+    result = check("MATCH (:Incident)-[:INVOLVES|HACKED_REL]->(:Vehicle) RETURN 1")
+    assert result.ok is False
+    assert "HACKED_REL" in result.reason
+
+
+def test_relationship_alternation_with_known_types_passes():
+    result = check("MATCH (:Incident)-[:INVOLVES|OPERATED_BY]->(:Vehicle) RETURN 1")
+    assert result.ok
+
+
 def test_committed_golden_cypher_passes_the_real_static_gate():
     # Every gold_cypher in golden/kgquery/ must clear the same gate the agent
     # uses (real schema vocabulary) — a golden row the validator would reject

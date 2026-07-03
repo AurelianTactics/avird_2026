@@ -35,7 +35,9 @@ class TestSplitHygiene:
 
     def test_committed_golden_rows_are_well_formed(self):
         for split in ("dev", "heldout"):
-            rows = e.load_jsonl(e.golden_split_path(split, allow_heldout=True))
+            rows = e.load_jsonl(
+                e.golden_split_path(split, allow_heldout=True, golden_dir=e.GOLDEN_DIR)
+            )
             assert rows, f"{split} split is empty"
             for row in rows:
                 assert row["question"]

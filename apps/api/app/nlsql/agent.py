@@ -81,27 +81,25 @@ _REFUSAL_SQL_RE = re.compile(r"^selectnullwhere\(?false\)?(limit\d+)?$")
 
 def is_refusal_sql(sql: str | None) -> bool:
     """True when ``sql`` is the prompt's can't-answer contract (SELECT NULL WHERE false)."""
-    return bool(_REFUSAL_SQL_RE.match(re.sub(r"\s+", "", sql or "").lower()))
+    # ``[\s;]``: the raw candidate may carry a trailing semicolon the validator
+    # tolerates — an honest refusal must not burn a reconsider call over it.
+    return bool(_REFUSAL_SQL_RE.match(re.sub(r"[\s;]+", "", sql or "").lower()))
 
 
 class SqlModel(Protocol):
     """The injected model seam: (system, user) -> a single SQL string."""
 
-    def author(self, system: str, user: str) -> str:
-        ...
+    def author(self, system: str, user: str) -> str: ...
 
 
 class SqlData(Protocol):
     """The injected read-only data seam (real impl: :class:`NlSqlData`)."""
 
-    async def schema_card(self) -> SchemaCard:
-        ...
+    async def schema_card(self) -> SchemaCard: ...
 
-    async def validate(self, sql: str) -> ValidationResult:
-        ...
+    async def validate(self, sql: str) -> ValidationResult: ...
 
-    async def execute(self, sql: str) -> list[dict[str, Any]]:
-        ...
+    async def execute(self, sql: str) -> list[dict[str, Any]]: ...
 
 
 # --- prompt building --------------------------------------------------------

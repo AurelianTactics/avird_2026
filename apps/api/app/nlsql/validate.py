@@ -77,8 +77,7 @@ _WRITE_NODES: tuple[type, ...] = (
 class ExplainConn(Protocol):
     """The async DB seam for the EXPLAIN dry-run: asyncpg's ``.execute``."""
 
-    async def execute(self, query: str, *args: Any) -> Any:
-        ...
+    async def execute(self, query: str, *args: Any) -> Any: ...
 
 
 @dataclass(frozen=True)

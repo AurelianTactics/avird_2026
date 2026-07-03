@@ -38,6 +38,14 @@ router = APIRouter(prefix="/kgquery")
 # Same input bound as the other paid NL surfaces — cap before any paid call.
 MAX_QUESTION_CHARS = 500
 
+# Both counts in one round trip (the status endpoint runs on every /kg page
+# load); a failed execute doubles as the reachability probe, so no ping first.
+# OPTIONAL MATCH keeps the row when the graph has nodes but no relationships.
+_COUNTS_CYPHER = (
+    "MATCH (n) WITH count(n) AS nodes "
+    "OPTIONAL MATCH ()-[r]->() RETURN nodes, count(r) AS relationships"
+)
+
 
 class AskRequest(BaseModel):
     question: str = Field(default="", max_length=MAX_QUESTION_CHARS)
@@ -70,13 +78,12 @@ async def status(data: KgData = Depends(get_kg_data)) -> dict[str, Any]:
         card_payload = {"labels": [], "relationship_types": [], "patterns": []}
 
     try:
-        await data.ping()
-        nodes = await data.execute("MATCH (n) RETURN count(n) AS n")
-        rels = await data.execute("MATCH ()-[r]->() RETURN count(r) AS n")
+        rows = await data.execute(_COUNTS_CYPHER)
+        row = rows[0] if rows else {}
         return {
             "available": True,
-            "nodes": int(nodes[0]["n"]) if nodes else 0,
-            "relationships": int(rels[0]["n"]) if rels else 0,
+            "nodes": int(row.get("nodes") or 0),
+            "relationships": int(row.get("relationships") or 0),
             "card": card_payload,
         }
     except Exception:  # noqa: BLE001 — graph down is a first-class degrade

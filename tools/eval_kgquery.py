@@ -24,70 +24,32 @@ Golden row shape (``golden/kgquery/{dev,heldout}.jsonl``)::
 from __future__ import annotations
 
 import argparse
-import json
 import re
 import sys
 from pathlib import Path
 
+# Split hygiene, jsonl loading, result-set normalization, and the summary
+# writer are metric-agnostic infra shared by every eval harness — import from
+# the P1 harness (the precedent eval_rag.py set) instead of re-copying.
+from eval_nlsql import (
+    _mean,
+    _row_tuple,
+    canonical,
+    exact_match,
+    golden_split_path,
+    load_jsonl,
+    write_summary,
+)
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 GOLDEN_DIR = REPO_ROOT / "golden" / "kgquery"
-RESULTS_DIR = Path(__file__).resolve().parent / "results"
-FLOAT_NDIGITS = 4
+
+__all__ = ["canonical", "exact_match", "golden_split_path", "load_jsonl", "write_summary"]
 
 
 # ---------------------------------------------------------------------------
-# Loading (held-out hygiene mirrors ontology/evaluate.py)
+# Scoring (pure — the P3-specific metric)
 # ---------------------------------------------------------------------------
-def golden_split_path(split, allow_heldout=False, golden_dir=GOLDEN_DIR):
-    """The held-out split is refused without the explicit flag (mirrors AE4)."""
-    if split == "heldout" and not allow_heldout:
-        raise PermissionError(
-            "refusing to read heldout.jsonl without --heldout. The held-out "
-            "split is for final numbers only; iterate against dev."
-        )
-    return Path(golden_dir) / f"{split}.jsonl"
-
-
-def load_jsonl(path):
-    rows = []
-    with Path(path).open(encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                rows.append(json.loads(line))
-    return rows
-
-
-# ---------------------------------------------------------------------------
-# Result-set normalization + scoring (pure)
-# ---------------------------------------------------------------------------
-def _normalize_value(value, ndigits=FLOAT_NDIGITS):
-    if isinstance(value, bool):
-        return ("bool", value)
-    if isinstance(value, float):
-        return ("num", round(value, ndigits))
-    if isinstance(value, int):
-        return ("num", round(float(value), ndigits))
-    if value is None:
-        return ("null", None)
-    return ("str", str(value))
-
-
-def _row_tuple(row):
-    # Order-insensitive over columns: sort by normalized value, so a candidate
-    # aliasing count(*) as "n" vs "incidents" still matches on the numbers.
-    return tuple(sorted(_normalize_value(v) for v in row.values()))
-
-
-def canonical(rows):
-    """Order-insensitive canonical form of a result set (a sorted multiset)."""
-    return tuple(sorted(_row_tuple(r) for r in rows))
-
-
-def exact_match(candidate_rows, gold_rows):
-    return canonical(candidate_rows) == canonical(gold_rows)
-
-
 def answer_set_f1(candidate_rows, gold_rows):
     """Row-set F1 — partial credit for supersets/subsets (the plan's P3 metric)."""
     a = set(_row_tuple(r) for r in candidate_rows)
@@ -110,7 +72,7 @@ def is_refusal(candidate):
     if candidate.get("fallback"):
         return True
     cypher = candidate.get("cypher") or ""
-    return bool(_REFUSAL_CYPHER.match(re.sub(r"\s+", "", cypher).lower()))
+    return bool(_REFUSAL_CYPHER.match(re.sub(r"[\s;]+", "", cypher).lower()))
 
 
 def score_case(case, candidate, gold_rows):
@@ -137,11 +99,6 @@ def score_case(case, candidate, gold_rows):
         "f1": f1,
         "iterations": candidate.get("iterations", 0),
     }
-
-
-def _mean(values):
-    values = list(values)
-    return round(sum(values) / len(values), 4) if values else 0.0
 
 
 def aggregate(scored):
@@ -171,24 +128,6 @@ def evaluate(cases, run_agent, run_gold):
         gold_rows = [] if case.get("unanswerable") else run_gold(case["gold_cypher"])
         scored.append(score_case(case, candidate, gold_rows))
     return {"metrics": aggregate(scored), "cases": scored}
-
-
-# ---------------------------------------------------------------------------
-# Summary (deterministic JSON + markdown, mirrors ontology/evaluate.py)
-# ---------------------------------------------------------------------------
-def write_summary(metrics, name, out_dir=RESULTS_DIR, inputs=None):
-    out_dir = Path(out_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
-    payload = {"name": name, "inputs": inputs or {}, "metrics": metrics}
-    json_path = out_dir / f"{name}.json"
-    json_path.write_text(
-        json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8", newline="\n"
-    )
-    lines = [f"# {name}", "", "| metric | value |", "|---|---|"]
-    lines += [f"| {k} | {metrics[k]} |" for k in sorted(metrics)]
-    md_path = out_dir / f"{name}.md"
-    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
-    return json_path, md_path
 
 
 # ---------------------------------------------------------------------------
@@ -238,7 +177,7 @@ def main(argv=None):
     args = p.parse_args(argv)
 
     split = "heldout" if args.heldout else "dev"
-    cases = load_jsonl(golden_split_path(split, allow_heldout=args.heldout))
+    cases = load_jsonl(golden_split_path(split, allow_heldout=args.heldout, golden_dir=GOLDEN_DIR))
     result = _run_real(cases, max_iterations=args.max_iterations)
     if result is None:
         return 2

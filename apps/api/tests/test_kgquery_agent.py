@@ -10,8 +10,8 @@ in-memory: no network, no key, no Neo4j.
 from __future__ import annotations
 
 from app.kgquery.agent import Neo4jKgData, run_kg_query
+from app.kgquery.budget import InMemoryBudgetGuard
 from app.kgquery.validate import validate_static
-from app.nlsql.budget import InMemoryBudgetGuard
 from tests.test_kgquery_graph_card import make_card
 
 CARD = make_card()
@@ -152,7 +152,34 @@ async def test_refusal_contract_skips_reconsider():
     assert model.calls == 1
 
 
+async def test_refusal_with_trailing_semicolon_still_skips_reconsider():
+    # The validator tolerates one trailing ';' — the refusal check must too, or
+    # an honest refusal burns a reconsider call.
+    model = FakeCypherModel(responses=["RETURN NULL LIMIT 0;"])
+    result = await run_kg_query("q", data=FakeKgData(empty=True), model=model)
+    assert result["fallback"] is False
+    assert result["row_count"] == 0
+    assert result["iterations"] == 1
+    assert model.calls == 1
+
+
 # --- graph-unreachable degrade (the P3-specific edge) -------------------------
+
+
+async def test_broken_graph_card_degrades_like_graph_down():
+    # A missing/unreadable schema yaml is a service problem, not a bad question:
+    # no "try rephrasing" hint, no model call, budget untouched.
+    class BrokenCardData(FakeKgData):
+        def graph_card(self):
+            raise RuntimeError("schema yaml unreadable")
+
+    model = FakeCypherModel(responses=[VALID_CYPHER])
+    guard = InMemoryBudgetGuard(daily_limit_usd=100.0)
+    result = await run_kg_query("q", data=BrokenCardData(), model=model, guard=guard)
+    assert result["fallback"] is True
+    assert result["graph_available"] is False
+    assert model.calls == 0
+    assert guard.spent() == 0.0
 
 
 async def test_graph_unreachable_degrades_without_model_call():
