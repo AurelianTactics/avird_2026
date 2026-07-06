@@ -36,7 +36,7 @@ The pieces, the same five-dimension story:
 
 ## Infrastructure decision (2026-07-02): Neo4j CE on Railway
 
-Replaces the AuraDB Free assumption. Aura Free's 72h idle pause / eventual deletion was the worst operational risk for a learning project touched in bursts; a small always-on CE container (~512M heap + volume, ~$2–5/mo) on the same platform as everything else removes it. The `api` reaches it over Railway's private network; local dev uses the public TCP proxy (unencrypted bolt + strong password — accepted for a rebuildable graph of public NHTSA data; toggle the proxy off between sessions). `ontology/graph_load.py` needed **zero code changes** — it reads `NEO4J_URI`/`NEO4J_USERNAME`/`NEO4J_PASSWORD` as-is. Coverage honesty: the graph holds the ~143-incident extraction subgraph, so `/kg` answers will disagree with `/nlsql` counts — hence the persistent banner instead of pretending parity.
+Replaces the AuraDB Free assumption. Aura Free's 72h idle pause / eventual deletion was the worst operational risk for a learning project touched in bursts; a small always-on CE container (~512M heap + volume, ~$2–5/mo) on the same platform as everything else removes it. Provisioning is one click via Railway's official template (see the runbook below) — Railway has no managed Neo4j the way it has Postgres, so template or not, what runs is the official `neo4j:5.x-community` Docker image. The `api` reaches it over Railway's private network; local dev uses the public TCP proxy (unencrypted bolt + strong password — accepted for a rebuildable graph of public NHTSA data; toggle the proxy off between sessions). `ontology/graph_load.py` needed **zero code changes** — it reads `NEO4J_URI`/`NEO4J_USERNAME`/`NEO4J_PASSWORD` as-is. Coverage honesty: the graph holds the ~143-incident extraction subgraph, so `/kg` answers will disagree with `/nlsql` counts — hence the persistent banner instead of pretending parity.
 
 ## Golden numbers
 
@@ -48,7 +48,18 @@ python tools/eval_kgquery.py   # writes tools/results/kgquery-eval-dev.{json,md}
 
 Record the dev numbers here (accuracy, mean answer-set F1, refusal precision, mean iterations), and sanity-check the hand-written gold Cypher against the loaded subgraph first (`golden/kgquery/README.md` has the caveat: it was authored from the schema before the graph existed, so value spellings may need adjusting).
 
+## U13 runbook — the human console steps (pending)
+
+1. Deploy Railway's official Neo4j template — <https://railway.com/deploy/neo4j-graph-database> — **into the existing `avird-2026` project** (same private network as `api`). It runs `neo4j:5.x-community` with a `/data` volume and the bolt TCP proxy pre-wired. At the prompts: `NEO4J_AUTH=neo4j/<strong-password>`; leave `NEO4J_PLUGINS` empty (the validator rejects `CALL`, so APOC would be unused attack surface).
+2. Add the optional memory vars on the service: `NEO4J_server_memory_heap_max__size=512m`, `NEO4J_server_memory_pagecache_size=128m`. Note the TCP-proxy `<host>:<port>` Railway assigns.
+3. Set in the root `.env` **and** `apps/api/.env`: `NEO4J_URI=bolt://<proxy-host>:<proxy-port>` (plain `bolt://` — the proxy doesn't terminate TLS), `NEO4J_USERNAME=neo4j`, `NEO4J_PASSWORD=…`.
+4. Copy from the `avird-2026-ontology-v001` checkout: `ontology/artifacts/extractions/*.jsonl` **and** `ontology/artifacts/runs/*.summary.json` (the loader refuses an artifact without its run summary).
+5. From the ontology sidecar env: `python ontology/graph_load.py` (add `--reset --yes` when re-running), then `--counts-only` to verify.
+6. On the `api` Railway service: `NEO4J_URI=bolt://neo4j.railway.internal:7687` + the same credentials (and `KGQUERY_DAILY_BUDGET_USD` if not the `$2` default).
+7. Verify end-to-end: restart the local stack, run `python -m app.kgquery.cli "which companies had pedestrian incidents?"`, load `/kg` — the unreachable banner should be gone.
+8. Sanity-check the gold Cypher against the loaded subgraph (`golden/kgquery/README.md`), run `python tools/eval_kgquery.py`, and record the dev numbers in the *Golden numbers* section above. Fill the `TODO(human)` in `ontology/CLAUDE.md` with the proxy address + memory settings. Toggle the TCP proxy off at session end.
+
 ## What's deferred
 
-- **U13 console steps** — provisioning the Railway Neo4j CE service, copying the extraction artifacts from the `avird-2026-ontology-v001` checkout, and rebuilding the graph. Documented in `docs/conventions/stack.md` ("Knowledge-graph queries") and `ontology/CLAUDE.md`.
+- **The U13 runbook above** — the only human-console work left in P3.
 - **P4 (router) and P5 (hybrid)** stay directional in the plan until P3 is live and the golden numbers exist.
