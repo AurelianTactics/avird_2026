@@ -9,6 +9,10 @@ the file is frozen, so this is cheap and can't flake.
 
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
+
 from app.kgquery.graph_card import SCHEMA_PATH, load_graph_card, parse_graph_card
 
 SCHEMA_DICT = {
@@ -69,11 +73,26 @@ def test_real_committed_schema_loads_and_memoizes():
     assert "Incident" in card.allowed_labels
     assert "INVOLVES" in card.allowed_relationships
     assert len(card.patterns) > 50
-    assert SCHEMA_PATH.name == "v001.yaml"
+    # Vendored next to the module so the deployed image (Root Directory
+    # apps/api, no ontology/ subtree) can load it.
+    assert SCHEMA_PATH.name == "schema_v001.yaml"
+    assert SCHEMA_PATH.parent.name == "kgquery"
+
+
+def test_vendored_schema_matches_ontology_original():
+    """Drift guard: the vendored copy must stay byte-identical to the frozen
+    ontology/schema/v001.yaml. Skips outside the dev checkout (deployed image
+    carries only apps/api)."""
+    original = Path(__file__).resolve().parents[3] / "ontology" / "schema" / "v001.yaml"
+    if not original.exists():
+        pytest.skip("ontology/schema/v001.yaml not present (not a repo checkout)")
+    assert SCHEMA_PATH.read_bytes() == original.read_bytes(), (
+        "apps/api/app/kgquery/schema_v001.yaml has drifted from "
+        "ontology/schema/v001.yaml — re-copy the frozen schema (a schema revision "
+        "means a new v002 file, not an edit; see ontology/CLAUDE.md)."
+    )
 
 
 def test_missing_schema_file_raises_setup_hint(tmp_path):
-    import pytest
-
     with pytest.raises(RuntimeError, match="ontology schema not found"):
         load_graph_card(tmp_path / "nope.yaml")

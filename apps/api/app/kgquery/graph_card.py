@@ -10,9 +10,15 @@ card and allow-list can never drift because they come from one read.
 
 This module parses the yaml **directly with pyyaml** and never imports ontology
 modules (the same isolation call as P2's vendored cosine: the api stays free of
-the ontology sidecar env). The schema file is committed and frozen
-(``schema/drafts/`` discipline), so reading it at startup from a repo-relative
-path is stable; a module-level memo makes repeat loads free.
+the ontology sidecar env). The schema is read from a **vendored copy** next to
+this module (``schema_v001.yaml``) rather than from the repo-relative
+``ontology/schema/v001.yaml``: the Railway service's Root Directory is
+``apps/api``, so the deployed image carries only that subtree — a repo-root
+path neither resolves (``parents[4]`` past ``/app`` crashed startup) nor would
+find the file. The schema is frozen (``schema/drafts/`` discipline), so the
+copy can't drift in practice, and ``tests/test_kgquery_graph_card.py`` pins it
+byte-identical to the ontology original when run from the dev checkout. A
+module-level memo makes repeat loads free.
 
 Mirrors ``app/nlsql/schema_card.py`` (card + allow-list dual output, memo).
 """
@@ -24,9 +30,8 @@ from pathlib import Path
 
 import yaml
 
-# apps/api/app/kgquery/graph_card.py -> repo root is four levels up from app/.
-REPO_ROOT = Path(__file__).resolve().parents[4]
-SCHEMA_PATH = REPO_ROOT / "ontology" / "schema" / "v001.yaml"
+# Vendored, frozen copy of ontology/schema/v001.yaml (see module docstring).
+SCHEMA_PATH = Path(__file__).resolve().with_name("schema_v001.yaml")
 
 # Every loaded node carries these two properties regardless of label —
 # graph_load.py merges on `key` and always sets `name` from the extraction.

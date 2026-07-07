@@ -30,7 +30,12 @@ import sys
 from pathlib import Path
 from typing import Any
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
+# apps/api/app/rag/ingest.py -> repo root is four levels up in the dev checkout.
+# The deployed image roots at apps/api (only ~3 levels deep), so a bare
+# parents[4] raises IndexError at import time; clamp so importing this module is
+# safe anywhere — the offline build paths below simply won't exist there.
+_ANCESTORS = Path(__file__).resolve().parents
+REPO_ROOT = _ANCESTORS[min(4, len(_ANCESTORS) - 1)]
 EDA_DIR = REPO_ROOT / "eda"
 DATA_DIR = REPO_ROOT / "data" / "nhtsa"
 CSV_GLOB = "SGO-2021-01_Incident_Reports_ADS*.csv"

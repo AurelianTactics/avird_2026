@@ -202,7 +202,17 @@ def get_neo4j_driver() -> Any:
                 )
             import neo4j
 
-            _DRIVER = neo4j.GraphDatabase.driver(uri, auth=(username, password))
+            # Tight timeouts so an unreachable graph degrades in seconds, not
+            # the driver defaults' 30s connect + 30s retry window — /kg page
+            # loads call /kgquery/status every render and must not hang on the
+            # down-graph path. Railway private-network connects are millisecond
+            # -fast and the queries are small reads, so 5s is generous.
+            _DRIVER = neo4j.GraphDatabase.driver(
+                uri,
+                auth=(username, password),
+                connection_timeout=5.0,
+                max_transaction_retry_time=5.0,
+            )
     return _DRIVER
 
 
