@@ -1,0 +1,12 @@
+# kgquery-eval-dev
+
+| metric | value |
+|---|---|
+| accuracy | 0.3333 |
+| mean_answer_set_f1 | 0.5537 |
+| mean_iterations | 1.5714 |
+| n | 14 |
+| n_answerable | 12 |
+| n_unanswerable | 2 |
+| refusal_precision | 1.0 |
+| refusal_recall | 1.0 |

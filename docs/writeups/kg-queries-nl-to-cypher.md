@@ -40,17 +40,23 @@ Replaces the AuraDB Free assumption. Aura Free's 72h idle pause / eventual delet
 
 ## Golden numbers
 
-*Pending the Railway Neo4j provisioning (the U13 human step) — the harness is ready but needs the live graph.* Once the graph is up:
+Dev split, first live run (2026-07-06, graph at 2,257 nodes / 3,153 relationships from the 2026-06-18 extraction):
 
-```bash
-python tools/eval_kgquery.py   # writes tools/results/kgquery-eval-dev.{json,md}
-```
+| metric | value |
+|--------|-------|
+| accuracy (exact answer-set match) | 0.3333 |
+| mean answer-set F1 | 0.5537 |
+| refusal precision | 1.0 |
+| mean iterations | 1.5714 |
 
-Record the dev numbers here (accuracy, mean answer-set F1, refusal precision, mean iterations), and sanity-check the hand-written gold Cypher against the loaded subgraph first (`golden/kgquery/README.md` has the caveat: it was authored from the schema before the graph existed, so value spellings may need adjusting).
+Re-run: `python tools/eval_kgquery.py` (writes `tools/results/kgquery-eval-dev.{json,md}`; needs `NEO4J_*` + `ANTHROPIC_API_KEY` in the process env — the app never loads dotenv itself).
 
-## U13 runbook — the human console steps (pending)
+Gold-Cypher sanity check (per `golden/kgquery/README.md`): the extraction stores `is_subject_vehicle` as the **strings** `'true'`/`'false'`, not booleans — the four gold queries matching `{is_subject_vehicle: true}` returned empty/zero answers until adjusted to `'true'`/`'false'` (dev rows 3 and 11, held-out rows 1 and 6, fixed 2026-07-06). After the fix all 12 answerable dev queries return rows.
 
-1. Deploy Railway's official Neo4j template — <https://railway.com/deploy/neo4j-graph-database> — **into the existing `avird-2026` project** (same private network as `api`). It runs `neo4j:5.x-community` with a `/data` volume and the bolt TCP proxy pre-wired. At the prompts: `NEO4J_AUTH=neo4j/<strong-password>`; leave `NEO4J_PLUGINS` empty (the validator rejects `CALL`, so APOC would be unused attack surface).
+## U13 runbook — the human console steps (completed 2026-07-06)
+
+1. Deploy Railway's official Neo4j template — <https://railway.com/deploy/neo4j-graph-database> — **into the existing `avird-2026` project** (same private network as `api`). It runs `neo4j:5.x-community` with a `/data` volume. At the prompts: `NEO4J_AUTH=neo4j/<strong-password>` (password **must be ≥ 8 chars** or startup aborts); leave `NEO4J_PLUGINS` empty (the validator rejects `CALL`, so APOC would be unused attack surface).
+   - **Sharp edge (bit us on first deploy):** the template is *not* proxy-pre-wired — it sets `NEO4J_server_bolt_advertised__address=${{RAILWAY_TCP_PROXY_DOMAIN}}:${{RAILWAY_TCP_PROXY_PORT}}` but doesn't create the TCP proxy, so those resolve empty and Neo4j crash-loops with `Configured socket address ... ":" does not conform`. Fix: create the TCP proxy (Settings → Networking → TCP Proxy, application port 7687) *before* the first deploy, or just delete the `NEO4J_server_bolt_advertised__address` variable — direct `bolt://` connections (which is all we use) never read the advertised address.
 2. Add the optional memory vars on the service: `NEO4J_server_memory_heap_max__size=512m`, `NEO4J_server_memory_pagecache_size=128m`. Note the TCP-proxy `<host>:<port>` Railway assigns.
 3. Set in the root `.env` **and** `apps/api/.env`: `NEO4J_URI=bolt://<proxy-host>:<proxy-port>` (plain `bolt://` — the proxy doesn't terminate TLS), `NEO4J_USERNAME=neo4j`, `NEO4J_PASSWORD=…`.
 4. Copy from the `avird-2026-ontology-v001` checkout: `ontology/artifacts/extractions/*.jsonl` **and** `ontology/artifacts/runs/*.summary.json` (the loader refuses an artifact without its run summary).
@@ -61,5 +67,4 @@ Record the dev numbers here (accuracy, mean answer-set F1, refusal precision, me
 
 ## What's deferred
 
-- **The U13 runbook above** — the only human-console work left in P3.
-- **P4 (router) and P5 (hybrid)** stay directional in the plan until P3 is live and the golden numbers exist.
+- **P4 (router) and P5 (hybrid)** stay directional in the plan until P3 is live and the golden numbers exist. (U13 completed 2026-07-06 — P3 is live; first golden numbers recorded above.)
