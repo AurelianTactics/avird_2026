@@ -18,6 +18,7 @@ budget guard) so tests run with fakes — no key, no Neo4j.
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -32,6 +33,8 @@ from .agent import (
     run_kg_query,
 )
 from .budget import BudgetGuard, get_kgquery_budget_guard
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/kgquery")
 
@@ -86,7 +89,9 @@ async def status(data: KgData = Depends(get_kg_data)) -> dict[str, Any]:
             "relationships": int(row.get("relationships") or 0),
             "card": card_payload,
         }
-    except Exception:  # noqa: BLE001 — graph down is a first-class degrade
+    except Exception as exc:  # noqa: BLE001 — graph down is a first-class degrade
+        # Exception class only — never the message (it can embed the URI/host).
+        logger.warning("kgquery: graph probe failed (%s)", type(exc).__name__)
         return {"available": False, "nodes": 0, "relationships": 0, "card": card_payload}
 
 

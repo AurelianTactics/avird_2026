@@ -12,3 +12,7 @@ sqlglot>=25
 # P2 narrative-RAG route (app/rag/) — store cosine path + query embedding.
 numpy>=1.26
 huggingface_hub>=0.24
+# P3 NL->Cypher route (app/kgquery/) — pyyaml renders the graph card (also a
+# langchain transitive dep, pinned explicitly anyway); neo4j runs read-mode Cypher.
+pyyaml>=6.0
+neo4j>=5.20
