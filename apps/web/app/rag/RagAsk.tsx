@@ -9,7 +9,6 @@ import type { RagResult } from "../lib/api";
 // down) renders as a subtle note — the page never breaks on a bad question.
 
 const EXAMPLES = [
-  "What happens when AVs encounter pedestrians?",
   "Describe rear-end collisions while stopped at a light",
   "What do the narratives say about cyclists?",
   "How do incidents at intersections unfold?",

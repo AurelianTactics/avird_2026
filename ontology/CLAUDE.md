@@ -54,14 +54,22 @@ python ontology/evaluate.py                     # 6. metrics -> results/
   into the working tree before a rebuild. Instance tuning: heap ≈512M,
   pagecache ≈128M.
   - **Provisioned 2026-07-06** (Neo4j 5.26.28 community on Railway, `avird-2026`
-    project). Local dev / loader path: TCP proxy at
-    `bolt://hayabusa.proxy.rlwy.net:18523` (toggle off between sessions — it's
-    unencrypted public bolt); prod `api` uses the private-network URI on port
-    7687. Memory vars on the service: `NEO4J_server_memory_heap_max__size=512m`,
+    project). Local dev / loader path: the public TCP proxy is **deleted between
+    uses** (2026-07-08) — the old `hayabusa.proxy.rlwy.net:18523` address is dead.
+    To run the loader/eval: recreate the proxy (Settings → Networking → TCP
+    Proxy, port 7687), put the newly assigned `bolt://<host>:<port>` in the root
+    `.env` + `apps/api/.env`, and delete the proxy after — **deleting
+    `NEO4J_server_bolt_advertised__address` first** if it reappears (a dangling
+    proxy reference crash-loops the next restart). Prod `api` uses the
+    private-network URI on port 7687; that path needs
+    `NEO4J_server_default__listen__address=::` on the service (IPv6-only private
+    network — set 2026-07-08, keep it). Memory vars on the service:
+    `NEO4J_server_memory_heap_max__size=512m`,
     `NEO4J_server_memory_pagecache_size=128m`. Credentials in the root `.env`
     and `apps/api/.env`. First load: 2,257 nodes / 3,153 relationships from
-    `extract-20260618-154522-3ad34f17.jsonl`. Deploy sharp edge (crash-loop on
-    `advertised_address ":"`): see the U13 runbook in
+    `extract-20260618-154522-3ad34f17.jsonl`. Deploy sharp edges (crash-loop on
+    `advertised_address ":"`, IPv6 listen address, requirements.txt drift): see
+    the U13 runbook + 2026-07-08 postscript in
     `docs/writeups/kg-queries-nl-to-cypher.md`.
 - **LLM cache is content-addressed**: key = sha256 of the fully rendered
   prompt + model id, one JSON file per call under `artifacts/cache/`. Any

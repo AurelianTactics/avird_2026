@@ -65,6 +65,42 @@ Gold-Cypher sanity check (per `golden/kgquery/README.md`): the extraction stores
 7. Verify end-to-end: restart the local stack, run `python -m app.kgquery.cli "which companies had pedestrian incidents?"`, load `/kg` — the unreachable banner should be gone.
 8. Sanity-check the gold Cypher against the loaded subgraph (`golden/kgquery/README.md`), run `python tools/eval_kgquery.py`, and record the dev numbers in the *Golden numbers* section above. Fill the `TODO(human)` in `ontology/CLAUDE.md` with the proxy address + memory settings. Toggle the TCP proxy off at session end.
 
+## Postscript — the 2026-07-08 prod incident (three layers deep)
+
+The first prod deploy that actually *served* `/kg` (the api had crash-looped on an
+unrelated `parents[4]` path bug until 2026-07-07) showed the graph-down banner
+permanently. Three real, independent problems were stacked on top of each other,
+in discovery order:
+
+1. **Deleting the TCP proxy (instead of toggling it off) armed the
+   advertised-address crash-loop** from the runbook's step-1 sharp edge: with the
+   proxy gone, `NEO4J_server_bolt_advertised__address=${{RAILWAY_TCP_PROXY_*}}`
+   resolves to `":"` on the next restart. Deleting that variable is now part of
+   proxy teardown; the proxy stays deleted between loads and gets recreated (new
+   host:port → update local `.env`) only when a rebuild/eval needs it.
+2. **Neo4j listened on IPv4 only while Railway's private network is
+   IPv6-only.** The image default (`0.0.0.0`) means
+   `bolt://neo4j.railway.internal:7687` is refused even when Neo4j is healthy —
+   the same `--host ::` lesson as the web/api Procfiles
+   (`docs/solutions/tooling-decisions/railway-monorepo-deploy-gotchas-2026-05-05.md`).
+   Fix: `NEO4J_server_default__listen__address=::` on the Neo4j service; startup
+   log confirms with `Bolt enabled on [0:0:0:0:0:0:0:0]:7687`. Note the runbook's
+   step-7 "verify end-to-end" only ever exercised the **proxy** leg (local stack)
+   — the private-network leg was first exercised by this incident.
+3. **The deployed api had no `neo4j` package at all** — the P3 deps (`neo4j`,
+   `pyyaml`) were added to `pyproject.toml` but never mirrored into
+   `requirements.txt`, which is what the Railway builder installs (gotchas doc,
+   rule 2). `pyyaml` arrived transitively via langchain so the api *booted*;
+   every graph touch then died on `ModuleNotFoundError`, swallowed by the
+   degrade path. Diagnosed by `railway ssh` into the api container (`python3 -c
+   "import neo4j"`); fixed in `5dca3b0`, which also added a sanitized
+   `kgquery: graph probe failed (<ExceptionClass>)` log line so the next silent
+   degrade names itself.
+
+Layers 1–2 were config fixed in the Railway console; layer 3 was the one in the
+repo. After all three: status shows the live counts, and the live agent answers
+competency questions (verified end-to-end 2026-07-08).
+
 ## What's deferred
 
 - **P4 (router) and P5 (hybrid)** stay directional in the plan until P3 is live and the golden numbers exist. (U13 completed 2026-07-06 — P3 is live; first golden numbers recorded above.)
