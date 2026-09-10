@@ -1,6 +1,8 @@
 # avird-2026
 
-A learning-by-building project over NHTSA's Standing General Order on Crash Reporting (autonomous-vehicle crash data). The site ingests, explores, models, and lets you "talk to" the dataset — and the build workflow itself (slash commands, hooks, evals, agents) is part of what's being learned. Stack: Next.js + FastAPI + Postgres on Railway.
+https://avird.up.railway.app/
+
+A learn-by-building project using autonmous vehicle crash data [NHTSA's Standing General Order on Crash Reporting](https://www.nhtsa.gov/laws-regulations/standing-general-order-crash-reporting). The site ingests, explores, models, and lets you "talk to" the dataset. Lean and build the workflow with skills, hooks, evals, and agents. Stack: Next.js + FastAPI + Postgres on Railway. Analysis and agentic systems in Python. Autonomous Vehicle Incident Report Data (AVIRD).
 
 ## Run locally
 
